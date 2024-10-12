@@ -32,22 +32,17 @@ Follow these steps to set up the project environment after you have cloned this 
    uv pip install -r requirements.txt
    ```
 
-5. **Navigate to the source directory:**
+5. **Run the Streamlit application:**
    ```bash
-   cd src/
-   ```
-
-6. **Run the Streamlit application:**
-   ```bash
-   streamlit run app.py
+   streamlit run src/app.py
    ```
 
 ## Development Instructions
 
 1. **Code Linting and Formatting:**
    ```bash
-   ruff check
-   ruff format
+   ruff check src
+   ruff format src
    ```
 
 
