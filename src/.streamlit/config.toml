@@ -1,0 +1,23 @@
+[server]
+runOnSave = true
+baseUrlPath = ""
+port = 8501
+maxUploadSize = 1000000
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+# base="light"
+# primaryColor = "#61afef"
+# backgroundColor = "#ffffff"
+# secondaryBackgroundColor = "#f0f2f6"
+# textColor = "#31333f"
+# font = "sans serif"
+
+base="dark"
+primaryColor = "#61afef"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#282c34"
+textColor = "#abb2bf"
+font = "sans serif"
