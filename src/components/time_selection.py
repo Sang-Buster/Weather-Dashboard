@@ -28,16 +28,16 @@ def time_selection_component():
 
     with col1:
         st.markdown(
-            "Location: 60ft up on a light pole @ [here](https://maps.app.goo.gl/noC7dszEV9brfdxy8)"
+            "**Location**: 60ft up on a light pole @ [here](https://maps.app.goo.gl/noC7dszEV9brfdxy8)"
         )
 
     with col2:
         if not df.empty:
             first_update = df["tNow"].min().strftime("%m/%d/%Y %H:%M:%S")
             last_update = df["tNow"].max().strftime("%m/%d/%Y %H:%M:%S")
-            st.markdown(f"Data Range: [{first_update}] - [{last_update}]")
+            st.markdown(f"**Data Range**: {first_update} - {last_update}")
         else:
-            st.markdown("Data Range: N/A")
+            st.markdown("**Data Range**: N/A")
 
     # Unpack the selected dates
     if len(selected_dates) == 2:

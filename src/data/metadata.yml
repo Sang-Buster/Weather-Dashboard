@@ -1,7 +1,7 @@
 # Weather Data Metadata
 
 file_format: CSV
-time_zone: UTC  # Assuming the timestamps are in UTC
+time_zone: ET
 
 columns:
   - name: tNow
@@ -33,9 +33,10 @@ columns:
     unit: degrees
     range: 0 to 360
 
-  - name: Elev_m
+  - name: Elev_deg
     description: Elevation angle of the wind vector
-    unit: meters
+    unit: degrees
+    range: -90 to 90
 
   - name: Press_Pa
     description: Atmospheric pressure
@@ -55,10 +56,12 @@ columns:
     unit: degrees Celsius
 
   - name: Error
-    description: Error value or code (purpose not specified)
-    unit: unknown
+    description: Error value from the Anemometer
+    unit: meters per second
+    notes:
+      - "Non-zero values indicate unreliable data for that row"
+      - "Corresponds to the u_m_s value when an error occurs"
 
 notes:
   - "Wind components (u, v, w) follow meteorological convention: positive u is eastward wind, positive v is northward wind, positive w is upward wind"
-  - "Azimuth_deg is likely measured clockwise from north"
-  - "The purpose and scale of the Error column should be clarified"
+  - "Azimuth_deg is measured clockwise from north"
