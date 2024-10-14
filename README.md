@@ -5,7 +5,7 @@
 This project is a web application built with Streamlit that visualizes weather data, specifically focusing on wind data. It provides interactive controls and visualizations to help users understand [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) behavior under various conditions.
 
 <div align="center">
-  <img src="RRADME.assets/banner.png" alt="Weather Dashboard Banner" width="100%">
+  <img src=".assets/banner.png" alt="Weather Dashboard Banner" width="100%">
 </div>
 
 ## Setup Instructions
