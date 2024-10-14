@@ -21,7 +21,7 @@ def time_selection_component():
         (default_start_date, default_end_date),
         min_value=min_date,
         max_value=max_date,
-        format="MM.DD.YYYY",
+        format="MM/DD/YYYY",
     )
 
     col1, col2 = st.columns([1, 1])
@@ -32,8 +32,12 @@ def time_selection_component():
         )
 
     with col2:
-        last_updated = df["tNow"].max() if not df.empty else "N/A"
-        st.markdown(f"Last Updated: {last_updated}")
+        if not df.empty:
+            first_update = df["tNow"].min().strftime("%m/%d/%Y %H:%M:%S")
+            last_update = df["tNow"].max().strftime("%m/%d/%Y %H:%M:%S")
+            st.markdown(f"Data Range: [{first_update}] - [{last_update}]")
+        else:
+            st.markdown("Data Range: N/A")
 
     # Unpack the selected dates
     if len(selected_dates) == 2:

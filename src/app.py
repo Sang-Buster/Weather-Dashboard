@@ -7,6 +7,7 @@ from components.wind_time_series import wind_time_series_component
 from components.env_time_series import environmental_time_series_component
 from components.time_selection import time_selection_component
 
+
 # Add the project root directory to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, project_root)
