@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # Read the CSV file
-df = pd.read_csv("src/data/current_weather_data_logfile.csv")
+df = pd.read_csv("src/data/2024_10_08_weather_station_data.csv")
 
 # Convert tNow to datetime
 df["tNow"] = pd.to_datetime(df["tNow"])
@@ -37,3 +37,16 @@ for column, data in stats.items():
 # Calculate time range
 time_range = df["tNow"].max() - df["tNow"].min()
 print(f"\nTime range: {time_range}")
+
+# Check for errors
+error_rows = df[df["Error"] > 0.0]
+total_errors = len(error_rows)
+
+print(f"\nTotal number of errors: {total_errors}")
+
+if total_errors > 0:
+    print("\nError details:")
+    for index, row in error_rows.iterrows():
+        print(f"Row {index + 2}: Time = {row['tNow']}, Error value = {row['Error']}")
+else:
+    print("No errors found in the dataset.")

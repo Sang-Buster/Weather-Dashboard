@@ -8,13 +8,14 @@ This project is a web application built with Streamlit that visualizes weather d
   <img src=".assets/banner.png" alt="Weather Dashboard Banner" width="100%">
 </div>
 
+
 ## Setup Instructions
 
 Follow these steps to set up the project environment after you have cloned this repo:
 
 1. **Create a new conda environment:**
    ```bash
-   conda create -n tmp python=3.10 -y
+   conda create -n tmp python=3.12 -y
    ```
 
 2. **Activate the conda environment:**

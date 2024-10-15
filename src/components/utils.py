@@ -1,12 +1,22 @@
 import pandas as pd
 import streamlit as st
+from pymongo import MongoClient
 
 
-@st.cache_data
+@st.cache_resource
+def init_connection():
+    return MongoClient(st.secrets["mongo_atlas"]["uri"])
+
+
+@st.cache_data(show_spinner="Loading data...")
 def load_data():
-    return pd.read_csv(
-        "src/data/current_weather_data_logfile.csv", parse_dates=["tNow"]
-    )
+    client = init_connection()
+    db = client["weather_dashboard"]
+    collection = db["weather_data"]
+    data = list(collection.find({}, {"_id": 0}))
+    df = pd.DataFrame(data)
+    df["tNow"] = pd.to_datetime(df["tNow"])
+    return df
 
 
 def filter_data(df, start_date, end_date):
