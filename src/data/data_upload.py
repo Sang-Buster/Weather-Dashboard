@@ -7,7 +7,7 @@ import streamlit as st
 
 
 def connect_to_mongodb():
-    client = MongoClient(st.secrets["mongo_atlas"]["uri"])
+    client = MongoClient(st.secrets["mongo"]["uri"])
     db = client["weather_dashboard"]
 
     # Check if the collection exists, if not, create it as a time series collection

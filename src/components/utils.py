@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 @st.cache_resource
 def init_connection():
-    return MongoClient(st.secrets["mongo_atlas"]["uri"])
+    return MongoClient(st.secrets["mongo"]["uri"])
 
 
 @st.cache_data(show_spinner="Loading data...")
