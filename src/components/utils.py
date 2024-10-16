@@ -15,7 +15,8 @@ def load_data():
     collection = db["weather_data"]
     data = list(collection.find({}, {"_id": 0}))
     df = pd.DataFrame(data)
-    df["tNow"] = pd.to_datetime(df["tNow"])
+    if not df.empty:
+        df["tNow"] = pd.to_datetime(df["tNow"])
     return df
 
 

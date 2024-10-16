@@ -7,6 +7,12 @@ def time_selection_component():
     # Load the data
     df = load_data()
 
+    if df.empty:
+        st.error("""The database is empty. Please upload some data in the following format to get started.
+
+    df = pd.DataFrame(columns=["tNow", "u_m_s", "v_m_s", "w_m_s", "2dSpeed_m_s", "3DSpeed_m_s", "Azimuth_deg", "Elev_deg", "Press_Pa", "Temp_C", "Hum_RH", "SonicTemp_C", "Error"])""")
+        return st.stop()
+
     # Get the date range from the data
     min_date = df["tNow"].min().date()
     max_date = df["tNow"].max().date()
@@ -32,12 +38,9 @@ def time_selection_component():
         )
 
     with col2:
-        if not df.empty:
-            first_update = df["tNow"].min().strftime("%m/%d/%Y %H:%M:%S")
-            last_update = df["tNow"].max().strftime("%m/%d/%Y %H:%M:%S")
-            st.markdown(f"**Data Range**: {first_update} - {last_update}")
-        else:
-            st.markdown("**Data Range**: N/A")
+        first_update = df["tNow"].min().strftime("%m/%d/%Y %H:%M:%S")
+        last_update = df["tNow"].max().strftime("%m/%d/%Y %H:%M:%S")
+        st.markdown(f"**Data Range**: {first_update} - {last_update}")
 
     # Unpack the selected dates
     if len(selected_dates) == 2:
