@@ -8,7 +8,7 @@ def init_connection():
     return MongoClient(st.secrets["mongo"]["uri"])
 
 
-@st.cache_data(show_spinner="Loading data...")
+@st.cache_data(ttl=30, show_spinner="Loading data...")
 def load_data():
     client = init_connection()
     db = client["weather_dashboard"]
