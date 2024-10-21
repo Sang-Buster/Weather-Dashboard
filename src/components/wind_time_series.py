@@ -13,6 +13,9 @@ def wind_time_series_component():
     df["tNow"] = pd.to_datetime(df["tNow"])
     df.set_index("tNow", inplace=True)
 
+    # Sort the DataFrame by the time index
+    df.sort_index(inplace=True)
+
     # Convert wind speed columns from m/s to mph
     speed_columns = ["2dSpeed_m_s", "3DSpeed_m_s", "u_m_s", "v_m_s", "w_m_s"]
     for col in speed_columns:
