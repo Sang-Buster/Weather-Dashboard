@@ -45,14 +45,16 @@ We propose to develop a comprehensive weather analysis dashboard focused on Hurr
 
 ### Statistical Analysis Plan
 1. **Exploratory Data Analysis**
-   - Basic statistical measures
-   - Time series decomposition
-   - Correlation analysis between variables
+   - Descriptive statistics of all environmental parameters
+   - Temporal analysis of wind patterns during hurricane phases
+   - Distribution analysis of key variables
+   - Correlation analysis between environmental parameters
 
-2. **Machine Learning Approaches**
-   - Time series forecasting models
-   - Pattern recognition in wind behavior
-   - Anomaly detection during hurricane conditions
+2. **Factor Analysis**
+   - Principal Component Analysis (PCA) to identify main contributing factors
+   - Investigation of relationships between wind behavior and other environmental variables
+   - Statistical significance testing of observed patterns
+   - Quantification of hurricane impact on local weather parameters
 
 ## Technology Stack
 - **Frontend**: Streamlit
@@ -67,41 +69,36 @@ We propose to develop a comprehensive weather analysis dashboard focused on Hurr
 3. Open-source codebase for community contribution
 4. Research findings on hurricane wind patterns
 
-## Timeline
-
-### Phase 1 (Completed: Prior to Nov 18)
-- Basic dashboard implementation
-- Data collection infrastructure
-- Initial exploratory analysis
-
 ### Phase 2 (Nov 18-22)
 - **Monday, Nov 18**
-  - Advanced statistical analysis implementation
-  - Begin machine learning model development
+  - Begin comprehensive data cleaning and preprocessing
+  - Initial descriptive statistics analysis
+  - Setup correlation analysis framework
   
 - **Tuesday, Nov 19**
-  - Continue model development
-  - Start pattern recognition implementation
+  - Complete correlation analysis between environmental parameters
+  - Begin Principal Component Analysis (PCA)
   - Begin drafting project report introduction and methods sections
 
 - **Wednesday, Nov 20**
-  - Model testing and validation
+  - Complete PCA and factor interpretation
+  - Analyze temporal patterns in environmental variables
   - Begin presentation slide creation
   - Continue project report writing (results section)
 
 - **Thursday, Nov 21**
-  - Finalize initial models
+  - Statistical significance testing of observed relationships
   - Complete first draft of presentation slides
   - Continue project report writing (discussion section)
 
 - **Friday, Nov 22**
-  - Model refinement based on initial results
+  - Finalize statistical analysis and visualizations
   - Internal team presentation review
   - Project report peer review
 
 ### Phase 3 (Nov 25-26)
 - **Monday, Nov 25**
-  - Final model optimization
+  - Final refinement of statistical findings
   - Finalize presentation slides
   - Complete project report draft
   - Team rehearsal for presentation
