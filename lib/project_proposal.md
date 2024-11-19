@@ -114,9 +114,9 @@ We propose to develop a comprehensive weather analysis dashboard focused on Hurr
 - **Data Storage**: MongoDB time series database
 - **Computing Resources**: Cloud-based deployment
 - **Team Members**: 
-  - Sarah R.Reed (Author)
-  - Xu Xiong (Author)
-  - Sang Xing (Software &  set-up Author)
+  - Sarah R.Reed (Project Presentation & Report Author)
+  - Xu Xiong (Project Presentation & Report Author)
+  - Sang Xing (Software & Hardware set-up Author)
   - Kaleb Nails (Hardware set-up Contributor)
   - Marc Compere (Hardware set-up Contributor)
   - Avinash Muthu Krishnan (Hardware set-up Contributor)
