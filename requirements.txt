@@ -3,4 +3,4 @@ streamlit
 pandas
 numpy
 plotly
-pymongo[srv]
+pymongo
