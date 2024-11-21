@@ -1,6 +1,10 @@
 ruff
-streamlit
-pandas
 numpy
+pandas
+matplotlib
+seaborn
 plotly
+scipy
+scikit-learn
 pymongo
+streamlit
