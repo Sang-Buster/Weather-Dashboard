@@ -1,10 +1,19 @@
+# Code Quality
 ruff
+
+# Core Data Science
 numpy
 pandas
+scipy
+scikit-learn
+
+# Visualization
 matplotlib
 seaborn
 plotly
-scipy
-scikit-learn
-pymongo
+
+# Web App
 streamlit
+
+# Database
+pymongo
