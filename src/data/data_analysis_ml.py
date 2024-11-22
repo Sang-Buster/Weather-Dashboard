@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold
 import os
 from sklearn.ensemble import RandomForestClassifier
+import json
 
 
 def load_and_prepare_data(file_path, wind_threshold):
@@ -30,13 +31,11 @@ def load_and_prepare_data(file_path, wind_threshold):
     df["hour"] = df["tNow"].dt.hour
     df["day"] = df["tNow"].dt.day
 
-    # Calculate 3D wind speed
-    df["3dSpeed_m_s"] = np.sqrt(df["u_m_s"] ** 2 + df["v_m_s"] ** 2 + df["w_m_s"] ** 2)
-
+    # No need to recalculate 3D wind speed as it's already in the dataset
     selected_features = ["Press_Pa", "Elev_deg", "day", "Temp_C", "Hum_RH"]
 
-    # Create target variable
-    df["target"] = (df["3dSpeed_m_s"] >= wind_threshold).astype(int)
+    # Create target variable using the existing 3D speed column
+    df["target"] = (df["3DSpeed_m_s"] >= wind_threshold).astype(float)
 
     print(f"\nThreshold: {wind_threshold:.2f} m/s")
     print("\nClass Distribution:")
@@ -330,6 +329,65 @@ def evaluate_models(X_train, X_test, y_train, y_test, lr_model, dt_model, rf_mod
     return results
 
 
+def save_plot_data(lr_model, dt_model, rf_model, X_test, y_test, threshold):
+    """Save ROC and PR curve data"""
+    plot_data = {}
+
+    # Get predictions
+    lr_probs = lr_model.predict_proba(X_test)[:, 1]
+    dt_probs = dt_model.predict_proba(X_test)[:, 1]
+    rf_probs = rf_model.predict_proba(X_test)[:, 1]
+
+    # Save ROC curve data
+    for name, probs in [("LR", lr_probs), ("DT", dt_probs), ("RF", rf_probs)]:
+        # ROC curve data
+        fpr, tpr, _ = roc_curve(y_test, probs)
+        auc_score = roc_auc_score(y_test, probs)
+        plot_data[f"{name}_ROC"] = {
+            "fpr": fpr.tolist(),
+            "tpr": tpr.tolist(),
+            "auc_score": float(auc_score),
+        }
+
+        # PR curve data
+        precision, recall, _ = precision_recall_curve(y_test, probs)
+        ap_score = average_precision_score(y_test, probs)
+        plot_data[f"{name}_PR"] = {
+            "precision": precision.tolist(),
+            "recall": recall.tolist(),
+            "ap_score": float(ap_score),
+        }
+
+    # Save to file
+    with open("src/data/ml_plot_data.json", "w") as f:
+        json.dump(plot_data, f)
+
+
+def save_prediction_data(df, lr_model, dt_model, rf_model, X_scaled, threshold):
+    """Save prediction data for time series plot"""
+    prediction_data = {
+        "time_index": df["tNow"].tolist(),  # Save datetime strings
+        "actual_speed": df["3DSpeed_m_s"].tolist(),
+        "threshold": float(threshold),
+    }
+
+    # Get predictions for each model
+    for name, model in [("LR", lr_model), ("DT", dt_model), ("RF", rf_model)]:
+        predictions = model.predict(X_scaled)
+        high_wind_idx = np.where(predictions == 1)[0]
+        prediction_data[f"{name}_predictions"] = {
+            "indices": high_wind_idx.tolist(),
+            "speeds": df["3DSpeed_m_s"].iloc[high_wind_idx].tolist(),
+            "times": df["tNow"]
+            .iloc[high_wind_idx]
+            .tolist(),  # Save times for high wind predictions
+        }
+
+    # Save to file
+    with open("src/data/prediction_data.json", "w") as f:
+        json.dump(prediction_data, f)
+
+
 def main():
     # Create output directories
     os.makedirs("lib/fig/ml", exist_ok=True)
@@ -466,6 +524,9 @@ def main():
         plot_pr_curves_for_threshold(
             lr_model, dt_model, rf_model, X_test_scaled, y_test, threshold
         )
+
+        save_plot_data(lr_model, dt_model, rf_model, X_test_scaled, y_test, threshold)
+        save_prediction_data(df, lr_model, dt_model, rf_model, X_scaled, threshold)
 
     # Create results table
     results_df = pd.DataFrame(results)

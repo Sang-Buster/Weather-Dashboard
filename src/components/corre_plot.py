@@ -26,7 +26,7 @@ def correlation_plot_component():
     # Create correlation heatmap using plotly
     fig = px.imshow(
         correlation_matrix,
-        color_continuous_scale="RdBu",
+        color_continuous_scale="RdYlBu_r",
         aspect="auto",
         labels={
             "u_m_s": "U Wind",
@@ -41,12 +41,14 @@ def correlation_plot_component():
             "Azimuth_deg": "Wind Direction",
             "Elev_deg": "Elevation Angle",
         },
+        color_continuous_midpoint=0,
+        range_color=[-1, 1],
     )
 
     # Update layout
     fig.update_layout(
-        width=800,  # Increased width to accommodate more variables
-        height=800,  # Made square for better readability
+        width=800,
+        height=800,
         title={
             "text": "Correlation Plot",
             "x": 0.5,
@@ -55,7 +57,7 @@ def correlation_plot_component():
         },
         xaxis_title="",
         yaxis_title="",
-        xaxis={"tickangle": 45},  # Angle the labels for better readability
+        xaxis={"tickangle": 45},
     )
 
     # Add correlation values as text annotations
@@ -70,7 +72,7 @@ def correlation_plot_component():
                     color="black"
                     if abs(correlation_matrix.iloc[j, i]) < 0.7
                     else "white",
-                    size=8,  # Reduced font size for better fit
+                    size=8,
                 ),
             )
 

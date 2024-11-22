@@ -2,6 +2,7 @@ import streamlit as st
 import plotly.express as px
 
 
+@st.fragment
 def scatter_plot_component():
     # Load the data
     df = st.session_state.filtered_df

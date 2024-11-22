@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 
 
+@st.fragment
 def wind_time_series_component():
     # Load the data
     df = st.session_state.filtered_df

@@ -17,6 +17,7 @@ def calculate_dew_point(temp, rel_humidity):
     return (b * alpha) / (a - alpha)
 
 
+@st.fragment
 def environmental_time_series_component():
     # Load the data
     df = st.session_state.filtered_df

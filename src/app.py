@@ -10,6 +10,12 @@ from components.corre_plot import correlation_plot_component
 from components.scatter_plot import scatter_plot_component
 from components.explained_var_plot import pca_explained_variance_component
 from components.pca_biplot import pca_biplot_components
+from components.ml import (
+    roc_curve_plot_component,
+    pr_curve_plot_component,
+    predicted_plot_components,
+)
+
 
 # Add the project root directory to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -48,9 +54,14 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # Date Picker
+    ###############
+    # Date Picker #
+    ###############
     time_selection_component()
 
+    #####################
+    # EDA section title #
+    #####################
     # Wind Rose Diagram + Env Conditions Plot
     col1, col2 = st.columns(2)
     with col1:
@@ -68,8 +79,11 @@ def main():
     with col4:
         scatter_plot_component()
 
+    ####################
+    # ML section title #
+    ####################
     st.markdown(
-        "<h3 style='text-align: center;'>Machine Learning Insights</h3>",
+        "<hr><br><h2 style='text-align: center;'>🤖 Machine Learning Insights 🤖</h2>",
         unsafe_allow_html=True,
     )
 
@@ -79,6 +93,16 @@ def main():
         pca_explained_variance_component()
     with col6:
         pca_biplot_components()
+
+    # ROC + PR curves
+    col7, col8 = st.columns(2)
+    with col7:
+        roc_curve_plot_component()
+    with col8:
+        pr_curve_plot_component()
+
+    # Predictions Plot
+    predicted_plot_components()
 
 
 if __name__ == "__main__":
