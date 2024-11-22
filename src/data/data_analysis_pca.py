@@ -16,7 +16,6 @@ def load_and_prepare_data(file_path):
     # Add temporal features
     df["hour"] = df["tNow"].dt.hour
     df["day"] = df["tNow"].dt.day
-    df["month"] = df["tNow"].dt.month
 
     # Update features list
     features = [
@@ -32,7 +31,6 @@ def load_and_prepare_data(file_path):
         "SonicTemp_C",
         "hour",
         "day",
-        "month",
     ]
 
     return df, features

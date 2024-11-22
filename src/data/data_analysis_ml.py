@@ -29,7 +29,6 @@ def load_and_prepare_data(file_path, wind_threshold):
     # Add temporal features
     df["hour"] = df["tNow"].dt.hour
     df["day"] = df["tNow"].dt.day
-    df["month"] = df["tNow"].dt.month
 
     # Calculate 3D wind speed
     df["3dSpeed_m_s"] = np.sqrt(df["u_m_s"] ** 2 + df["v_m_s"] ** 2 + df["w_m_s"] ** 2)
