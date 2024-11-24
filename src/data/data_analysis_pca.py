@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import json
 
 
 def load_and_prepare_data(file_path):
@@ -55,6 +56,23 @@ def perform_pca_analysis(df, features):
         columns=[f"PC{i+1}" for i in range(len(features))],
         index=features,
     )
+
+    # Save PCA data to JSON
+    pca_data = {
+        "explained_variance_ratio": explained_variance_ratio.tolist(),
+        "cumulative_variance_ratio": cumulative_variance_ratio.tolist(),
+        "loadings": loadings.to_dict(),
+        # Add 3D biplot data
+        "biplot_data": {
+            "features": features,
+            "pc_coordinates": pca.components_[:3].T.tolist(),  # First 3 PCs for 3D
+            "explained_variance_3d": explained_variance_ratio[:3].tolist(),
+            "feature_names": features,
+        },
+    }
+
+    with open("src/data/pca_data.json", "w") as f:
+        json.dump(pca_data, f, indent=2)
 
     return pca, loadings, explained_variance_ratio, cumulative_variance_ratio
 

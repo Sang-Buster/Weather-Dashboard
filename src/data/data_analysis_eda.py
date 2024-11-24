@@ -4,6 +4,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import json
 
 
 # Read the CSV file
@@ -90,8 +91,7 @@ def create_and_save_visualizations(df, output_dir="lib/fig/eda/"):
         "edgecolor": "none",
     }
 
-    # 1. Correlation Matrix
-    plt.figure(**fig_params)
+    # Save correlation matrix to JSON
     correlation_vars = [
         "3DSpeed_m_s",
         "Azimuth_deg",
@@ -100,6 +100,13 @@ def create_and_save_visualizations(df, output_dir="lib/fig/eda/"):
         "Temp_C",
         "Hum_RH",
     ]
+    correlation_data = df[correlation_vars].corr().round(4).to_dict()
+
+    with open("src/data/correlation_data.json", "w") as f:
+        json.dump(correlation_data, f, indent=2)
+
+    # 1. Correlation Matrix
+    plt.figure(**fig_params)
     sns.heatmap(df[correlation_vars].corr(), annot=True, cmap="coolwarm")
     plt.tight_layout()
     plt.savefig(f"{output_dir}correlation_matrix.png", **save_params)
