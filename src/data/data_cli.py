@@ -21,8 +21,7 @@ COLLECTIONS_CONFIG = {
     "weather_data": {
         "timeseries": {
             "timeField": "tNow",
-            "metaField": "metadata",
-            "granularity": "seconds",
+            "granularity": "seconds"
         }
     },
     "eda_results": {},
@@ -46,10 +45,12 @@ def connect_to_mongodb() -> Any:
             "weather_data",
             timeseries={
                 "timeField": "tNow",
-                "metaField": "metadata",
                 "granularity": "seconds"
             }
         )
+    
+    # Ensure index exists (will not recreate if already exists)
+    db["weather_data"].create_index([("tNow", 1)])
     return db
 
 
@@ -195,18 +196,17 @@ def process_chunk(args):
         db = client["weather_dashboard"]
         collection = db["weather_data"]
 
-        # Convert timestamps and prepare documents
+        # Convert timestamps only, no metadata
         chunk_df["tNow"] = pd.to_datetime(chunk_df["tNow"]).dt.tz_localize('UTC')
-        documents = []
-        for _, row in chunk_df.iterrows():
-            doc = row.to_dict()
-            doc["tNow"] = doc["tNow"].to_pydatetime()
-            doc["metadata"] = {
-                "date": date,
-                "hour": doc["tNow"].hour,
-                "chunk": chunk_id
-            }
-            documents.append(doc)
+        
+        # Convert directly to documents without metadata
+        documents = chunk_df.apply(
+            lambda row: {
+                **row.to_dict(),
+                "tNow": row["tNow"].to_pydatetime()
+            }, 
+            axis=1
+        ).tolist()
 
         # Insert documents
         collection.insert_many(documents, ordered=False)
@@ -228,6 +228,20 @@ def upload_csv_to_mongodb(start_date: str, end_date: str = None, db: Any = None)
         while current <= end:
             dates.append(current.strftime("%Y_%m_%d"))
             current += timedelta(days=1)
+
+        # Clear existing data for the date range
+        collection = db["weather_data"]
+        start_datetime = start.replace(hour=0, minute=0, second=0)
+        end_datetime = (end if end_date else start).replace(hour=23, minute=59, second=59)
+        
+        # Delete documents within the date range
+        result = collection.delete_many({
+            "tNow": {
+                "$gte": start_datetime,
+                "$lte": end_datetime
+            }
+        })
+        rprint(f"[yellow]Deleted {result.deleted_count:,} existing records for selected dates[/yellow]")
 
         rprint(f"\n[bold blue]{'='*50}[/bold blue]")
         rprint(f"[bold green]Starting upload of {len(dates)} dates[/bold green]")

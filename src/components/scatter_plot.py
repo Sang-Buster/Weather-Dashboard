@@ -4,8 +4,19 @@ import plotly.express as px
 
 @st.fragment
 def scatter_plot_component():
-    # Load the data
+    # Check if filtered_df exists in session state
+    if "filtered_df" not in st.session_state:
+        st.warning("Please select a date range first.")
+        return
+    
+    # Get the filtered data
     df = st.session_state.filtered_df
+    
+    # Check if required columns exist
+    required_columns = ["Temp_C", "2dSpeed_m_s", "Hum_RH"]
+    if not all(col in df.columns for col in required_columns):
+        st.error("Required columns are missing from the dataset.")
+        return
 
     # Define available variables for plotting
     numeric_columns = [

@@ -1,45 +1,38 @@
 import pandas as pd
 import streamlit as st
 from pymongo import MongoClient
+from datetime import datetime, timedelta
 
 
 @st.cache_resource
 def init_connection():
-    return MongoClient(st.secrets["mongo"]["uri"])
+    return MongoClient(
+        st.secrets["mongo"]["uri"],
+        maxPoolSize=10,
+        minPoolSize=5,
+        maxIdleTimeMS=45000,
+        waitQueueTimeoutMS=5000 
+    )
 
 
 @st.cache_data(ttl=3600)
 def get_analysis_data(collection_name, data_type):
     """Get analysis data from MongoDB collection by type."""
     try:
-        client = MongoClient(st.secrets["mongo"]["uri"])
+        client = init_connection()
         db = client["weather_dashboard"]
         collection = db[collection_name]
 
-        # Debug: Print all documents in collection
-        print(f"\nDebug: Checking {collection_name} for {data_type}")
-        all_docs = list(collection.find({}, {"_id": 0}))
-        print(f"Found {len(all_docs)} documents:")
-        for doc in all_docs:
-            print(f"Document: {doc.get('type', 'no_type')}")
-            if "data" in doc:
-                print(f"Keys in data: {list(doc['data'].keys())}")
+        document = collection.find_one(
+            {"type": data_type},
+            {"_id": 0, "data": 1}
+        )
 
-        # Query for document with specific type
-        document = collection.find_one({"type": data_type})
-
-        if document:
-            print(f"Found document with type {data_type}")
-            if "data" in document:
-                return document["data"]
-            print("Warning: Document has no 'data' field")
-            return document  # Return the whole document if no data field
-
-        print(f"No document found with type {data_type}")
-        return None
+        if document and "data" in document:
+            return document["data"]
+        return document if document else None
 
     except Exception as e:
-        print(f"MongoDB Error: {str(e)}")
         st.error(f"Error connecting to MongoDB: {e}")
         return None
 
@@ -52,63 +45,83 @@ def load_data():
         db = client["weather_dashboard"]
         collection = db["weather_data"]
 
-        # Get min and max dates first (faster than sorting everything)
+        # First get the date range using aggregation
         pipeline = [
             {
                 "$group": {
                     "_id": None,
                     "min_date": {"$min": "$tNow"},
-                    "max_date": {"$max": "$tNow"},
+                    "max_date": {"$max": "$tNow"}
                 }
             }
         ]
-        date_range = list(collection.aggregate(pipeline))[0]
+        date_range = list(collection.aggregate(pipeline))
         
-        # Fetch only necessary fields
-        projection = {
-            "_id": 0,
-            "metadata": 0,
-            "Error": 0,  # Exclude if not needed
-            "SonicTemp_C": 0  # Exclude if not needed
-        }
-
-        # Fetch documents with minimal processing
-        cursor = collection.find(
+        if not date_range:
+            st.error("No data found in the database")
+            return pd.DataFrame()
+        
+        # Convert strings to datetime objects before storing
+        min_date = pd.to_datetime(date_range[0]["min_date"])
+        max_date = pd.to_datetime(date_range[0]["max_date"])
+        
+        # Store in session state without caching
+        if "date_range" not in st.session_state:
+            st.session_state["date_range"] = {
+                "min_date": min_date,
+                "max_date": max_date
+            }
+        
+        # Rest of your existing load_data code...
+        data = list(collection.find(
             {},
-            projection
-        ).hint([("tNow", 1)])  # Use the existing index
-
-        # Convert to DataFrame efficiently
-        df = pd.DataFrame(list(cursor))
+            {
+                "_id": 0,
+                "tNow": 1,
+                "Temp_C": 1,
+                "Press_Pa": 1,
+                "Hum_RH": 1,
+                "2dSpeed_m_s": 1,
+                "3DSpeed_m_s": 1,
+                "u_m_s": 1,
+                "v_m_s": 1,
+                "w_m_s": 1,
+                "Azimuth_deg": 1,
+                "Elev_deg": 1,
+                "SonicTemp_C": 1
+            }
+        ).hint([("tNow", 1)]))
+        
+        df = pd.DataFrame(data)
         
         if df.empty:
             return pd.DataFrame()
 
-        # Convert to datetime once at the end
         df["tNow"] = pd.to_datetime(df["tNow"])
+        df["hour"] = df["tNow"].dt.hour
+        df["day"] = df["tNow"].dt.day
         
-        # Sort in pandas (usually faster than MongoDB for this case)
-        df.sort_values("tNow", inplace=True)
-        
-        # Store in session state
         st.session_state.full_df = df
-        st.session_state.date_range = {
-            "min_date": pd.to_datetime(date_range["min_date"]),
-            "max_date": pd.to_datetime(date_range["max_date"])
-        }
-        
         return df
 
     except Exception as e:
-        st.error(f"Error loading weather data from MongoDB: {str(e)}")
+        st.error(f"Error loading weather data: {str(e)}")
         return pd.DataFrame()
 
 
 @st.cache_data(ttl=3600)
 def get_date_range():
     """Get min and max dates from the data"""
+
     if "date_range" in st.session_state:
-        return st.session_state.date_range
+        date_range = st.session_state.date_range
+        
+        # Ensure we have datetime objects
+        if isinstance(date_range, dict) and "min_date" in date_range and "max_date" in date_range:
+            return {
+                "min_date": pd.to_datetime(date_range["min_date"]),
+                "max_date": pd.to_datetime(date_range["max_date"])
+            }
     return None
 
 
