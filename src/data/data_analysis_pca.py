@@ -71,7 +71,7 @@ def perform_pca_analysis(df, features):
         },
     }
 
-    with open("src/data/pca_data.json", "w") as f:
+    with open("src/data/data_analysis_result/pca_data.json", "w") as f:
         json.dump(pca_data, f, indent=2)
 
     return pca, loadings, explained_variance_ratio, cumulative_variance_ratio

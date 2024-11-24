@@ -1,16 +1,18 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-import json
+from components.utils import get_analysis_data
 
 
 def pca_explained_variance_component():
     try:
-        # Load PCA data from JSON
-        with open("src/data/pca_data.json", "r") as f:
-            pca_data = json.load(f)
+        # Load PCA data from MongoDB
+        pca_data = get_analysis_data("pca_results", "pca_data")
+        if not pca_data:
+            st.error("PCA data not found in database. Please run the analysis first.")
+            return
 
-        # Extract variance data
+        # Extract variance data directly from pca_data
         explained_variance_ratio = pca_data["explained_variance_ratio"]
         cumulative_variance_ratio = pca_data["cumulative_variance_ratio"]
 
@@ -89,7 +91,5 @@ def pca_explained_variance_component():
 
         st.plotly_chart(fig, use_container_width=True)
 
-    except FileNotFoundError:
-        st.error("PCA data file not found. Please run the data analysis first.")
     except Exception as e:
         st.error(f"Error loading PCA variance plot: {str(e)}")

@@ -4,7 +4,7 @@ from datetime import timedelta
 
 
 def time_selection_component():
-    # Load the data
+    # Load the data and store in session state
     df = load_data()
 
     if df.empty:
@@ -30,34 +30,30 @@ def time_selection_component():
         format="MM/DD/YYYY",
     )
 
+    # Display metadata
     col1, col2 = st.columns([1, 1])
-
     with col1:
         st.markdown(
             "**Location**: 60ft up on a light pole @ [here](https://maps.app.goo.gl/noC7dszEV9brfdxy8)"
         )
-
     with col2:
         first_update = df["tNow"].min().strftime("%m/%d/%Y %H:%M:%S")
         last_update = df["tNow"].max().strftime("%m/%d/%Y %H:%M:%S")
         st.markdown(f"**Data Range**: {first_update} - {last_update}")
 
-    # Unpack the selected dates
+    # Handle date selection
     if len(selected_dates) == 2:
         start_date, end_date = selected_dates
     else:
         st.error("Please select both start and end dates.")
         return
 
-    # Ensure start_date is not after end_date
     if start_date > end_date:
         st.error("Error: Start date must be before or equal to end date.")
         return
 
-    # Filter data based on selected date range
+    # Filter data and store in session state
     filtered_df = filter_data(df, start_date, end_date)
 
     if filtered_df.empty:
         st.error("No data available for the selected date range.")
-    else:
-        st.session_state.filtered_df = filtered_df

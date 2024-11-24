@@ -1,0 +1,50 @@
+{
+  "3DSpeed_m_s": {
+    "3DSpeed_m_s": 1.0,
+    "Azimuth_deg": 0.185,
+    "Elev_deg": -0.178,
+    "Press_Pa": -0.395,
+    "Temp_C": -0.3826,
+    "Hum_RH": 0.1096
+  },
+  "Azimuth_deg": {
+    "3DSpeed_m_s": 0.185,
+    "Azimuth_deg": 1.0,
+    "Elev_deg": 0.0843,
+    "Press_Pa": 0.1249,
+    "Temp_C": -0.2565,
+    "Hum_RH": 0.0264
+  },
+  "Elev_deg": {
+    "3DSpeed_m_s": -0.178,
+    "Azimuth_deg": 0.0843,
+    "Elev_deg": 1.0,
+    "Press_Pa": -0.0368,
+    "Temp_C": -0.0044,
+    "Hum_RH": 0.0014
+  },
+  "Press_Pa": {
+    "3DSpeed_m_s": -0.395,
+    "Azimuth_deg": 0.1249,
+    "Elev_deg": -0.0368,
+    "Press_Pa": 1.0,
+    "Temp_C": 0.1638,
+    "Hum_RH": -0.3428
+  },
+  "Temp_C": {
+    "3DSpeed_m_s": -0.3826,
+    "Azimuth_deg": -0.2565,
+    "Elev_deg": -0.0044,
+    "Press_Pa": 0.1638,
+    "Temp_C": 1.0,
+    "Hum_RH": -0.7056
+  },
+  "Hum_RH": {
+    "3DSpeed_m_s": 0.1096,
+    "Azimuth_deg": 0.0264,
+    "Elev_deg": 0.0014,
+    "Press_Pa": -0.3428,
+    "Temp_C": -0.7056,
+    "Hum_RH": 1.0
+  }
+}

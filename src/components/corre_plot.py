@@ -1,13 +1,17 @@
 import streamlit as st
 import plotly.express as px
-import json
+from components.utils import get_analysis_data
 
 
 def correlation_plot_component():
-    # Load the correlation data from JSON
     try:
-        with open("src/data/correlation_data.json", "r") as f:
-            correlation_data = json.load(f)
+        # Load correlation data from MongoDB
+        correlation_data = get_analysis_data("eda_results", "correlation_data")
+        if not correlation_data:
+            st.error(
+                "Correlation data not found in database. Please run the analysis first."
+            )
+            return
 
         # Convert the nested dict to a list of lists for plotly
         variables = list(correlation_data.keys())

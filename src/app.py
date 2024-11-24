@@ -59,9 +59,9 @@ def main():
     ###############
     time_selection_component()
 
-    #####################
-    # EDA section title #
-    #####################
+    # #####################
+    # # EDA section title #
+    # #####################
     # Wind Rose Diagram + Env Conditions Plot
     col1, col2 = st.columns(2)
     with col1:
@@ -79,6 +79,13 @@ def main():
     with col4:
         scatter_plot_component()
 
+    # Explained Variance Plot + PCA Biplot
+    col5, col6 = st.columns(2)
+    with col5:
+        pca_explained_variance_component()
+    with col6:
+        pca_biplot_components()
+
     ####################
     # ML section title #
     ####################
@@ -86,13 +93,6 @@ def main():
         "<hr><br><h2 style='text-align: center;'>🤖 Machine Learning Insights 🤖</h2>",
         unsafe_allow_html=True,
     )
-
-    # Explained Variance Plot + PCA Biplot
-    col5, col6 = st.columns(2)
-    with col5:
-        pca_explained_variance_component()
-    with col6:
-        pca_biplot_components()
 
     # ROC + PR curves
     col7, col8 = st.columns(2)

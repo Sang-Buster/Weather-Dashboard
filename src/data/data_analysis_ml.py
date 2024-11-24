@@ -359,14 +359,16 @@ def save_plot_data(lr_model, dt_model, rf_model, X_test, y_test, threshold):
         }
 
     # Save to file
-    with open("src/data/ml_plot_data.json", "w") as f:
+    with open("src/data/data_analysis_result/ml_plot_data.json", "w") as f:
         json.dump(plot_data, f)
 
 
 def save_prediction_data(df, lr_model, dt_model, rf_model, X_scaled, threshold):
     """Save prediction data for time series plot"""
     prediction_data = {
-        "time_index": df["tNow"].tolist(),  # Save datetime strings
+        "time_index": df["tNow"]
+        .dt.strftime("%Y-%m-%d %H:%M:%S")
+        .tolist(),  # Convert to string
         "actual_speed": df["3DSpeed_m_s"].tolist(),
         "threshold": float(threshold),
     }
@@ -380,11 +382,12 @@ def save_prediction_data(df, lr_model, dt_model, rf_model, X_scaled, threshold):
             "speeds": df["3DSpeed_m_s"].iloc[high_wind_idx].tolist(),
             "times": df["tNow"]
             .iloc[high_wind_idx]
-            .tolist(),  # Save times for high wind predictions
+            .dt.strftime("%Y-%m-%d %H:%M:%S")
+            .tolist(),  # Convert to string
         }
 
     # Save to file
-    with open("src/data/prediction_data.json", "w") as f:
+    with open("src/data/data_analysis_result/ml_prediction_data.json", "w") as f:
         json.dump(prediction_data, f)
 
 

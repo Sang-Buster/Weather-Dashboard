@@ -68,8 +68,9 @@ def set_dark_style():
 
 
 def create_and_save_visualizations(df, output_dir="lib/fig/eda/"):
-    # Create output directory if it doesn't exist
+    # Create output directories if they don't exist
     os.makedirs(output_dir, exist_ok=True)
+    os.makedirs("src/data/data_analysis_result", exist_ok=True)
 
     # Set dark style
     set_dark_style()
@@ -102,7 +103,7 @@ def create_and_save_visualizations(df, output_dir="lib/fig/eda/"):
     ]
     correlation_data = df[correlation_vars].corr().round(4).to_dict()
 
-    with open("src/data/correlation_data.json", "w") as f:
+    with open("src/data/data_analysis_result/correlation_data.json", "w") as f:
         json.dump(correlation_data, f, indent=2)
 
     # 1. Correlation Matrix
