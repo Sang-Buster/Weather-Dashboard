@@ -4,29 +4,28 @@ from datetime import timedelta
 
 
 def time_selection_component():
-    # First, ensure data is loaded
+    # Always try to load data and date range if not in session state
     if "full_df" not in st.session_state:
-        df = load_data()  # Explicitly call load_data
+        df = load_data()
         if df.empty:
             st.error("Failed to load data. Please check the database connection.")
             return st.stop()
+        st.session_state.full_df = df
 
-    # Get date range
     if "date_range" not in st.session_state:
         date_range = get_date_range()
         if date_range is None:
             st.error("Failed to get date range from database.")
             return st.stop()
-    else:
-        date_range = st.session_state.date_range
+        st.session_state.date_range = date_range
 
     # Now we can safely use date_range
-    min_date = date_range["min_date"].date()
-    max_date = date_range["max_date"].date()
+    min_date = st.session_state.date_range["min_date"].date()
+    max_date = st.session_state.date_range["max_date"].date()
 
     # Set default date range to last 24 hours
     default_end_date = max_date
-    default_start_date = (date_range["max_date"] - timedelta(hours=24)).date()
+    default_start_date = (st.session_state.date_range["max_date"] - timedelta(hours=24)).date()
 
     # Date range picker with try-except block
     try:
@@ -49,6 +48,15 @@ def time_selection_component():
             st.error("Error: Start date must be before or equal to end date.")
             return st.stop()
 
+        # Always filter data when dates are selected
+        filtered_df = filter_data(st.session_state.full_df, start_date, end_date)
+        if filtered_df.empty:
+            st.error("No data available for the selected date range.")
+            return st.stop()
+
+        # Store filtered DataFrame in session state
+        st.session_state.filtered_df = filtered_df
+
     except Exception as e:
         st.error(f"Error with date selection: {str(e)}")
         return st.stop()
@@ -60,16 +68,6 @@ def time_selection_component():
             "**Location**: 60ft up on a light pole @ [here](https://maps.app.goo.gl/noC7dszEV9brfdxy8)"
         )
     with col2:
-        first_update = date_range["min_date"].strftime("%m/%d/%Y %H:%M:%S")
-        last_update = date_range["max_date"].strftime("%m/%d/%Y %H:%M:%S")
+        first_update = st.session_state.date_range["min_date"].strftime("%m/%d/%Y %H:%M:%S")
+        last_update = st.session_state.date_range["max_date"].strftime("%m/%d/%Y %H:%M:%S")
         st.markdown(f"**Data Range**: {first_update} - {last_update}")
-
-    # Get the full dataframe from session state and filter it
-    if "full_df" in st.session_state:
-        filtered_df = filter_data(st.session_state.full_df, start_date, end_date)
-        if filtered_df.empty:
-            st.error("No data available for the selected date range.")
-            return st.stop()
-
-        # Store filtered DataFrame in session state
-        st.session_state.filtered_df = filtered_df
