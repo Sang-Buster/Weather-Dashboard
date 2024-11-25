@@ -7,7 +7,7 @@ import numpy as np
 def create_wind_rose(df):
     # Make an explicit copy at the start
     df = df.copy()
-    
+
     # Convert wind speed from m/s to mph
     df.loc[:, "2dSpeed_mph"] = df["2dSpeed_m_s"] * 2.23694
 
@@ -240,9 +240,14 @@ def create_wind_rose_over_time(df):
 
 
 def wind_rose_component():
+    # Check if filtered_df exists in session state
+    if "filtered_df" not in st.session_state:
+        st.warning("Please select a date range first.")
+        return
+
     # Make an explicit copy
     df = st.session_state.filtered_df.copy()
-    
+
     # Ensure 'tNow' is a datetime column
     df.loc[:, "tNow"] = pd.to_datetime(df["tNow"])
 

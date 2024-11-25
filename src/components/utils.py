@@ -8,18 +8,18 @@ def init_connection():
     """Initialize MongoDB connection optimized for large datasets"""
     return MongoClient(
         st.secrets["mongo"]["uri"],
-        maxPoolSize=100,          # Increased for parallel operations
-        minPoolSize=20,           # More ready connections
-        maxIdleTimeMS=45000,      # Longer idle timeout for connection reuse
-        connectTimeoutMS=2000,    # Quick connection timeout
-        socketTimeoutMS=30000,    # Longer socket timeout for large data transfers
+        maxPoolSize=100,  # Increased for parallel operations
+        minPoolSize=20,  # More ready connections
+        maxIdleTimeMS=45000,  # Longer idle timeout for connection reuse
+        connectTimeoutMS=2000,  # Quick connection timeout
+        socketTimeoutMS=30000,  # Longer socket timeout for large data transfers
         serverSelectionTimeoutMS=5000,  # Quick server selection
         retryWrites=True,
         retryReads=True,
-        compressors=['zstd'],     # Best compression/speed ratio
-        maxConnecting=4,          # More parallel connections
-        w='majority',             # Ensure consistency
-        readPreference='secondaryPreferred',  # Read from secondaries when possible
+        compressors=["zstd"],  # Best compression/speed ratio
+        maxConnecting=4,  # More parallel connections
+        w="majority",  # Ensure consistency
+        readPreference="secondaryPreferred",  # Read from secondaries when possible
     )
 
 
@@ -102,11 +102,11 @@ def load_data():
                 "$match": {
                     "tNow": {
                         "$gte": st.session_state.date_range["min_date"],
-                        "$lte": st.session_state.date_range["max_date"]
+                        "$lte": st.session_state.date_range["max_date"],
                     }
                 }
             },
-            {"$count": "total"}
+            {"$count": "total"},
         ]
         total_count = list(collection.aggregate(count_pipeline))[0]["total"]
 
@@ -123,22 +123,18 @@ def load_data():
                     "$match": {
                         "tNow": {
                             "$gte": st.session_state.date_range["min_date"],
-                            "$lte": st.session_state.date_range["max_date"]
+                            "$lte": st.session_state.date_range["max_date"],
                         }
                     }
                 },
                 # Project all fields except _id
-                {
-                    "$project": {
-                        "_id": 0
-                    }
-                },
+                {"$project": {"_id": 0}},
                 # Sort by date
                 {"$sort": {"tNow": 1}},
                 # Skip processed documents
                 {"$skip": processed},
                 # Limit chunk size
-                {"$limit": chunk_size}
+                {"$limit": chunk_size},
             ]
 
             # Process chunk
@@ -162,7 +158,7 @@ def load_data():
         # Combine all chunks
         if chunks:
             df = pd.concat(chunks, ignore_index=True)
-            
+
             # Optimize datetime operations
             df["tNow"] = pd.to_datetime(df["tNow"], utc=True)
             # Vectorized operations
@@ -188,16 +184,17 @@ def load_data():
         st.error(f"Error loading data: {str(e)}")
         return pd.DataFrame()
 
+
 def filter_data(df, start_date, end_date):
     """Optimized dataframe filtering"""
     # Convert dates once
     start_ts = pd.Timestamp(start_date)
     end_ts = pd.Timestamp(end_date)
-    
+
     # Use vectorized operations with pre-computed dates
-    mask = (df["tNow"].dt.date >= start_ts.date()) & (df["tNow"].dt.date <= end_ts.date())
+    mask = (df["tNow"].dt.date >= start_ts.date()) & (
+        df["tNow"].dt.date <= end_ts.date()
+    )
     filtered_df = df.loc[mask]
 
-    # Store in session state
-    st.session_state.filtered_df = filtered_df
     return filtered_df

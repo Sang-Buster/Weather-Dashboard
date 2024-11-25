@@ -64,9 +64,12 @@ def time_selection_component():
         last_update = date_range["max_date"].strftime("%m/%d/%Y %H:%M:%S")
         st.markdown(f"**Data Range**: {first_update} - {last_update}")
 
-    # Get the full dataframe from session state
+    # Get the full dataframe from session state and filter it
     if "full_df" in st.session_state:
         filtered_df = filter_data(st.session_state.full_df, start_date, end_date)
         if filtered_df.empty:
             st.error("No data available for the selected date range.")
             return st.stop()
+
+        # Store filtered DataFrame in session state
+        st.session_state.filtered_df = filtered_df
