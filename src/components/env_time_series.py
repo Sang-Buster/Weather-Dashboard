@@ -19,6 +19,11 @@ def calculate_dew_point(temp, rel_humidity):
 
 @st.fragment
 def environmental_time_series_component():
+    # Check if filtered_df exists and is not None
+    if "filtered_df" not in st.session_state or st.session_state.filtered_df is None:
+        st.warning("Please select a date range first.")
+        return
+        
     # Make an explicit copy of the filtered DataFrame
     df = st.session_state.filtered_df.copy()
 

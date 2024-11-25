@@ -46,6 +46,10 @@ st.set_page_config(
     },
 )
 
+# Initialize session state
+if "filtered_df" not in st.session_state:
+    st.session_state.filtered_df = None
+
 
 def main():
     # Display the dashboard title
