@@ -26,7 +26,11 @@ jobs:
           uv venv
           source .venv/bin/activate
           uv pip install -r requirements.txt
-          
+
+      - name: Add src to PYTHONPATH
+        run: |
+          echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src" >> $GITHUB_ENV
+
       - uses: streamlit/streamlit-app-action@v0.0.3
         with:
           app-path: src/app.py
