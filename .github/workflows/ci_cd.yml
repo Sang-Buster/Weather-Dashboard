@@ -22,4 +22,3 @@ jobs:
       - uses: streamlit/streamlit-app-action@v0.0.3
         with:
           app-path: src/app.py
-          ruff: true
