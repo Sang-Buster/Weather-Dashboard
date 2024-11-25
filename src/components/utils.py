@@ -127,8 +127,24 @@ def load_data():
                         }
                     }
                 },
-                # Project all fields except _id
-                {"$project": {"_id": 0}},
+                # Project all fields
+                {
+                    "$project": {
+                        "_id": 0,
+                        "tNow": 1,
+                        "Temp_C": 1,
+                        "Press_Pa": 1,
+                        "Hum_RH": 1,
+                        "2dSpeed_m_s": 1,
+                        "3DSpeed_m_s": 1,
+                        "u_m_s": 1,
+                        "v_m_s": 1,
+                        "w_m_s": 1,
+                        "Azimuth_deg": 1,
+                        "Elev_deg": 1,
+                        "SonicTemp_C": 1,
+                    }
+                },
                 # Sort by date
                 {"$sort": {"tNow": 1}},
                 # Skip processed documents
