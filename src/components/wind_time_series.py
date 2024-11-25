@@ -7,11 +7,11 @@ import numpy as np
 
 @st.fragment
 def wind_time_series_component():
-    # Load the data
-    df = st.session_state.filtered_df
+    # Make an explicit copy of the filtered DataFrame
+    df = st.session_state.filtered_df.copy()
 
     # Ensure tNow is a datetime index
-    df["tNow"] = pd.to_datetime(df["tNow"])
+    df.loc[:, "tNow"] = pd.to_datetime(df["tNow"])
     df.set_index("tNow", inplace=True)
 
     # Sort the DataFrame by the time index
@@ -20,7 +20,7 @@ def wind_time_series_component():
     # Convert wind speed columns from m/s to mph
     speed_columns = ["2dSpeed_m_s", "3DSpeed_m_s", "u_m_s", "v_m_s", "w_m_s"]
     for col in speed_columns:
-        df[col.replace("m_s", "mph")] = df[col] * 2.23694  # Convert m/s to mph
+        df.loc[:, col.replace("m_s", "mph")] = df[col] * 2.23694  # Convert m/s to mph
 
     # Define average wind direction interval_map
     interval_map = {
@@ -44,7 +44,7 @@ def wind_time_series_component():
     }
 
     # Calculate average gust wind speed (default to 3min)
-    df["GustSpeed_mph"] = df["2dSpeed_mph"].rolling(window="3min").max()
+    df.loc[:, "GustSpeed_mph"] = df["2dSpeed_mph"].rolling(window="3min").max()
 
     # Update speed_options to include gust speed
     speed_options = [col.replace("m_s", "mph") for col in speed_columns] + [
@@ -96,7 +96,7 @@ def wind_time_series_component():
         or gust_wind_interval != "3 min"
     ):
         # Recalculate gust wind speed based on selected interval
-        df["GustSpeed_mph"] = (
+        df.loc[:, "GustSpeed_mph"] = (
             df["2dSpeed_mph"]
             .rolling(window=gust_interval_map[gust_wind_interval])
             .max()

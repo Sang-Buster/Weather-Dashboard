@@ -19,16 +19,16 @@ def calculate_dew_point(temp, rel_humidity):
 
 @st.fragment
 def environmental_time_series_component():
-    # Load the data
-    df = st.session_state.filtered_df
+    # Make an explicit copy of the filtered DataFrame
+    df = st.session_state.filtered_df.copy()
 
     # Calculate dew point in Celsius
-    df["DewPoint_C"] = calculate_dew_point(df["Temp_C"], df["Hum_RH"])
+    df.loc[:, "DewPoint_C"] = calculate_dew_point(df["Temp_C"], df["Hum_RH"])
 
     # Convert temperatures to Fahrenheit
-    df["Temp_F"] = celsius_to_fahrenheit(df["Temp_C"])
-    df["SonicTemp_F"] = celsius_to_fahrenheit(df["SonicTemp_C"])
-    df["DewPoint_F"] = celsius_to_fahrenheit(df["DewPoint_C"])
+    df.loc[:, "Temp_F"] = celsius_to_fahrenheit(df["Temp_C"])
+    df.loc[:, "SonicTemp_F"] = celsius_to_fahrenheit(df["SonicTemp_C"])
+    df.loc[:, "DewPoint_F"] = celsius_to_fahrenheit(df["DewPoint_C"])
 
     # Create the initial plot
     fig = create_env_plot(df, ["SonicTemp_F", "Temp_F", "Hum_RH"])

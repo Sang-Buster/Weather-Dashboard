@@ -5,8 +5,11 @@ import numpy as np
 
 
 def create_wind_rose(df):
+    # Make an explicit copy at the start
+    df = df.copy()
+    
     # Convert wind speed from m/s to mph
-    df["2dSpeed_mph"] = df["2dSpeed_m_s"] * 2.23694  # 1 m/s = 2.23694 mph
+    df.loc[:, "2dSpeed_mph"] = df["2dSpeed_m_s"] * 2.23694
 
     # Define direction bins
     dir_bins = np.arange(0, 361, 22.5)
@@ -34,14 +37,14 @@ def create_wind_rose(df):
     speed_labels = ["0-4.5", "4.5-9", "9-13.5", "13.5-18", "18-22.5", "22.5+"]
 
     # Categorize data
-    df["dir_cat"] = pd.cut(
+    df.loc[:, "dir_cat"] = pd.cut(
         df["Azimuth_deg"],
         bins=dir_bins,
         labels=dir_labels,
         include_lowest=True,
         ordered=False,
     )
-    df["speed_cat"] = pd.cut(
+    df.loc[:, "speed_cat"] = pd.cut(
         df["2dSpeed_mph"],
         bins=speed_bins,
         labels=speed_labels,
@@ -237,11 +240,11 @@ def create_wind_rose_over_time(df):
 
 
 def wind_rose_component():
-    # Get the filtered dataframe from session state
-    df = st.session_state.filtered_df
-
+    # Make an explicit copy
+    df = st.session_state.filtered_df.copy()
+    
     # Ensure 'tNow' is a datetime column
-    df["tNow"] = pd.to_datetime(df["tNow"])
+    df.loc[:, "tNow"] = pd.to_datetime(df["tNow"])
 
     # Check if start and end dates are the same
     start_date = df["tNow"].min().date()

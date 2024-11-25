@@ -5,10 +5,21 @@ from pymongo import MongoClient
 
 @st.cache_resource
 def init_connection():
+    """Initialize MongoDB connection optimized for large datasets"""
     return MongoClient(
         st.secrets["mongo"]["uri"],
-        maxPoolSize=10,
-        minPoolSize=5,
+        maxPoolSize=100,          # Increased for parallel operations
+        minPoolSize=20,           # More ready connections
+        maxIdleTimeMS=45000,      # Longer idle timeout for connection reuse
+        connectTimeoutMS=2000,    # Quick connection timeout
+        socketTimeoutMS=30000,    # Longer socket timeout for large data transfers
+        serverSelectionTimeoutMS=5000,  # Quick server selection
+        retryWrites=True,
+        retryReads=True,
+        compressors=['zstd'],     # Best compression/speed ratio
+        maxConnecting=4,          # More parallel connections
+        w='majority',             # Ensure consistency
+        readPreference='secondaryPreferred',  # Read from secondaries when possible
     )
 
 
@@ -70,9 +81,8 @@ def get_date_range():
 
 @st.cache_data(ttl=3600)
 def load_data():
-    """Load weather data from MongoDB efficiently"""
+    """Load weather data using chunked aggregation for large datasets"""
     try:
-        # First ensure we have date range
         if "date_range" not in st.session_state:
             date_range = get_date_range()
             if date_range is None:
@@ -86,66 +96,85 @@ def load_data():
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        # Get total count
-        total_count = collection.count_documents({})
-
-        if total_count == 0:
-            st.error("No data found in the database")
-            return pd.DataFrame()
-
-        # Use aggregation pipeline for efficient processing
-        pipeline = [
+        # Get total count first
+        count_pipeline = [
             {
-                "$project": {
-                    "_id": 0,
-                    "tNow": 1,
-                    "Temp_C": 1,
-                    "Press_Pa": 1,
-                    "Hum_RH": 1,
-                    "2dSpeed_m_s": 1,
-                    "3DSpeed_m_s": 1,
-                    "u_m_s": 1,
-                    "v_m_s": 1,
-                    "w_m_s": 1,
-                    "Azimuth_deg": 1,
-                    "Elev_deg": 1,
-                    "SonicTemp_C": 1,
+                "$match": {
+                    "tNow": {
+                        "$gte": st.session_state.date_range["min_date"],
+                        "$lte": st.session_state.date_range["max_date"]
+                    }
                 }
             },
-            {"$sort": {"tNow": 1}},
+            {"$count": "total"}
         ]
+        total_count = list(collection.aggregate(count_pipeline))[0]["total"]
 
-        # Process data in batches
-        all_data = []
-        documents_processed = 0
+        # Initialize empty DataFrame
+        chunks = []
+        chunk_size = 50000  # Process 50k documents at a time
+        processed = 0
 
-        cursor = collection.aggregate(
-            pipeline,
-            allowDiskUse=True,
-            batchSize=5000,  # Adjusted batch size
-        )
+        # Chunked aggregation pipeline
+        while processed < total_count:
+            pipeline = [
+                # Use index for date range
+                {
+                    "$match": {
+                        "tNow": {
+                            "$gte": st.session_state.date_range["min_date"],
+                            "$lte": st.session_state.date_range["max_date"]
+                        }
+                    }
+                },
+                # Project all fields except _id
+                {
+                    "$project": {
+                        "_id": 0
+                    }
+                },
+                # Sort by date
+                {"$sort": {"tNow": 1}},
+                # Skip processed documents
+                {"$skip": processed},
+                # Limit chunk size
+                {"$limit": chunk_size}
+            ]
 
-        for doc in cursor:
-            all_data.append(doc)
-            documents_processed += 1
+            # Process chunk
+            cursor = collection.aggregate(
+                pipeline,
+                allowDiskUse=True,
+                batchSize=10000,
+            )
 
-            if documents_processed % 1000 == 0:
-                progress = documents_processed / total_count
-                progress_bar.progress(progress)
-                status_text.text(
-                    f"Loading data... {documents_processed:,} of {total_count:,} records"
-                )
+            # Convert chunk to DataFrame
+            chunk_df = pd.DataFrame(list(cursor))
+            if not chunk_df.empty:
+                chunks.append(chunk_df)
 
-        # Create DataFrame
-        df = pd.DataFrame(all_data)
+            # Update progress
+            processed += len(chunk_df)
+            progress = min(processed / total_count, 1.0)
+            progress_bar.progress(progress)
+            status_text.text(f"Loaded {processed:,} of {total_count:,} records...")
 
-        if df.empty:
-            return pd.DataFrame()
+        # Combine all chunks
+        if chunks:
+            df = pd.concat(chunks, ignore_index=True)
+            
+            # Optimize datetime operations
+            df["tNow"] = pd.to_datetime(df["tNow"], utc=True)
+            # Vectorized operations
+            df["hour"] = df["tNow"].dt.hour
+            df["day"] = df["tNow"].dt.day
 
-        # Process DataFrame
-        df["tNow"] = pd.to_datetime(df["tNow"])
-        df["hour"] = df["tNow"].dt.hour
-        df["day"] = df["tNow"].dt.day
+            # Final progress update
+            progress_bar.progress(1.0)
+            status_text.text(f"Loaded {len(df):,} records successfully")
+        else:
+            df = pd.DataFrame()
+            st.error("No data found in the database")
 
         # Clear progress indicators
         progress_bar.empty()
@@ -159,13 +188,16 @@ def load_data():
         st.error(f"Error loading data: {str(e)}")
         return pd.DataFrame()
 
-
 def filter_data(df, start_date, end_date):
-    """Filter dataframe by date range and store in session state"""
-    filtered_df = df[
-        (df["tNow"].dt.date >= start_date) & (df["tNow"].dt.date <= end_date)
-    ]
+    """Optimized dataframe filtering"""
+    # Convert dates once
+    start_ts = pd.Timestamp(start_date)
+    end_ts = pd.Timestamp(end_date)
+    
+    # Use vectorized operations with pre-computed dates
+    mask = (df["tNow"].dt.date >= start_ts.date()) & (df["tNow"].dt.date <= end_ts.date())
+    filtered_df = df.loc[mask]
 
-    # Store filtered data in session state
+    # Store in session state
     st.session_state.filtered_df = filtered_df
     return filtered_df
