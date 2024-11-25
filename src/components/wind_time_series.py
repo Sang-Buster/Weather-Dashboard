@@ -7,6 +7,11 @@ import numpy as np
 
 @st.fragment
 def wind_time_series_component():
+    # Check if filtered_df exists in session state
+    if "filtered_df" not in st.session_state:
+        st.warning("Please select a date range first.")
+        return
+
     # Make an explicit copy of the filtered DataFrame
     df = st.session_state.filtered_df.copy()
 
