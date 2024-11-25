@@ -23,7 +23,7 @@ def environmental_time_series_component():
     if "filtered_df" not in st.session_state or st.session_state.filtered_df is None:
         st.warning("Please select a date range first.")
         return
-        
+
     # Make an explicit copy of the filtered DataFrame
     df = st.session_state.filtered_df.copy()
 

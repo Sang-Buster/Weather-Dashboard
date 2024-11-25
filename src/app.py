@@ -46,10 +46,6 @@ st.set_page_config(
     },
 )
 
-# Initialize session state
-if "filtered_df" not in st.session_state:
-    st.session_state.filtered_df = None
-
 
 def main():
     # Display the dashboard title
@@ -63,9 +59,9 @@ def main():
     ###############
     time_selection_component()
 
-    # #####################
-    # # EDA section title #
-    # #####################
+    #####################
+    # EDA section title #
+    #####################
     # Wind Rose Diagram + Env Conditions Plot
     col1, col2 = st.columns(2)
     with col1:
