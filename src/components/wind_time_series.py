@@ -130,8 +130,7 @@ def create_wind_plot(df, selected_speeds, arrow_interval, interval_map, gust_int
     interval = interval_map[arrow_interval]
 
     # Create a new DataFrame with only the columns we need
-    df_direction = df[["Azimuth_deg"]].copy()
-    df_direction["Azimuth_deg"] = df_direction["Azimuth_deg"].astype(float)
+    df_direction = pd.DataFrame(df["Azimuth_deg"].astype(float))
 
     # Calculate the average direction using circular mean
     def circular_mean(angles):

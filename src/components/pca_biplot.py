@@ -65,8 +65,10 @@ def pca_biplot_components():
                 z=pc_scores[:, 2],
                 mode="markers",
                 marker=dict(size=4, opacity=0.6, color=point_colors),
-                hovertemplate="<br>".join(
-                    ["PC1: %{x:.2f}", "PC2: %{y:.2f}", "PC3: %{z:.2f}", ""]
+                hovertemplate=(
+                    "PC1: %{x:.2f}<br>"
+                    + "PC2: %{y:.2f}<br>"
+                    + "PC3: %{z:.2f}<extra></extra>"
                 ),
                 showlegend=False,
             )
@@ -86,7 +88,7 @@ def pca_biplot_components():
                     textposition="top center",
                     textfont=dict(color="red", size=12),
                     showlegend=False,
-                    hoverinfo="skip",
+                    hoverinfo="none",
                 )
             )
 
@@ -112,7 +114,6 @@ def pca_biplot_components():
                 "text": "3D PCA Biplot",
                 "x": 0.5,
                 "xanchor": "center",
-                "yanchor": "top",
             },
             scene=dict(
                 xaxis_title=f"PC1 ({explained_variance_3d[0]:.1%} explained var)",
@@ -121,7 +122,7 @@ def pca_biplot_components():
                 aspectmode="cube",
             ),
             width=600,
-            height=600,
+            height=620,
             showlegend=True,
         )
 

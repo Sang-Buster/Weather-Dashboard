@@ -9,7 +9,14 @@ from data_analysis_eda import main as run_eda
 from data_analysis_pca import main as run_pca
 from data_analysis_ml import main as run_ml
 from typing import Any
-from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn, BarColumn, TextColumn, TimeRemainingColumn
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TimeElapsedColumn,
+    BarColumn,
+    TextColumn,
+    TimeRemainingColumn,
+)
 from rich.console import Console
 from rich import print as rprint
 from multiprocessing import Pool, cpu_count
@@ -18,12 +25,7 @@ import textwrap
 
 # Constants
 COLLECTIONS_CONFIG = {
-    "weather_data": {
-        "timeseries": {
-            "timeField": "tNow",
-            "granularity": "seconds"
-        }
-    },
+    "weather_data": {"timeseries": {"timeField": "tNow", "granularity": "seconds"}},
     "eda_results": {},
     "pca_results": {},
     "ml_results": {},
@@ -37,18 +39,14 @@ def connect_to_mongodb() -> Any:
     """Establish MongoDB connection and initialize time series collection."""
     client = MongoClient(st.secrets["mongo"]["uri"])
     db = client["weather_dashboard"]
-    
+
     # Check if collection exists
     if "weather_data" not in db.list_collection_names():
         print("Creating time series collection...")
         db.create_collection(
-            "weather_data",
-            timeseries={
-                "timeField": "tNow",
-                "granularity": "seconds"
-            }
+            "weather_data", timeseries={"timeField": "tNow", "granularity": "seconds"}
         )
-    
+
     # Ensure index exists (will not recreate if already exists)
     db["weather_data"].create_index([("tNow", 1)])
     return db
@@ -66,14 +64,19 @@ def _print_collection_stats(collection: Any, collection_name: str) -> None:
         rprint("\n[bold]First document structure:[/bold]")
         first_doc = collection.find_one({}, {"_id": 0})
         if first_doc:
+
             def get_type_info(value):
                 if isinstance(value, dict):
                     return {k: get_type_info(v) for k, v in value.items()}
                 elif isinstance(value, list):
-                    return f"<list[{type(value[0]).__name__}]>" if value else "<empty_list>"
+                    return (
+                        f"<list[{type(value[0]).__name__}]>"
+                        if value
+                        else "<empty_list>"
+                    )
                 else:
                     return f"<{type(value).__name__}>"
-            
+
             structure = get_type_info(first_doc)
             rprint(json.dumps(structure, indent=2))
     rprint(f"[bold blue]{'='*60}[/bold blue]\n")
@@ -84,7 +87,7 @@ def run_eda_analysis(db):
     rprint(f"\n[bold blue]{'='*60}[/bold blue]")
     rprint("[bold green]Running EDA Analysis[/bold green]")
     rprint(f"[bold blue]{'='*60}[/bold blue]\n")
-    
+
     # Run analysis
     run_eda()  # This creates correlation_data.json
     run_pca()  # This creates pca_data.json
@@ -95,11 +98,13 @@ def run_eda_analysis(db):
             correlation_data = json.load(f)
         collection = db["eda_results"]
         collection.delete_many({})
-        collection.insert_one({
-            "type": "correlation_data",
-            "data": correlation_data,
-            "timestamp": datetime.now(UTC)
-        })
+        collection.insert_one(
+            {
+                "type": "correlation_data",
+                "data": correlation_data,
+                "timestamp": datetime.now(UTC),
+            }
+        )
         _print_collection_stats(collection, "EDA Results")
 
         # Upload PCA results
@@ -107,11 +112,9 @@ def run_eda_analysis(db):
             pca_data = json.load(f)
         collection = db["pca_results"]
         collection.delete_many({})
-        collection.insert_one({
-            "type": "pca_data",
-            "data": pca_data,
-            "timestamp": datetime.now(UTC)
-        })
+        collection.insert_one(
+            {"type": "pca_data", "data": pca_data, "timestamp": datetime.now(UTC)}
+        )
         _print_collection_stats(collection, "PCA Results")
 
     except FileNotFoundError as e:
@@ -150,7 +153,7 @@ def run_ml_analysis(db):
     rprint(f"\n[bold blue]{'='*60}[/bold blue]")
     rprint("[bold green]Running ML Analysis[/bold green]")
     rprint(f"[bold blue]{'='*60}[/bold blue]\n")
-    
+
     # Run ML analysis
     run_ml()
 
@@ -171,13 +174,13 @@ def run_ml_analysis(db):
             {
                 "type": "ml_plot_data",
                 "data": ml_plot_data,
-                "timestamp": datetime.now(UTC)
+                "timestamp": datetime.now(UTC),
             },
             {
                 "type": "ml_prediction_data",
                 "data": ml_prediction_data,
-                "timestamp": datetime.now(UTC)
-            }
+                "timestamp": datetime.now(UTC),
+            },
         ]
 
         # Insert new documents
@@ -197,15 +200,11 @@ def process_chunk(args):
         collection = db["weather_data"]
 
         # Convert timestamps only, no metadata
-        chunk_df["tNow"] = pd.to_datetime(chunk_df["tNow"]).dt.tz_localize('UTC')
-        
+        chunk_df["tNow"] = pd.to_datetime(chunk_df["tNow"]).dt.tz_localize("UTC")
+
         # Convert directly to documents without metadata
         documents = chunk_df.apply(
-            lambda row: {
-                **row.to_dict(),
-                "tNow": row["tNow"].to_pydatetime()
-            }, 
-            axis=1
+            lambda row: {**row.to_dict(), "tNow": row["tNow"].to_pydatetime()}, axis=1
         ).tolist()
 
         # Insert documents
@@ -215,11 +214,14 @@ def process_chunk(args):
     except Exception as e:
         return False, str(e)
 
-def upload_csv_to_mongodb(start_date: str, end_date: str = None, db: Any = None) -> bool:
+
+def upload_csv_to_mongodb(
+    start_date: str, end_date: str = None, db: Any = None
+) -> bool:
     """Upload multiple dates using multiprocessing and chunking."""
     try:
         uri = st.secrets["mongo"]["uri"]
-        
+
         # Generate list of dates
         start = datetime.strptime(start_date, "%Y_%m_%d")
         end = datetime.strptime(end_date, "%Y_%m_%d") if end_date else start
@@ -232,16 +234,17 @@ def upload_csv_to_mongodb(start_date: str, end_date: str = None, db: Any = None)
         # Clear existing data for the date range
         collection = db["weather_data"]
         start_datetime = start.replace(hour=0, minute=0, second=0)
-        end_datetime = (end if end_date else start).replace(hour=23, minute=59, second=59)
-        
+        end_datetime = (end if end_date else start).replace(
+            hour=23, minute=59, second=59
+        )
+
         # Delete documents within the date range
-        result = collection.delete_many({
-            "tNow": {
-                "$gte": start_datetime,
-                "$lte": end_datetime
-            }
-        })
-        rprint(f"[yellow]Deleted {result.deleted_count:,} existing records for selected dates[/yellow]")
+        result = collection.delete_many(
+            {"tNow": {"$gte": start_datetime, "$lte": end_datetime}}
+        )
+        rprint(
+            f"[yellow]Deleted {result.deleted_count:,} existing records for selected dates[/yellow]"
+        )
 
         rprint(f"\n[bold blue]{'='*50}[/bold blue]")
         rprint(f"[bold green]Starting upload of {len(dates)} dates[/bold green]")
@@ -256,12 +259,12 @@ def upload_csv_to_mongodb(start_date: str, end_date: str = None, db: Any = None)
             TextColumn("({task.completed}/{task.total})"),
             TimeElapsedColumn(),
             TimeRemainingColumn(),
-            console=Console(force_terminal=True)
+            console=Console(force_terminal=True),
         )
 
         total_success = 0
         total_records = 0
-        
+
         with progress:
             for date in dates:
                 filename = os.path.join(DATA_DIR, f"{date}_weather_station_data.csv")
@@ -272,23 +275,27 @@ def upload_csv_to_mongodb(start_date: str, end_date: str = None, db: Any = None)
                 # Read the CSV file
                 df = pd.read_csv(filename)
                 total_rows = len(df)
-                
+
                 # Calculate optimal chunk size and number of processes
                 num_processes = min(cpu_count(), 8)  # Limit to 8 processes max
-                chunk_size = ceil(total_rows / (num_processes * 2))  # Create 2 chunks per process
-                
+                chunk_size = ceil(
+                    total_rows / (num_processes * 2)
+                )  # Create 2 chunks per process
+
                 # Create chunks
-                chunks = [df[i:i + chunk_size] for i in range(0, len(df), chunk_size)]
-                
+                chunks = [df[i : i + chunk_size] for i in range(0, len(df), chunk_size)]
+
                 # Create progress task for this date
                 task_id = progress.add_task(f"Date {date}", total=total_rows)
-                
+
                 # Prepare arguments for multiprocessing
                 chunk_args = [(chunk, uri, date, i) for i, chunk in enumerate(chunks)]
-                
+
                 # Process chunks in parallel
                 with Pool(processes=num_processes) as pool:
-                    for success, result in pool.imap_unordered(process_chunk, chunk_args):
+                    for success, result in pool.imap_unordered(
+                        process_chunk, chunk_args
+                    ):
                         if success:
                             records_processed = result
                             total_records += records_processed
@@ -304,10 +311,10 @@ def upload_csv_to_mongodb(start_date: str, end_date: str = None, db: Any = None)
         rprint(f"- [green]Total records uploaded: {total_records:,}[/green]")
         rprint(f"- [blue]Total chunks processed: {total_success}[/blue]")
         rprint(f"[bold blue]{'='*50}[/bold blue]\n")
-        
+
         # After successful upload, show collection stats
         _print_collection_stats(db["weather_data"], "Weather Data")
-        
+
         return total_success > 0
 
     except Exception as e:
@@ -319,7 +326,9 @@ def delete_mongodb_collection(db):
     """Delete the weather data collection"""
     collection = db["weather_data"]
     result = collection.delete_many({})
-    rprint(f"[green]Deleted {result.deleted_count:,} documents from the collection.[/green]")
+    rprint(
+        f"[green]Deleted {result.deleted_count:,} documents from the collection.[/green]"
+    )
     return result.acknowledged
 
 
@@ -328,7 +337,7 @@ def check_analysis_results(db):
     rprint(f"\n[bold blue]{'='*60}[/bold blue]")
     rprint("[bold green]Analysis Collections Status[/bold green]")
     rprint(f"[bold blue]{'='*60}[/bold blue]\n")
-    
+
     for collection_name in ["weather_data", "eda_results", "pca_results", "ml_results"]:
         _print_collection_stats(db[collection_name], collection_name)
 
@@ -350,46 +359,48 @@ def main():
               Run EDA:             %(prog)s eda
               Run ML:              %(prog)s ml
               Check all results:   %(prog)s check
-        """)
+        """),
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Upload command
     upload_parser = subparsers.add_parser(
-        "upload", 
+        "upload",
         help="Upload weather data to MongoDB",
-        description="Upload weather station data from CSV files to MongoDB."
+        description="Upload weather station data from CSV files to MongoDB.",
     )
     upload_parser.add_argument("start_date", help="Start date (YYYY_MM_DD)")
-    upload_parser.add_argument("end_date", nargs="?", help="End date (YYYY_MM_DD, optional)")
+    upload_parser.add_argument(
+        "end_date", nargs="?", help="End date (YYYY_MM_DD, optional)"
+    )
 
     # Delete command
-    delete_parser = subparsers.add_parser(
-        "delete", 
+    subparsers.add_parser(
+        "delete",
         help="Delete weather data collection",
-        description="Delete all weather data from MongoDB collection."
+        description="Delete all weather data from MongoDB collection.",
     )
 
     # EDA command
-    eda_parser = subparsers.add_parser(
-        "eda", 
+    subparsers.add_parser(
+        "eda",
         help="Run EDA analysis",
-        description="Perform exploratory data analysis and upload results."
+        description="Perform exploratory data analysis and upload results.",
     )
 
     # ML command
-    ml_parser = subparsers.add_parser(
-        "ml", 
+    subparsers.add_parser(
+        "ml",
         help="Run ML analysis",
-        description="Perform machine learning analysis and upload results."
+        description="Perform machine learning analysis and upload results.",
     )
 
     # Check command
-    check_parser = subparsers.add_parser(
+    subparsers.add_parser(
         "check",
         help="Check analysis results",
-        description="Display contents of analysis collections in MongoDB."
+        description="Display contents of analysis collections in MongoDB.",
     )
 
     args = parser.parse_args()
@@ -422,7 +433,9 @@ def main():
         # Upload command
         try:
             start = datetime.strptime(args.start_date, "%Y_%m_%d")
-            end = datetime.strptime(args.end_date, "%Y_%m_%d") if args.end_date else start
+            end = (
+                datetime.strptime(args.end_date, "%Y_%m_%d") if args.end_date else start
+            )
         except ValueError:
             rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
             return
@@ -445,6 +458,7 @@ def main():
     except Exception as e:
         rprint(f"[red]Error: {str(e)}[/red]")
         return
+
 
 if __name__ == "__main__":
     main()

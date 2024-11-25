@@ -4,28 +4,30 @@ from datetime import timedelta
 
 
 def time_selection_component():
-    # First check if we have date range in session state
-    date_range = get_date_range()
-    
-    if date_range is None:
-        df = load_data()
+    # First, ensure data is loaded
+    if "full_df" not in st.session_state:
+        df = load_data()  # Explicitly call load_data
         if df.empty:
-            st.error("The database is empty. Please upload some data...")
+            st.error("Failed to load data. Please check the database connection.")
             return st.stop()
-        # After loading data, get the date range again
+
+    # Get date range
+    if "date_range" not in st.session_state:
         date_range = get_date_range()
         if date_range is None:
-            st.error("Failed to get date range after loading data.")
+            st.error("Failed to get date range from database.")
             return st.stop()
+    else:
+        date_range = st.session_state.date_range
 
     # Now we can safely use date_range
     min_date = date_range["min_date"].date()
     max_date = date_range["max_date"].date()
-    
+
     # Set default date range to last 24 hours
     default_end_date = max_date
     default_start_date = (date_range["max_date"] - timedelta(hours=24)).date()
-    
+
     # Date range picker with try-except block
     try:
         selected_dates = st.date_input(
@@ -40,9 +42,9 @@ def time_selection_component():
         if not isinstance(selected_dates, tuple) or len(selected_dates) != 2:
             st.warning("Please select both start and end dates.")
             return st.stop()
-            
+
         start_date, end_date = selected_dates
-        
+
         if start_date > end_date:
             st.error("Error: Start date must be before or equal to end date.")
             return st.stop()
@@ -68,6 +70,3 @@ def time_selection_component():
         if filtered_df.empty:
             st.error("No data available for the selected date range.")
             return st.stop()
-    else:
-        st.error("Please wait while data is loading...")
-        return st.stop()

@@ -8,10 +8,10 @@ def scatter_plot_component():
     if "filtered_df" not in st.session_state:
         st.warning("Please select a date range first.")
         return
-    
+
     # Get the filtered data
     df = st.session_state.filtered_df
-    
+
     # Check if required columns exist
     required_columns = ["Temp_C", "2dSpeed_m_s", "Hum_RH"]
     if not all(col in df.columns for col in required_columns):
