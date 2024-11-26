@@ -13,7 +13,7 @@ This project is a web application built with Streamlit that visualizes weather d
 
 Follow these steps to set up the project environment after you have cloned this repo:
 
-1. **Create a new conda environment:**
+1. **Create a new [`conda`](https://github.com/conda-forge/miniforge) environment:**
    ```bash
    conda create -n tmp python=3.12 -y
    ```
@@ -23,7 +23,7 @@ Follow these steps to set up the project environment after you have cloned this 
    conda activate tmp
    ```
 
-3. **Install `uv` first:**
+3. **Install [`uv`](https://docs.astral.sh/uv/) first:**
    ```bash
    pip install uv
    ```
@@ -47,5 +47,33 @@ Follow these steps to set up the project environment after you have cloned this 
    ```
 
 
-## Notes
-- Ensure you have `conda` installed (if not, you may install it via [miniforge](https://github.com/conda-forge/miniforge)).
+## File Structure
+
+```
+📦weather-dashboard
+ ┣ 📂.devcontainer          // Dev container configuration
+ ┣ 📂.github                // GitHub workflows and actions
+ ┃ ┗ 📂workflows
+ ┃ ┃ ┗ 📜ci_cd.yml
+ ┣ 📂.streamlit             // Streamlit configuration files
+ ┃ ┣ 📜config.toml             // App configuration
+ ┃ ┗ 📜secrets.toml            // Secrets configuration
+ ┣ 📂lib                    // Library and documentation files
+ ┃ ┣ 📂fig                     // Plots and images
+ ┃ ┃ ┣ 📂eda
+ ┃ ┃ ┣ 📂ml
+ ┃ ┃ ┣ 📂pca
+ ┃ ┃ ┗ 📜banner.png
+ ┃ ┣ 📜project_instructions.pdf
+ ┃ ┣ 📜project_proposal.md
+ ┃ ┗ 📜project_report.md
+ ┣ 📂src                    // Source code files
+ ┃ ┣ 📂components              // Dashboard components
+ ┃ ┣ 📂data                    // Data and analysis scripts
+ ┃ ┃ ┣ 📂data_analysis_result
+ ┃ ┗ 📜app.py                  // Main file
+ ┣ 📜.gitignore
+ ┣ 📜LICENSE
+ ┣ 📜README.md
+ ┗ 📜requirements.txt       // Python dependencies
+ ```
