@@ -33,7 +33,18 @@ Follow these steps to set up the project environment after you have cloned this 
    uv pip install -r requirements.txt
    ```
 
-5. **Run the Streamlit application:**
+5. **Create a `.streamlit/secrets.toml` file and**
+   ```bash
+   touch .streamlit/secrets.toml
+   ```
+
+6. **Add the following content, use your own MongoDB URI:**
+   ```toml
+   [mongo]
+   uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
+   ```
+
+7. **Run the Streamlit application:**
    ```bash
    streamlit run src/app.py
    ```
@@ -51,15 +62,15 @@ Follow these steps to set up the project environment after you have cloned this 
 
 ```
 📦weather-dashboard
- ┣ 📂.devcontainer          // Dev container configuration
- ┣ 📂.github                // GitHub workflows and actions
+ ┣ 📂.devcontainer               // Dev container configuration
+ ┣ 📂.github                     // GitHub workflows and actions
  ┃ ┗ 📂workflows
  ┃ ┃ ┗ 📄ci_cd.yml
- ┣ 📂.streamlit             // Streamlit configuration files
- ┃ ┣ 📄config.toml             // App configuration
- ┃ ┗ 📄secrets.toml            // Secrets configuration
- ┣ 📂lib                    // Library and documentation files
- ┃ ┣ 📂fig                     // Plots and images
+ ┣ 📂.streamlit                  // Streamlit configuration files
+ ┃ ┣ 📄config.toml                  // App configuration
+ ┃ ┗ 📄secrets.toml                 // Secrets configuration
+ ┣ 📂lib                         // Library and documentation files
+ ┃ ┣ 📂fig                           // Plots and images
  ┃ ┃ ┣ 📂eda
  ┃ ┃ ┣ 📂ml
  ┃ ┃ ┣ 📂pca
@@ -67,13 +78,12 @@ Follow these steps to set up the project environment after you have cloned this 
  ┃ ┣ 📄project_instructions.pdf
  ┃ ┣ 📄project_proposal.md
  ┃ ┗ 📄project_report.md
- ┣ 📂src                    // Source code files
- ┃ ┣ 📂components              // Dashboard components
- ┃ ┣ 📂data                    // Data and analysis scripts
- ┃ ┃ ┣ 📂data_analysis_result
- ┃ ┗ 📄app.py                  // Main file
+ ┣ 📂src                         // Source code files
+ ┃ ┣ 📂components                   // Dashboard components
+ ┃ ┣ 📂data                         // Data and analysis scripts
+ ┃ ┗ 📄app.py                       // Main file
  ┣ 📄.gitignore
  ┣ 📄LICENSE
  ┣ 📄README.md
- ┗ 📄requirements.txt       // Python dependencies
+ ┗ 📄requirements.txt            // Python dependencies
  ```
