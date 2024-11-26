@@ -38,7 +38,7 @@ Follow these steps to set up the project environment after you have cloned this 
    touch .streamlit/secrets.toml
    ```
 
-6. **Add the following content, use your own MongoDB URI:**
+6. **Add the following content, but use your own MongoDB URI:**
    ```toml
    [mongo]
    uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
@@ -70,7 +70,7 @@ Follow these steps to set up the project environment after you have cloned this 
  ┃ ┣ 📄config.toml                  // App configuration
  ┃ ┗ 📄secrets.toml                 // Secrets configuration
  ┣ 📂lib                         // Library and documentation files
- ┃ ┣ 📂fig                           // Plots and images
+ ┃ ┣ 📂fig                          // Plots and images
  ┃ ┃ ┣ 📂eda
  ┃ ┃ ┣ 📂ml
  ┃ ┃ ┣ 📂pca
