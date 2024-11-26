@@ -54,26 +54,26 @@ Follow these steps to set up the project environment after you have cloned this 
  ┣ 📂.devcontainer          // Dev container configuration
  ┣ 📂.github                // GitHub workflows and actions
  ┃ ┗ 📂workflows
- ┃ ┃ ┗ 📜ci_cd.yml
+ ┃ ┃ ┗ 📄ci_cd.yml
  ┣ 📂.streamlit             // Streamlit configuration files
- ┃ ┣ 📜config.toml             // App configuration
- ┃ ┗ 📜secrets.toml            // Secrets configuration
+ ┃ ┣ 📄config.toml             // App configuration
+ ┃ ┗ 📄secrets.toml            // Secrets configuration
  ┣ 📂lib                    // Library and documentation files
  ┃ ┣ 📂fig                     // Plots and images
  ┃ ┃ ┣ 📂eda
  ┃ ┃ ┣ 📂ml
  ┃ ┃ ┣ 📂pca
- ┃ ┃ ┗ 📜banner.png
- ┃ ┣ 📜project_instructions.pdf
- ┃ ┣ 📜project_proposal.md
- ┃ ┗ 📜project_report.md
+ ┃ ┃ ┗ 📄banner.png
+ ┃ ┣ 📄project_instructions.pdf
+ ┃ ┣ 📄project_proposal.md
+ ┃ ┗ 📄project_report.md
  ┣ 📂src                    // Source code files
  ┃ ┣ 📂components              // Dashboard components
  ┃ ┣ 📂data                    // Data and analysis scripts
  ┃ ┃ ┣ 📂data_analysis_result
- ┃ ┗ 📜app.py                  // Main file
- ┣ 📜.gitignore
- ┣ 📜LICENSE
- ┣ 📜README.md
- ┗ 📜requirements.txt       // Python dependencies
+ ┃ ┗ 📄app.py                  // Main file
+ ┣ 📄.gitignore
+ ┣ 📄LICENSE
+ ┣ 📄README.md
+ ┗ 📄requirements.txt       // Python dependencies
  ```
