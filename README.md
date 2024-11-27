@@ -38,7 +38,7 @@ Follow these steps to set up the project environment after you have cloned this 
    touch .streamlit/secrets.toml
    ```
 
-6. **Add the following content, but use your own MongoDB URI:**
+6. **Add the following content in `secrets.toml`, but use your own MongoDB URI:**
    ```toml
    [mongo]
    uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
@@ -49,12 +49,44 @@ Follow these steps to set up the project environment after you have cloned this 
    streamlit run src/app.py
    ```
 
-## Development Instructions
-
-1. **Code Linting and Formatting:**
+8. **Development Instructions: Code Linting:**
    ```bash
    ruff check src
    ruff format src
+   ```
+
+## MongoDB CLI Operations
+
+The project includes a CLI tool for managing weather data and analysis results in MongoDB:
+
+1. **Upload Weather Data:**
+   ```bash
+   # Upload single date
+   python src/data/data_cli.py upload 2024_10_08
+   
+   # Upload date range
+   python src/data/data_cli.py upload 2024_10_08 2024_10_10
+   ```
+
+2. **Run Data Analysis:**
+   ```bash
+   # Run EDA and PCA analysis
+   python src/data/data_cli.py eda
+   
+   # Run ML analysis
+   python src/data/data_cli.py ml
+   ```
+
+3. **Check Analysis Results:**
+   ```bash
+   # View contents of all analysis collections
+   python src/data/data_cli.py check
+   ```
+
+4. **Delete Weather Data:**
+   ```bash
+   # Delete all weather data from MongoDB
+   python src/data/data_cli.py delete
    ```
 
 
