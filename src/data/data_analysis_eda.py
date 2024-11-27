@@ -217,6 +217,24 @@ def create_and_save_visualizations(df, output_dir="lib/fig/eda/"):
     plt.savefig(f"{output_dir}horizontal_wind_vs_humidity.png", **save_params)
     plt.close()
 
+    # 10. Wind Speed vs Pressure
+    fig, (ax1, ax2) = plt.subplots(2, 1, **fig_params)
+
+    # Pressure subplot
+    ax1.plot(df["tNow"], df["Press_Pa"], color="#00ff88", alpha=0.7, linewidth=1)
+    ax1.set_ylabel("Pressure (Pa)")
+    ax1.grid(True, alpha=0.2)
+
+    # Wind speed subplot
+    ax2.plot(df["tNow"], df["3DSpeed_m_s"], color="#ff8800", alpha=0.7, linewidth=1)
+    ax2.set_ylabel("Wind Speed (m/s)")
+    ax2.set_xlabel("Time")
+    ax2.grid(True, alpha=0.2)
+
+    plt.tight_layout()
+    plt.savefig(f"{output_dir}wind_speed_vs_pressure.png", **save_params)
+    plt.close()
+
 
 def perform_additional_analysis(df):
     # 1. Extreme value analysis

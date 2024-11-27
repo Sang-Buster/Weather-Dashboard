@@ -5,55 +5,67 @@ time_zone: ET
 
 columns:
   - name: tNow
-    description: Timestamp of the measurement
-    format: YYYY-MM-DD HH:MM:SS
+    description: Timestamp of the data record
+    unit: datetime
+    data_type: datetime
 
   - name: u_m_s
-    description: Wind speed component in the x-direction (east-west)
+    description: Wind speed component in the x-direction
     unit: meters per second
+    data_type: float
 
   - name: v_m_s
-    description: Wind speed component in the y-direction (north-south)
+    description: Wind speed component in the y-direction
     unit: meters per second
+    data_type: float
 
   - name: w_m_s
-    description: Wind speed component in the z-direction (vertical)
+    description: Wind speed component in the z-direction
     unit: meters per second
+    data_type: float
 
   - name: 2dSpeed_m_s
-    description: Horizontal wind speed (2D vector magnitude of u and v)
+    description: Total wind speed in the horizontal plane (2D vector magnitude of u and v)
     unit: meters per second
+    data_type: float
 
   - name: 3DSpeed_m_s
     description: Total wind speed (3D vector magnitude of u, v, and w)
     unit: meters per second
+    data_type: float
 
   - name: Azimuth_deg
     description: Wind direction in the horizontal plane
     unit: degrees
     range: 0 to 360
+    data_type: float
 
   - name: Elev_deg
     description: Elevation angle of the wind vector
     unit: degrees
     range: -90 to 90
+    data_type: float
 
   - name: Press_Pa
     description: Atmospheric pressure
     unit: Pascals
+    data_type: float
 
   - name: Temp_C
     description: Air temperature
     unit: degrees Celsius
+    data_type: float
 
   - name: Hum_RH
     description: Relative humidity
     unit: percentage
     range: 0 to 100
+    data_type: float
 
   - name: SonicTemp_C
     description: Sonic temperature (derived from speed of sound)
     unit: degrees Celsius
+    data_type: float
 
   - name: Error
     description: Error value from the Anemometer
@@ -61,6 +73,7 @@ columns:
     notes:
       - "Non-zero values indicate unreliable data for that row"
       - "Corresponds to the u_m_s value when an error occurs"
+    data_type: float
 
 notes:
   - "Wind components (u, v, w) follow meteorological convention: positive u is eastward wind, positive v is northward wind, positive w is upward wind"

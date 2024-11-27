@@ -25,7 +25,9 @@ def time_selection_component():
 
     # Set default date range to last 24 hours
     default_end_date = max_date
-    default_start_date = (st.session_state.date_range["max_date"] - timedelta(hours=24)).date()
+    default_start_date = (
+        st.session_state.date_range["max_date"] - timedelta(hours=24)
+    ).date()
 
     # Date range picker with try-except block
     try:
@@ -68,6 +70,10 @@ def time_selection_component():
             "**Location**: 60ft up on a light pole @ [here](https://maps.app.goo.gl/noC7dszEV9brfdxy8)"
         )
     with col2:
-        first_update = st.session_state.date_range["min_date"].strftime("%m/%d/%Y %H:%M:%S")
-        last_update = st.session_state.date_range["max_date"].strftime("%m/%d/%Y %H:%M:%S")
+        first_update = st.session_state.date_range["min_date"].strftime(
+            "%m/%d/%Y %H:%M:%S"
+        )
+        last_update = st.session_state.date_range["max_date"].strftime(
+            "%m/%d/%Y %H:%M:%S"
+        )
         st.markdown(f"**Data Range**: {first_update} - {last_update}")
