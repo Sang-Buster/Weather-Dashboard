@@ -49,7 +49,7 @@ Follow these steps to set up the project environment after you have cloned this 
    streamlit run src/app.py
    ```
 
-8. **Development Instructions: Code Linting:**
+8. **Development Instructions-Code Linting:**
    ```bash
    ruff check src
    ruff format src
