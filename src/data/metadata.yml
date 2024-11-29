@@ -39,12 +39,22 @@ columns:
     unit: degrees
     range: 0 to 360
     data_type: float
+    notes:
+      - "Measured clockwise from north"
+      - "0° indicates wind is coming from the north"
+      - "90° indicates wind is coming from the east"
+      - "180° indicates wind is coming from the south"
+      - "270° indicates wind is coming from the west"
 
   - name: Elev_deg
     description: Elevation angle of the wind vector
     unit: degrees
-    range: -90 to 90
+    range: -60 to 60
     data_type: float
+    notes:
+      - "Positive values indicate wind is coming from above the horizontal plane (downdraft)"
+      - "Negative values indicate wind is coming from below the horizontal plane (updraft)"
+      - "Effective elevation angle measurements are limited to ±60.0°."
 
   - name: Press_Pa
     description: Atmospheric pressure
