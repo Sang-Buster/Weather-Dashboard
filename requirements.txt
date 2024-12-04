@@ -8,6 +8,7 @@ scipy
 scikit-learn
 statsmodels
 zstandard
+colorama
 
 # Visualization
 matplotlib
