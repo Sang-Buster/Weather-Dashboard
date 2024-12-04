@@ -21,7 +21,7 @@ from rich.console import Console
 from rich import print as rprint
 from multiprocessing import Pool, cpu_count
 from math import ceil
-import textwrap
+from data_cli_utils import print_banner
 
 # Constants
 COLLECTIONS_CONFIG = {
@@ -37,7 +37,21 @@ DATA_DIR = "src/data"
 
 def connect_to_mongodb() -> Any:
     """Establish MongoDB connection and initialize time series collection."""
-    client = MongoClient(st.secrets["mongo"]["uri"])
+    client = MongoClient(
+        st.secrets["mongo"]["uri"],
+        maxPoolSize=100,  # Increased for parallel operations
+        minPoolSize=20,  # More ready connections
+        maxIdleTimeMS=45000,  # Longer idle timeout for connection reuse
+        connectTimeoutMS=2000,  # Quick connection timeout
+        socketTimeoutMS=30000,  # Longer socket timeout for large data transfers
+        serverSelectionTimeoutMS=5000,  # Quick server selection
+        retryWrites=True,
+        retryReads=True,
+        compressors=["zstd"],  # Best compression/speed ratio
+        maxConnecting=8,  # More parallel connections
+        w="majority",  # Ensure consistency
+        readPreference="secondaryPreferred",  # Read from secondaries when possible
+    )
     db = client["weather_dashboard"]
 
     # Check if collection exists
@@ -343,23 +357,10 @@ def check_analysis_results(db):
 
 
 def main():
+    print_banner()
     parser = argparse.ArgumentParser(
-        description=textwrap.dedent("""
-            Weather Station Data Management CLI
-            
-            This tool manages weather station data and analysis results in MongoDB.
-            It supports data upload, analysis, and result verification.
-        """),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=textwrap.dedent("""
-            Examples:
-              Upload single date:  %(prog)s upload 2024_10_08
-              Upload date range:   %(prog)s upload 2024_10_08 2024_10_10
-              Delete data:         %(prog)s delete
-              Run EDA:             %(prog)s eda
-              Run ML:              %(prog)s ml
-              Check all results:   %(prog)s check
-        """),
+        description="Weather data management CLI",
+        usage="meteorix [-h] {upload,delete,eda,ml,check} ...",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)

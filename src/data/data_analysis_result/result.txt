@@ -10,10 +10,10 @@ Temp_C            -0.383       -0.257    -0.004     0.164   1.000  -0.706
 Hum_RH             0.110        0.026     0.001    -0.343  -0.706   1.000
 
 Descriptive Statistics by Wind Direction Quadrant:
-/home/singsong/Desktop/repo/weather-dashboard/src/data/data_analysis_eda.py:267: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
+c:\Users\Sing Song\Desktop\weather-dashboard\src\data\data_analysis_eda.py:295: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
   print(df.groupby("direction_quadrant")["3DSpeed_m_s"].describe())
                        count      mean       std  min       25%       50%       75%        max
-direction_quadrant                                                                            
+direction_quadrant
 N-E                 139297.0  4.865612  3.028092  0.0  2.789375  4.088438  6.059375  25.176250
 E-S                  31993.0  4.283534  2.562786  0.0  2.524688  3.700625  5.459688  24.163438
 S-W                   9298.0  5.846090  3.208847  0.0  3.276953  5.592656  7.843750  24.248125
@@ -30,10 +30,10 @@ Mean Wind Shear: inf
 Maximum Gust Factor: 5.003
 
 Descriptive Statistics by Wind Direction Quadrant:
-/home/singsong/Desktop/repo/weather-dashboard/src/data/data_analysis_eda.py:291: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
+c:\Users\Sing Song\Desktop\weather-dashboard\src\data\data_analysis_eda.py:319: FutureWarning: The default of observed=False is deprecated and will be changed to True in a future version of pandas. Pass observed=False to retain current behavior or observed=True to adopt the future default and silence this warning.
   print(df.groupby("direction_quadrant")["3DSpeed_m_s"].describe())
                        count      mean       std  min       25%       50%       75%        max
-direction_quadrant                                                                            
+direction_quadrant
 N-E                 139297.0  4.865612  3.028092  0.0  2.789375  4.088438  6.059375  25.176250
 E-S                  31993.0  4.283534  2.562786  0.0  2.524688  3.700625  5.459688  24.163438
 S-W                   9298.0  5.846090  3.208847  0.0  3.276953  5.592656  7.843750  24.248125
@@ -47,10 +47,13 @@ p-value: 0.0000
 
 ----------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
 
 
 
 /home/singsong/Desktop/repo/weather-dashboard/.venv/bin/python /home/singsong/Desktop/repo/weather-dashboard/src/data/data_analysis_pca.py
+
 Starting analysis...
 Data loaded successfully
 PCA analysis completed
@@ -61,7 +64,7 @@ PCA Analysis Results:
 
 Explained Variance Table:
                      Individual Variance Explained  Cumulative Variance Explained
-Principal Component                                                              
+Principal Component
 PC1                                         0.3085                         0.3085
 PC2                                         0.1763                         0.4848
 PC3                                         0.1566                         0.6414
@@ -128,6 +131,8 @@ Top 10 Most Important Temporal Features:
 
 ----------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -173,7 +178,14 @@ Decision Tree Results:
    macro avg       0.82      0.82      0.82     45189
 weighted avg       0.87      0.87      0.87     45189
 
----
+
+
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+
+
 
 /home/singsong/miniconda3/envs/tmp/bin/python /home/singsong/Desktop/repo/weather-dashboard/src/data/data_analysis_ml.py
 
@@ -183,8 +195,8 @@ Threshold: 5.00 m/s
 
 Class Distribution:
 target
-0    0.585946
-1    0.414054
+0.0    0.577532
+1.0    0.422468
 Name: proportion, dtype: float64
 
 Initial Model Results (before threshold analysis):
@@ -196,8 +208,8 @@ ROC-AUC: 0.845
 Classification Report:
               precision    recall  f1-score   support
 
-           0       0.82      0.83      0.82     26278
-           1       0.76      0.75      0.75     18911
+         0.0       0.81      0.83      0.82     25877
+         1.0       0.77      0.75      0.76     19312
 
     accuracy                           0.79     45189
    macro avg       0.79      0.79      0.79     45189
@@ -205,14 +217,14 @@ weighted avg       0.79      0.79      0.79     45189
 
 
 Decision Tree:
-Accuracy: 0.842
-ROC-AUC: 0.838
+Accuracy: 0.844
+ROC-AUC: 0.840
 
 Classification Report:
               precision    recall  f1-score   support
 
-           0       0.86      0.87      0.86     26278
-           1       0.81      0.81      0.81     18911
+         0.0       0.86      0.87      0.86     25877
+         1.0       0.82      0.81      0.82     19312
 
     accuracy                           0.84     45189
    macro avg       0.84      0.84      0.84     45189
@@ -220,14 +232,14 @@ weighted avg       0.84      0.84      0.84     45189
 
 
 Random Forest:
-Accuracy: 0.883
-ROC-AUC: 0.952
+Accuracy: 0.884
+ROC-AUC: 0.954
 
 Classification Report:
               precision    recall  f1-score   support
 
-           0       0.89      0.91      0.90     26278
-           1       0.87      0.85      0.86     18911
+         0.0       0.89      0.91      0.90     25877
+         1.0       0.87      0.85      0.86     19312
 
     accuracy                           0.88     45189
    macro avg       0.88      0.88      0.88     45189
@@ -235,9 +247,9 @@ weighted avg       0.88      0.88      0.88     45189
 
 
 Prediction Statistics:
-LR positive predictions: 92705 (41.03%)
-DT positive predictions: 93424 (41.35%)
-RF positive predictions: 93083 (41.20%)
+LR positive predictions: 93264 (41.28%)
+DT positive predictions: 95304 (42.18%)
+RF positive predictions: 94961 (42.03%)
 
 Analyzing Very Light threshold...
 
@@ -245,104 +257,104 @@ Threshold: 3.30 m/s
 
 Class Distribution:
 target
-1    0.673162
-0    0.326838
+1.0    0.681819
+0.0    0.318181
 Name: proportion, dtype: float64
 
 Logistic Regression Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 59077, Class 1: 121678
-Test set distribution: Test - Class 0: 14770, Class 1: 30419
-Fold ROC-AUC: 0.806
-
-Fold 2:
-Training set distribution: Train - Class 0: 59077, Class 1: 121678
-Test set distribution: Test - Class 0: 14770, Class 1: 30419
-Fold ROC-AUC: 0.804
-
-Fold 3:
-Training set distribution: Train - Class 0: 59078, Class 1: 121677
-Test set distribution: Test - Class 0: 14769, Class 1: 30420
-Fold ROC-AUC: 0.807
-
-Fold 4:
-Training set distribution: Train - Class 0: 59078, Class 1: 121677
-Test set distribution: Test - Class 0: 14769, Class 1: 30420
-Fold ROC-AUC: 0.800
-
-Fold 5:
-Training set distribution: Train - Class 0: 59078, Class 1: 121678
-Test set distribution: Test - Class 0: 14769, Class 1: 30419
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
 Fold ROC-AUC: 0.808
 
-Average ROC-AUC: 0.805 ± 0.003
-Average Accuracy: 0.703 ± 0.003
+Fold 2:
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
+Fold ROC-AUC: 0.802
+
+Fold 3:
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
+Fold ROC-AUC: 0.805
+
+Fold 4:
+Training set distribution: Train - Class 0: 57512, Class 1: 123243
+Test set distribution: Test - Class 0: 14379, Class 1: 30810
+Fold ROC-AUC: 0.807
+
+Fold 5:
+Training set distribution: Train - Class 0: 57513, Class 1: 123243
+Test set distribution: Test - Class 0: 14378, Class 1: 30810
+Fold ROC-AUC: 0.803
+
+Average ROC-AUC: 0.805 ± 0.002
+Average Accuracy: 0.702 ± 0.002
 
 Decision Tree Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 59077, Class 1: 121678
-Test set distribution: Test - Class 0: 14770, Class 1: 30419
-Fold ROC-AUC: 0.810
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
+Fold ROC-AUC: 0.813
 
 Fold 2:
-Training set distribution: Train - Class 0: 59077, Class 1: 121678
-Test set distribution: Test - Class 0: 14770, Class 1: 30419
-Fold ROC-AUC: 0.814
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
+Fold ROC-AUC: 0.813
 
 Fold 3:
-Training set distribution: Train - Class 0: 59078, Class 1: 121677
-Test set distribution: Test - Class 0: 14769, Class 1: 30420
-Fold ROC-AUC: 0.814
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
+Fold ROC-AUC: 0.815
 
 Fold 4:
-Training set distribution: Train - Class 0: 59078, Class 1: 121677
-Test set distribution: Test - Class 0: 14769, Class 1: 30420
+Training set distribution: Train - Class 0: 57512, Class 1: 123243
+Test set distribution: Test - Class 0: 14379, Class 1: 30810
 Fold ROC-AUC: 0.813
 
 Fold 5:
-Training set distribution: Train - Class 0: 59078, Class 1: 121678
-Test set distribution: Test - Class 0: 14769, Class 1: 30419
-Fold ROC-AUC: 0.811
+Training set distribution: Train - Class 0: 57513, Class 1: 123243
+Test set distribution: Test - Class 0: 14378, Class 1: 30810
+Fold ROC-AUC: 0.810
 
-Average ROC-AUC: 0.812 ± 0.002
-Average Accuracy: 0.836 ± 0.002
+Average ROC-AUC: 0.813 ± 0.002
+Average Accuracy: 0.839 ± 0.002
 
 Random Forest Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 59077, Class 1: 121678
-Test set distribution: Test - Class 0: 14770, Class 1: 30419
-Fold ROC-AUC: 0.942
-
-Fold 2:
-Training set distribution: Train - Class 0: 59077, Class 1: 121678
-Test set distribution: Test - Class 0: 14770, Class 1: 30419
-Fold ROC-AUC: 0.941
-
-Fold 3:
-Training set distribution: Train - Class 0: 59078, Class 1: 121677
-Test set distribution: Test - Class 0: 14769, Class 1: 30420
-Fold ROC-AUC: 0.944
-
-Fold 4:
-Training set distribution: Train - Class 0: 59078, Class 1: 121677
-Test set distribution: Test - Class 0: 14769, Class 1: 30420
-Fold ROC-AUC: 0.942
-
-Fold 5:
-Training set distribution: Train - Class 0: 59078, Class 1: 121678
-Test set distribution: Test - Class 0: 14769, Class 1: 30419
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
 Fold ROC-AUC: 0.943
 
-Average ROC-AUC: 0.942 ± 0.001
-Average Accuracy: 0.874 ± 0.002
+Fold 2:
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
+Fold ROC-AUC: 0.943
+
+Fold 3:
+Training set distribution: Train - Class 0: 57513, Class 1: 123242
+Test set distribution: Test - Class 0: 14378, Class 1: 30811
+Fold ROC-AUC: 0.945
+
+Fold 4:
+Training set distribution: Train - Class 0: 57512, Class 1: 123243
+Test set distribution: Test - Class 0: 14379, Class 1: 30810
+Fold ROC-AUC: 0.944
+
+Fold 5:
+Training set distribution: Train - Class 0: 57513, Class 1: 123243
+Test set distribution: Test - Class 0: 14378, Class 1: 30810
+Fold ROC-AUC: 0.942
+
+Average ROC-AUC: 0.943 ± 0.001
+Average Accuracy: 0.874 ± 0.001
 
 Prediction Statistics:
-LR positive predictions: 116407 (51.52%)
-DT positive predictions: 152108 (67.32%)
-RF positive predictions: 152741 (67.60%)
+LR positive predictions: 117277 (51.91%)
+DT positive predictions: 154170 (68.23%)
+RF positive predictions: 154782 (68.50%)
 
 Analyzing Light threshold...
 
@@ -350,104 +362,104 @@ Threshold: 5.00 m/s
 
 Class Distribution:
 target
-0    0.585946
-1    0.414054
+0.0    0.577532
+1.0    0.422468
 Name: proportion, dtype: float64
 
 Logistic Regression Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 105912, Class 1: 74843
-Test set distribution: Test - Class 0: 26479, Class 1: 18710
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
 Fold ROC-AUC: 0.843
 
 Fold 2:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
-Fold ROC-AUC: 0.843
-
-Fold 3:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
 Fold ROC-AUC: 0.846
 
+Fold 3:
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
+Fold ROC-AUC: 0.845
+
 Fold 4:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
-Fold ROC-AUC: 0.844
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
+Fold ROC-AUC: 0.842
 
 Fold 5:
-Training set distribution: Train - Class 0: 105913, Class 1: 74843
-Test set distribution: Test - Class 0: 26478, Class 1: 18710
+Training set distribution: Train - Class 0: 104392, Class 1: 76364
+Test set distribution: Test - Class 0: 26098, Class 1: 19090
 Fold ROC-AUC: 0.845
 
 Average ROC-AUC: 0.844 ± 0.001
-Average Accuracy: 0.793 ± 0.001
+Average Accuracy: 0.793 ± 0.002
 
 Decision Tree Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 105912, Class 1: 74843
-Test set distribution: Test - Class 0: 26479, Class 1: 18710
-Fold ROC-AUC: 0.834
-
-Fold 2:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
-Fold ROC-AUC: 0.835
-
-Fold 3:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
 Fold ROC-AUC: 0.837
 
-Fold 4:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
+Fold 2:
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
+Fold ROC-AUC: 0.840
+
+Fold 3:
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
 Fold ROC-AUC: 0.836
 
-Fold 5:
-Training set distribution: Train - Class 0: 105913, Class 1: 74843
-Test set distribution: Test - Class 0: 26478, Class 1: 18710
-Fold ROC-AUC: 0.834
+Fold 4:
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
+Fold ROC-AUC: 0.838
 
-Average ROC-AUC: 0.835 ± 0.001
-Average Accuracy: 0.841 ± 0.001
+Fold 5:
+Training set distribution: Train - Class 0: 104392, Class 1: 76364
+Test set distribution: Test - Class 0: 26098, Class 1: 19090
+Fold ROC-AUC: 0.839
+
+Average ROC-AUC: 0.838 ± 0.001
+Average Accuracy: 0.842 ± 0.001
 
 Random Forest Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 105912, Class 1: 74843
-Test set distribution: Test - Class 0: 26479, Class 1: 18710
-Fold ROC-AUC: 0.951
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
+Fold ROC-AUC: 0.953
 
 Fold 2:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
-Fold ROC-AUC: 0.952
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
+Fold ROC-AUC: 0.954
 
 Fold 3:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
 Fold ROC-AUC: 0.952
 
 Fold 4:
-Training set distribution: Train - Class 0: 105913, Class 1: 74842
-Test set distribution: Test - Class 0: 26478, Class 1: 18711
-Fold ROC-AUC: 0.952
+Training set distribution: Train - Class 0: 104392, Class 1: 76363
+Test set distribution: Test - Class 0: 26098, Class 1: 19091
+Fold ROC-AUC: 0.953
 
 Fold 5:
-Training set distribution: Train - Class 0: 105913, Class 1: 74843
-Test set distribution: Test - Class 0: 26478, Class 1: 18710
+Training set distribution: Train - Class 0: 104392, Class 1: 76364
+Test set distribution: Test - Class 0: 26098, Class 1: 19090
 Fold ROC-AUC: 0.952
 
-Average ROC-AUC: 0.952 ± 0.000
-Average Accuracy: 0.881 ± 0.000
+Average ROC-AUC: 0.953 ± 0.001
+Average Accuracy: 0.882 ± 0.002
 
 Prediction Statistics:
-LR positive predictions: 92705 (41.03%)
-DT positive predictions: 93424 (41.35%)
-RF positive predictions: 93083 (41.20%)
+LR positive predictions: 93264 (41.28%)
+DT positive predictions: 95304 (42.18%)
+RF positive predictions: 94961 (42.03%)
 
 Analyzing Moderate threshold...
 
@@ -455,104 +467,104 @@ Threshold: 7.90 m/s
 
 Class Distribution:
 target
-0    0.846785
-1    0.153215
+0.0    0.84112
+1.0    0.15888
 Name: proportion, dtype: float64
 
 Logistic Regression Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 153060, Class 1: 27695
-Test set distribution: Test - Class 0: 38266, Class 1: 6923
-Fold ROC-AUC: 0.900
+Training set distribution: Train - Class 0: 152036, Class 1: 28719
+Test set distribution: Test - Class 0: 38010, Class 1: 7179
+Fold ROC-AUC: 0.901
 
 Fold 2:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
-Fold ROC-AUC: 0.907
-
-Fold 3:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
 Fold ROC-AUC: 0.904
 
+Fold 3:
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
+Fold ROC-AUC: 0.903
+
 Fold 4:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
-Fold ROC-AUC: 0.902
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
+Fold ROC-AUC: 0.903
 
 Fold 5:
-Training set distribution: Train - Class 0: 153061, Class 1: 27695
-Test set distribution: Test - Class 0: 38265, Class 1: 6923
-Fold ROC-AUC: 0.906
+Training set distribution: Train - Class 0: 152037, Class 1: 28719
+Test set distribution: Test - Class 0: 38009, Class 1: 7179
+Fold ROC-AUC: 0.907
 
 Average ROC-AUC: 0.904 ± 0.002
-Average Accuracy: 0.808 ± 0.003
+Average Accuracy: 0.809 ± 0.002
 
 Decision Tree Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 153060, Class 1: 27695
-Test set distribution: Test - Class 0: 38266, Class 1: 6923
-Fold ROC-AUC: 0.788
+Training set distribution: Train - Class 0: 152036, Class 1: 28719
+Test set distribution: Test - Class 0: 38010, Class 1: 7179
+Fold ROC-AUC: 0.793
 
 Fold 2:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
-Fold ROC-AUC: 0.785
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
+Fold ROC-AUC: 0.801
 
 Fold 3:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
-Fold ROC-AUC: 0.786
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
+Fold ROC-AUC: 0.796
 
 Fold 4:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
-Fold ROC-AUC: 0.784
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
+Fold ROC-AUC: 0.793
 
 Fold 5:
-Training set distribution: Train - Class 0: 153061, Class 1: 27695
-Test set distribution: Test - Class 0: 38265, Class 1: 6923
-Fold ROC-AUC: 0.789
+Training set distribution: Train - Class 0: 152037, Class 1: 28719
+Test set distribution: Test - Class 0: 38009, Class 1: 7179
+Fold ROC-AUC: 0.795
 
-Average ROC-AUC: 0.786 ± 0.002
-Average Accuracy: 0.893 ± 0.001
+Average ROC-AUC: 0.795 ± 0.003
+Average Accuracy: 0.894 ± 0.002
 
 Random Forest Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 153060, Class 1: 27695
-Test set distribution: Test - Class 0: 38266, Class 1: 6923
-Fold ROC-AUC: 0.957
+Training set distribution: Train - Class 0: 152036, Class 1: 28719
+Test set distribution: Test - Class 0: 38010, Class 1: 7179
+Fold ROC-AUC: 0.958
 
 Fold 2:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
-Fold ROC-AUC: 0.959
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
+Fold ROC-AUC: 0.960
 
 Fold 3:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
 Fold ROC-AUC: 0.958
 
 Fold 4:
-Training set distribution: Train - Class 0: 153061, Class 1: 27694
-Test set distribution: Test - Class 0: 38265, Class 1: 6924
-Fold ROC-AUC: 0.956
+Training set distribution: Train - Class 0: 152037, Class 1: 28718
+Test set distribution: Test - Class 0: 38009, Class 1: 7180
+Fold ROC-AUC: 0.957
 
 Fold 5:
-Training set distribution: Train - Class 0: 153061, Class 1: 27695
-Test set distribution: Test - Class 0: 38265, Class 1: 6923
-Fold ROC-AUC: 0.959
+Training set distribution: Train - Class 0: 152037, Class 1: 28719
+Test set distribution: Test - Class 0: 38009, Class 1: 7179
+Fold ROC-AUC: 0.960
 
-Average ROC-AUC: 0.958 ± 0.001
-Average Accuracy: 0.916 ± 0.002
+Average ROC-AUC: 0.959 ± 0.001
+Average Accuracy: 0.916 ± 0.001
 
 Prediction Statistics:
-LR positive predictions: 71351 (31.58%)
-DT positive predictions: 34492 (15.27%)
-RF positive predictions: 33780 (14.95%)
+LR positive predictions: 72014 (31.87%)
+DT positive predictions: 35750 (15.82%)
+RF positive predictions: 35100 (15.53%)
 
 Analyzing Strong threshold...
 
@@ -560,104 +572,104 @@ Threshold: 10.00 m/s
 
 Class Distribution:
 target
-0    0.934634
-1    0.065366
+0.0    0.931036
+1.0    0.068964
 Name: proportion, dtype: float64
 
 Logistic Regression Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.931
+Training set distribution: Train - Class 0: 168289, Class 1: 12466
+Test set distribution: Test - Class 0: 42073, Class 1: 3116
+Fold ROC-AUC: 0.929
 
 Fold 2:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.929
+Training set distribution: Train - Class 0: 168289, Class 1: 12466
+Test set distribution: Test - Class 0: 42073, Class 1: 3116
+Fold ROC-AUC: 0.930
 
 Fold 3:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.929
+Training set distribution: Train - Class 0: 168290, Class 1: 12465
+Test set distribution: Test - Class 0: 42072, Class 1: 3117
+Fold ROC-AUC: 0.928
 
 Fold 4:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.929
+Training set distribution: Train - Class 0: 168290, Class 1: 12465
+Test set distribution: Test - Class 0: 42072, Class 1: 3117
+Fold ROC-AUC: 0.930
 
 Fold 5:
-Training set distribution: Train - Class 0: 168940, Class 1: 11816
-Test set distribution: Test - Class 0: 42235, Class 1: 2953
+Training set distribution: Train - Class 0: 168290, Class 1: 12466
+Test set distribution: Test - Class 0: 42072, Class 1: 3116
 Fold ROC-AUC: 0.931
 
 Average ROC-AUC: 0.930 ± 0.001
-Average Accuracy: 0.816 ± 0.003
+Average Accuracy: 0.816 ± 0.002
 
 Decision Tree Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.744
+Training set distribution: Train - Class 0: 168289, Class 1: 12466
+Test set distribution: Test - Class 0: 42073, Class 1: 3116
+Fold ROC-AUC: 0.747
 
 Fold 2:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.741
+Training set distribution: Train - Class 0: 168289, Class 1: 12466
+Test set distribution: Test - Class 0: 42073, Class 1: 3116
+Fold ROC-AUC: 0.747
 
 Fold 3:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.743
+Training set distribution: Train - Class 0: 168290, Class 1: 12465
+Test set distribution: Test - Class 0: 42072, Class 1: 3117
+Fold ROC-AUC: 0.739
 
 Fold 4:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.733
+Training set distribution: Train - Class 0: 168290, Class 1: 12465
+Test set distribution: Test - Class 0: 42072, Class 1: 3117
+Fold ROC-AUC: 0.741
 
 Fold 5:
-Training set distribution: Train - Class 0: 168940, Class 1: 11816
-Test set distribution: Test - Class 0: 42235, Class 1: 2953
-Fold ROC-AUC: 0.746
+Training set distribution: Train - Class 0: 168290, Class 1: 12466
+Test set distribution: Test - Class 0: 42072, Class 1: 3116
+Fold ROC-AUC: 0.748
 
-Average ROC-AUC: 0.742 ± 0.005
-Average Accuracy: 0.940 ± 0.001
+Average ROC-AUC: 0.744 ± 0.004
+Average Accuracy: 0.938 ± 0.001
 
 Random Forest Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.962
+Training set distribution: Train - Class 0: 168289, Class 1: 12466
+Test set distribution: Test - Class 0: 42073, Class 1: 3116
+Fold ROC-AUC: 0.960
 
 Fold 2:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
+Training set distribution: Train - Class 0: 168289, Class 1: 12466
+Test set distribution: Test - Class 0: 42073, Class 1: 3116
 Fold ROC-AUC: 0.961
 
 Fold 3:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
+Training set distribution: Train - Class 0: 168290, Class 1: 12465
+Test set distribution: Test - Class 0: 42072, Class 1: 3117
 Fold ROC-AUC: 0.961
 
 Fold 4:
-Training set distribution: Train - Class 0: 168940, Class 1: 11815
-Test set distribution: Test - Class 0: 42235, Class 1: 2954
-Fold ROC-AUC: 0.959
+Training set distribution: Train - Class 0: 168290, Class 1: 12465
+Test set distribution: Test - Class 0: 42072, Class 1: 3117
+Fold ROC-AUC: 0.962
 
 Fold 5:
-Training set distribution: Train - Class 0: 168940, Class 1: 11816
-Test set distribution: Test - Class 0: 42235, Class 1: 2953
-Fold ROC-AUC: 0.964
+Training set distribution: Train - Class 0: 168290, Class 1: 12466
+Test set distribution: Test - Class 0: 42072, Class 1: 3116
+Fold ROC-AUC: 0.963
 
-Average ROC-AUC: 0.962 ± 0.002
-Average Accuracy: 0.955 ± 0.000
+Average ROC-AUC: 0.961 ± 0.001
+Average Accuracy: 0.953 ± 0.001
 
 Prediction Statistics:
-LR positive predictions: 53434 (23.65%)
-DT positive predictions: 14525 (6.43%)
-RF positive predictions: 13732 (6.08%)
+LR positive predictions: 54134 (23.96%)
+DT positive predictions: 15429 (6.83%)
+RF positive predictions: 14578 (6.45%)
 
 Analyzing Tropical Depression threshold...
 
@@ -665,109 +677,109 @@ Threshold: 15.60 m/s
 
 Class Distribution:
 target
-0    0.991401
-1    0.008599
+0.0    0.990838
+1.0    0.009162
 Name: proportion, dtype: float64
 
 Logistic Regression Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 179200, Class 1: 1555
-Test set distribution: Test - Class 0: 44801, Class 1: 388
-Fold ROC-AUC: 0.980
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.983
 
 Fold 2:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.985
-
-Fold 3:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.985
-
-Fold 4:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
 Fold ROC-AUC: 0.984
 
-Fold 5:
-Training set distribution: Train - Class 0: 179201, Class 1: 1555
-Test set distribution: Test - Class 0: 44800, Class 1: 388
-Fold ROC-AUC: 0.987
+Fold 3:
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.984
 
-Average ROC-AUC: 0.984 ± 0.002
-Average Accuracy: 0.937 ± 0.001
+Fold 4:
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.986
+
+Fold 5:
+Training set distribution: Train - Class 0: 179100, Class 1: 1656
+Test set distribution: Test - Class 0: 44774, Class 1: 414
+Fold ROC-AUC: 0.984
+
+Average ROC-AUC: 0.984 ± 0.001
+Average Accuracy: 0.936 ± 0.001
 
 Decision Tree Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 179200, Class 1: 1555
-Test set distribution: Test - Class 0: 44801, Class 1: 388
-Fold ROC-AUC: 0.683
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.686
 
 Fold 2:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.688
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.685
 
 Fold 3:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.675
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.701
 
 Fold 4:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.666
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.705
 
 Fold 5:
-Training set distribution: Train - Class 0: 179201, Class 1: 1555
-Test set distribution: Test - Class 0: 44800, Class 1: 388
-Fold ROC-AUC: 0.706
+Training set distribution: Train - Class 0: 179100, Class 1: 1656
+Test set distribution: Test - Class 0: 44774, Class 1: 414
+Fold ROC-AUC: 0.704
 
-Average ROC-AUC: 0.684 ± 0.014
-Average Accuracy: 0.990 ± 0.000
+Average ROC-AUC: 0.696 ± 0.009
+Average Accuracy: 0.990 ± 0.001
 
 Random Forest Cross-Validation Details:
 
 Fold 1:
-Training set distribution: Train - Class 0: 179200, Class 1: 1555
-Test set distribution: Test - Class 0: 44801, Class 1: 388
-Fold ROC-AUC: 0.953
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.972
 
 Fold 2:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.968
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.972
 
 Fold 3:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.975
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
+Fold ROC-AUC: 0.972
 
 Fold 4:
-Training set distribution: Train - Class 0: 179201, Class 1: 1554
-Test set distribution: Test - Class 0: 44800, Class 1: 389
-Fold ROC-AUC: 0.962
-
-Fold 5:
-Training set distribution: Train - Class 0: 179201, Class 1: 1555
-Test set distribution: Test - Class 0: 44800, Class 1: 388
+Training set distribution: Train - Class 0: 179099, Class 1: 1656
+Test set distribution: Test - Class 0: 44775, Class 1: 414
 Fold ROC-AUC: 0.973
 
-Average ROC-AUC: 0.966 ± 0.008
+Fold 5:
+Training set distribution: Train - Class 0: 179100, Class 1: 1656
+Test set distribution: Test - Class 0: 44774, Class 1: 414
+Fold ROC-AUC: 0.976
+
+Average ROC-AUC: 0.973 ± 0.002
 Average Accuracy: 0.992 ± 0.000
 
 Prediction Statistics:
-LR positive predictions: 16215 (7.18%)
-DT positive predictions: 1873 (0.83%)
-RF positive predictions: 1734 (0.77%)
+LR positive predictions: 16417 (7.27%)
+DT positive predictions: 2032 (0.90%)
+RF positive predictions: 1861 (0.82%)
 
 Results Summary:
      Threshold Name  Threshold Value  LR Accuracy  LR ROC-AUC  DT Accuracy  DT ROC-AUC  RF Accuracy  RF ROC-AUC
-         Very Light              3.3     0.703298    0.804753     0.835915    0.812323     0.873570    0.942302
-              Light              5.0     0.792502    0.844126     0.840509    0.835225     0.881404    0.951626
-           Moderate              7.9     0.807505    0.903900     0.892770    0.786135     0.915992    0.957827
-             Strong             10.0     0.815813    0.929688     0.940189    0.741580     0.954599    0.961575
-Tropical Depression             15.6     0.936706    0.984395     0.989900    0.683693     0.992494    0.966241
+         Very Light              3.3     0.702329    0.805054     0.838965    0.812840     0.874062    0.943194
+              Light              5.0     0.792581    0.844028     0.842474    0.838066     0.882143    0.952841
+           Moderate              7.9     0.808877    0.903766     0.893558    0.795373     0.916285    0.958866
+             Strong             10.0     0.815861    0.929720     0.938135    0.744179     0.952617    0.961254
+Tropical Depression             15.6     0.936161    0.984075     0.989741    0.696400     0.992109    0.972997

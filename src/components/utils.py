@@ -17,7 +17,7 @@ def init_connection():
         retryWrites=True,
         retryReads=True,
         compressors=["zstd"],  # Best compression/speed ratio
-        maxConnecting=4,  # More parallel connections
+        maxConnecting=8,  # More parallel connections
         w="majority",  # Ensure consistency
         readPreference="secondaryPreferred",  # Read from secondaries when possible
     )
