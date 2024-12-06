@@ -20,3 +20,6 @@ streamlit
 
 # Database
 pymongo
+
+# Discord Bot
+discord

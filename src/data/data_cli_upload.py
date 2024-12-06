@@ -15,7 +15,7 @@ from rich.progress import (
 )
 from rich.console import Console
 import streamlit as st
-from data_cli_utils import print_collection_stats
+from src.data.data_cli_utils import print_collection_stats
 from typing import Any
 
 DATA_DIR = "src/data"

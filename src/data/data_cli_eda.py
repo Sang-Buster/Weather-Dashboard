@@ -1,9 +1,9 @@
 import json
 from datetime import datetime, UTC
 from rich import print as rprint
-from data_analysis_eda import main as run_eda
-from data_analysis_pca import main as run_pca
-from data_cli_utils import print_collection_stats
+from src.data.data_analysis_eda import main as run_eda
+from src.data.data_analysis_pca import main as run_pca
+from src.data.data_cli_utils import print_collection_stats
 
 
 def run_eda_analysis(db):

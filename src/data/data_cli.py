@@ -1,19 +1,28 @@
+import os
+import sys
 import argparse
 from datetime import datetime
 from rich import print as rprint
-from data_cli_utils import print_banner, connect_to_mongodb
-from data_cli_upload import upload_csv_to_mongodb
-from data_cli_delete import delete_mongodb_collection
-from data_cli_check import check_analysis_results
-from data_cli_eda import run_eda_analysis, run_pca_analysis
-from data_cli_ml import run_ml_analysis
+
+# Add project root to Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+
+from src.data.data_cli_utils import print_banner, connect_to_mongodb  # noqa: E402
+from src.data.data_cli_upload import upload_csv_to_mongodb  # noqa: E402
+from src.data.data_cli_delete import delete_mongodb_collection  # noqa: E402
+from src.data.data_cli_check import check_analysis_results  # noqa: E402
+from src.data.data_cli_eda import run_eda_analysis, run_pca_analysis  # noqa: E402
+from src.data.data_cli_ml import run_ml_analysis  # noqa: E402
+from src.data.data_cli_info import get_available_date_range  # noqa: E402
+from src.data.data_cli_who import show_who_info  # noqa: E402
 
 
 def main():
     print_banner()
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload,delete,eda,ml,check} ...",
+        usage="meteorix [-h] {upload,delete,eda,ml,check,info,who} ...",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -35,7 +44,7 @@ def main():
         help="Delete all weather data",
         description="Remove all weather data records from the MongoDB collection.",
     )
-    delete_parser.add_argument('--force', action='store_true', help=argparse.SUPPRESS)
+    delete_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
     # EDA command with no arguments
     eda_parser = subparsers.add_parser(
@@ -43,7 +52,7 @@ def main():
         help="Run exploratory data analysis",
         description="Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
     )
-    eda_parser.add_argument('--force', action='store_true', help=argparse.SUPPRESS)
+    eda_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
     # ML command with no arguments
     ml_parser = subparsers.add_parser(
@@ -51,7 +60,7 @@ def main():
         help="Run machine learning analysis",
         description="Execute machine learning models for weather prediction and upload results to MongoDB.",
     )
-    ml_parser.add_argument('--force', action='store_true', help=argparse.SUPPRESS)
+    ml_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
     # Check command with no arguments
     check_parser = subparsers.add_parser(
@@ -59,13 +68,31 @@ def main():
         help="Check database collections",
         description="Display detailed statistics and content preview for all MongoDB collections.",
     )
-    check_parser.add_argument('--force', action='store_true', help=argparse.SUPPRESS)
+    check_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+
+    # Info command
+    info_parser = subparsers.add_parser(
+        "info",
+        help="Show available date range",
+        description="Display the date range of available weather station data files and identify any missing dates.",
+    )
+    info_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+
+    # Who command
+    who_parser = subparsers.add_parser(
+        "who",
+        help="Show information about the bot and its creators",
+        description="Display detailed information about the Meteorix bot and its creators.",
+    )
+    who_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
     args = parser.parse_args()
     db = connect_to_mongodb()
 
     try:
-        if args.command == "check":
+        if args.command == "who":
+            show_who_info()
+        elif args.command == "check":
             check_analysis_results(db)
         elif args.command == "delete":
             if delete_mongodb_collection(db):
@@ -95,6 +122,8 @@ def main():
                     rprint("[red]Upload failed[/red]")
             except ValueError:
                 rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
+        elif args.command == "info":
+            get_available_date_range()
 
     except KeyboardInterrupt:
         rprint("\n[yellow]Operation cancelled by user.[/yellow]")

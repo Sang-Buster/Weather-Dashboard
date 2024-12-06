@@ -55,42 +55,134 @@ Follow these steps to set up the project environment after you have cloned this 
    ruff format src
    ```
 
-## MongoDB CLI Operations
+## CLI Operations
 
-The project includes a CLI tool for managing weather data and analysis results in MongoDB:
+The project includes a CLI tool for managing weather data and analysis results. You can use it in two ways:
 
-1. **Upload Weather Data:**
+### Option 1: Direct Python Command
+
+Simply run the CLI tool directly with Python:
+```bash
+python src/data/data_cli.py --help
+```
+
+### Option 2: Create CLI Alias (Optional)
+
+For convenience, you can set up an alias named `meteorix`:
+
+1. **Add Project Root to PYTHONPATH:**
+   ```bash
+   # Get your project root path
+   cd /path/to/weather-dashboard
+   export PYTHONPATH="$(pwd):$PYTHONPATH"
+   ```
+
+2. **Create CLI Alias:**
+   ```bash
+   # Create alias for the CLI tool
+   alias meteorix="python src/data/data_cli.py"
+   ```
+
+3. **Make Changes Permanent:**
+   Add these lines to your shell configuration file (`~/.bashrc` or `~/.zshrc`):
+   ```bash
+   export PYTHONPATH="/absolute/path/to/weather-dashboard:$PYTHONPATH"
+   alias meteorix="python src/data/data_cli.py"
+   ```
+
+4. **Apply Changes:**
+   Either:
+   - Restart your terminal, or
+   - Run: `source ~/.bashrc` (or `source ~/.zshrc`)
+
+### Available Commands
+
+The following commands work with either method (replace `meteorix` with `python src/data/data_cli.py` if not using the alias):
+
+1. **Show Available Commands:**
+   ```bash
+   meteorix --help
+   ```
+
+2. **Upload Weather Data:**
    ```bash
    # Upload single date
-   python src/data/data_cli.py upload 2024_10_08
+   meteorix upload 2024_10_08
    
    # Upload date range
-   python src/data/data_cli.py upload 2024_10_08 2024_10_10
+   meteorix upload 2024_10_08 2024_10_10
    ```
 
-2. **Run Data Analysis:**
+3. **Run Data Analysis:**
    ```bash
    # Run EDA and PCA analysis
-   python src/data/data_cli.py eda
+   meteorix eda
    
    # Run ML analysis
-   python src/data/data_cli.py ml
+   meteorix ml
    ```
 
-3. **Check Analysis Results:**
+4. **Check Analysis Results:**
    ```bash
    # View contents of all analysis collections
-   python src/data/data_cli.py check
+   meteorix check
    ```
 
-4. **Delete Weather Data:**
+5. **Delete Weather Data:**
    ```bash
    # Delete all weather data from MongoDB
-   python src/data/data_cli.py delete
+   meteorix delete
    ```
 
+6. **Show Available Date Range:**
+   ```bash
+   # Display available dates and identify gaps
+   meteorix info
+   ```
 
-## File Structure
+7. **Show Bot Information:**
+   ```bash
+   # Display information about the bot and its creators
+   meteorix who
+   ```
+
+## Discord Bot Integration
+
+The project includes a Discord bot that inherits all CLI functionalities. The bot provides both mention-based commands and slash commands.
+
+### Setup Instructions:
+
+1. **Add Discord Bot Token to secrets.toml:**
+   ```toml
+   [bot_token]
+   token = "YOUR_BOT_TOKEN"
+
+   [channel_id]
+   id = "YOUR_CHANNEL_ID"
+   ```
+
+2. **Run the Discord Bot:**
+   ```bash
+   python src/meteorix.py
+   ```
+
+### Using the Bot:
+
+1. **Mention Commands:**
+   ```
+   @meteorix help           # Show all available commands
+   @meteorix help <command> # Show detailed help for specific command
+   @meteorix info          # Show available date range
+   @meteorix who           # Show bot information
+   ```
+
+2. **Slash Commands:**
+   Type `/` in Discord to see all available commands with descriptions.
+
+The bot inherits all functionalities from the CLI tool and provides them through Discord's interface, making it easy to manage weather data and analysis directly from Discord.
+
+
+#### File Structure
 
 ```
 📦weather-dashboard
@@ -112,8 +204,9 @@ The project includes a CLI tool for managing weather data and analysis results i
  ┃ ┗ 📄project_report.md
  ┣ 📂src                         // Source code files
  ┃ ┣ 📂components                   // Dashboard components
- ┃ ┣ 📂data                         // Data and analysis scripts
- ┃ ┗ 📄app.py                       // Main file
+ ┃ ┣ 📂data                         // Data analysis and CLI scripts
+ ┃ ┣ 📄app.py                       // Web app file
+ ┃ ┗ 📄meteorix.py                  // Discord bot file
  ┣ 📄.gitignore
  ┣ 📄LICENSE
  ┣ 📄README.md

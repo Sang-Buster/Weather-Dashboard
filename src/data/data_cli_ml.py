@@ -1,8 +1,8 @@
 import json
 from datetime import datetime, UTC
 from rich import print as rprint
-from data_analysis_ml import main as run_ml
-from data_cli_utils import print_collection_stats
+from src.data.data_analysis_ml import main as run_ml
+from src.data.data_cli_utils import print_collection_stats
 
 
 def run_ml_analysis(db):
