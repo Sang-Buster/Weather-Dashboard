@@ -5,12 +5,11 @@
 
 This project is a comprehensive weather data analysis system that combines a **[Streamlit web dashboard](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#web-app-operations)** for visualization, a **[CLI tool (Meteorix)](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#cli-operations)** for data management, and a **[Discord bot](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#discord-bot-operations)** for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
 
-<div align="center">
-  <img src="lib/fig/dashboard.png" alt="Dashboard" width="100%">
-  <img src="lib/fig/banner.png" alt="Banner" width="100%">
-</div>
 
-## Web App Operations
+<div align="center">
+  <h2>Web App Operations</h2>
+  <img src="lib/fig/dashboard.png" alt="Dashboard" width="100%">
+</div>
 
 ### Setup Instructions
 
@@ -50,7 +49,11 @@ This project is a comprehensive weather data analysis system that combines a **[
 streamlit run src/app.py
 ```
 
-## CLI Operations
+
+<div align="center">
+  <h2>CLI Operations</h2>
+  <img src="lib/fig/banner.png" alt="Banner" width="50%">
+</div>
 
 ### Setup Instructions
 
@@ -112,7 +115,11 @@ meteorix head 2024_03_20
 meteorix tail 2024_03_20
 ```
 
-## Discord Bot Operations
+
+<div align="center">
+  <h2>Discord Bot Operations</h2>
+  <img src="lib/fig/bot.png" alt="Bot" width="30%">
+</div>
 
 ### Setup Instructions
 
