@@ -1,9 +1,16 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+from pathlib import Path
+import json
+import matplotlib
+
+matplotlib.use("Agg")  # Use non-interactive backend
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     classification_report,
     roc_auc_score,
@@ -12,14 +19,7 @@ from sklearn.metrics import (
     average_precision_score,
     accuracy_score,
 )
-import matplotlib
-
-matplotlib.use("Agg")  # Use non-interactive backend
-import matplotlib.pyplot as plt
-from sklearn.model_selection import StratifiedKFold
-import os
-from sklearn.ensemble import RandomForestClassifier
-import json
+from .constants import ANALYSIS_RESULTS_DIR
 
 
 def load_and_prepare_data(file_path, wind_threshold):
@@ -358,17 +358,16 @@ def save_plot_data(lr_model, dt_model, rf_model, X_test, y_test, threshold):
             "ap_score": float(ap_score),
         }
 
-    # Save to file
-    with open("src/data/data_analysis_result/ml_plot_data.json", "w") as f:
+    # Update to use ANALYSIS_RESULTS_DIR
+    output_file = ANALYSIS_RESULTS_DIR / "ml_plot_data.json"
+    with open(output_file, "w") as f:
         json.dump(plot_data, f)
 
 
 def save_prediction_data(df, lr_model, dt_model, rf_model, X_scaled, threshold):
     """Save prediction data for time series plot"""
     prediction_data = {
-        "time_index": df["tNow"]
-        .dt.strftime("%Y-%m-%d %H:%M:%S")
-        .tolist(),  # Convert to string
+        "time_index": df["tNow"].dt.strftime("%Y-%m-%d %H:%M:%S").tolist(),
         "actual_speed": df["3DSpeed_m_s"].tolist(),
         "threshold": float(threshold),
     }
@@ -383,17 +382,19 @@ def save_prediction_data(df, lr_model, dt_model, rf_model, X_scaled, threshold):
             "times": df["tNow"]
             .iloc[high_wind_idx]
             .dt.strftime("%Y-%m-%d %H:%M:%S")
-            .tolist(),  # Convert to string
+            .tolist(),
         }
 
-    # Save to file
-    with open("src/data/data_analysis_result/ml_prediction_data.json", "w") as f:
+    # Update to use ANALYSIS_RESULTS_DIR
+    output_file = ANALYSIS_RESULTS_DIR / "ml_prediction_data.json"
+    with open(output_file, "w") as f:
         json.dump(prediction_data, f)
 
 
 def main():
-    # Create output directories
-    os.makedirs("lib/fig/ml", exist_ok=True)
+    # Create output directories using Path
+    fig_dir = Path("lib/fig/ml")
+    fig_dir.mkdir(parents=True, exist_ok=True)
 
     # Load and prepare initial data
     print("\nInitial Model Evaluation...")

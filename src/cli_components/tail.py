@@ -7,7 +7,7 @@ import glob
 
 
 def get_csv_path(date_str=None):
-    data_dir = Path(__file__).parent
+    data_dir = Path(__file__).parent.parent / "data"
 
     if date_str:
         try:
@@ -21,15 +21,15 @@ def get_csv_path(date_str=None):
             rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
             return None
     else:
-        # Find earliest CSV file
+        # Find latest CSV file
         csv_files = glob.glob(str(data_dir / "*_weather_station_data.csv"))
         if not csv_files:
             rprint("[red]No CSV files found[/red]")
             return None
-        return min(csv_files)
+        return max(csv_files)
 
 
-def show_head(date_str=None):
+def show_tail(date_str=None):
     csv_path = get_csv_path(date_str)
     if not csv_path:
         return
@@ -39,11 +39,11 @@ def show_head(date_str=None):
         total_rows = len(df)
         if date_str:
             rprint(
-                f"[green]First 5 out of {total_rows} total rows in {os.path.basename(csv_path)}:[/green]"
+                f"[green]Last 5 out of {total_rows} total rows in {os.path.basename(csv_path)}:[/green]"
             )
-            rprint(df.head().to_string())
+            rprint(df.tail().to_string())
         else:
-            rprint(f"[green]Earliest data file: {os.path.basename(csv_path)}[/green]")
-            rprint(f"First timestamp: {df.iloc[0]['tNow']}")
+            rprint(f"[green]Latest data file: {os.path.basename(csv_path)}[/green]")
+            rprint(f"Last timestamp: {df.iloc[-1]['tNow']}")
     except Exception as e:
         rprint(f"[red]Error reading CSV: {str(e)}[/red]")

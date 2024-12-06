@@ -1,5 +1,5 @@
 from rich import print as rprint
-from src.data.data_cli_utils import print_collection_stats
+from .utils import print_collection_stats
 
 
 def check_analysis_results(db):

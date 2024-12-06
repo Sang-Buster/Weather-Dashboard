@@ -1,8 +1,9 @@
 import json
 from datetime import datetime, UTC
 from rich import print as rprint
-from src.data.data_analysis_ml import main as run_ml
-from src.data.data_cli_utils import print_collection_stats
+from data.data_analysis_ml import main as run_ml
+from data import ANALYSIS_RESULTS_DIR
+from .utils import print_collection_stats
 
 
 def run_ml_analysis(db):
@@ -19,11 +20,13 @@ def run_ml_analysis(db):
         collection.delete_many({})
 
         # Load and upload ML plot data
-        with open("src/data/data_analysis_result/ml_plot_data.json", "r") as f:
+        plot_file = ANALYSIS_RESULTS_DIR / "ml_plot_data.json"
+        with open(plot_file, "r") as f:
             ml_plot_data = json.load(f)
 
         # Load and upload ML prediction data
-        with open("src/data/data_analysis_result/ml_prediction_data.json", "r") as f:
+        pred_file = ANALYSIS_RESULTS_DIR / "ml_prediction_data.json"
+        with open(pred_file, "r") as f:
             ml_prediction_data = json.load(f)
 
         # Create documents

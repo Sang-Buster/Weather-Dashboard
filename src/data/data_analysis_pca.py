@@ -5,11 +5,13 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
 import json
+from pathlib import Path
+from .constants import ANALYSIS_RESULTS_DIR
 
 
-def load_and_prepare_data(file_path):
+def load_and_prepare_data(file_path: str) -> tuple[pd.DataFrame, list]:
+    """Load and prepare data for PCA analysis."""
     # Load data
     df = pd.read_csv(file_path)
     df["tNow"] = pd.to_datetime(df["tNow"])
@@ -37,7 +39,8 @@ def load_and_prepare_data(file_path):
     return df, features
 
 
-def perform_pca_analysis(df, features):
+def perform_pca_analysis(df: pd.DataFrame, features: list) -> tuple:
+    """Perform PCA analysis and save results."""
     # Standardize the features
     scaler = StandardScaler()
     scaled_features = scaler.fit_transform(df[features])
@@ -71,7 +74,9 @@ def perform_pca_analysis(df, features):
         },
     }
 
-    with open("src/data/data_analysis_result/pca_data.json", "w") as f:
+    # Update the save path to use ANALYSIS_RESULTS_DIR
+    output_file = ANALYSIS_RESULTS_DIR / "pca_data.json"
+    with open(output_file, "w") as f:
         json.dump(pca_data, f, indent=2)
 
     return pca, loadings, explained_variance_ratio, cumulative_variance_ratio
@@ -81,10 +86,11 @@ def plot_pca_results(
     loadings,
     explained_variance_ratio,
     cumulative_variance_ratio,
-    output_dir="lib/fig/pca/",
 ):
-    # Create output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
+    """Generate and save PCA visualization plots."""
+    # Update output directory
+    output_dir = Path("lib/fig/pca/")
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Set style
     plt.style.use("dark_background")
@@ -99,7 +105,7 @@ def plot_pca_results(
     plt.title("PCA Explained Variance")
     plt.grid(True, alpha=0.3)
     plt.savefig(
-        f"{output_dir}pca_explained_variance.png", bbox_inches="tight", transparent=True
+        output_dir / "pca_explained_variance.png", bbox_inches="tight", transparent=True
     )
     plt.close("all")
 
@@ -108,7 +114,7 @@ def plot_pca_results(
     sns.heatmap(loadings, annot=True, cmap="coolwarm", center=0)
     plt.title("PCA Component Loadings")
     plt.tight_layout()
-    plt.savefig(f"{output_dir}pca_loadings.png", bbox_inches="tight", transparent=True)
+    plt.savefig(output_dir / "pca_loadings.png", bbox_inches="tight", transparent=True)
     plt.close("all")
 
 

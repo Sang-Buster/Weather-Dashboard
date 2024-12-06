@@ -1,20 +1,20 @@
-import os
-import sys
-import streamlit as st
-
-from components.wind_rose import wind_rose_component
-from components.wind_time_series import wind_time_series_component
-from components.env_time_series import environmental_time_series_component
-from components.time_selection import time_selection_component
-from components.corre_plot import correlation_plot_component
-from components.scatter_plot import scatter_plot_component
-from components.explained_var_plot import pca_explained_variance_component
-from components.pca_biplot import pca_biplot_components
-from components.ml import (
+from web_components import (
+    wind_rose_component,
+    wind_time_series_component,
+    environmental_time_series_component,
+    time_selection_component,
+    correlation_plot_component,
+    scatter_plot_component,
+    pca_explained_variance_component,
+    pca_biplot_components,
     roc_curve_plot_component,
     pr_curve_plot_component,
     predicted_plot_components,
 )
+
+import os
+import sys
+import streamlit as st
 
 
 # Add the project root directory to the Python path

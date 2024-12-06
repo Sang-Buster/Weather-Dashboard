@@ -12,7 +12,7 @@ from discord.ext import commands
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.data.data_cli import main as cli_main  # noqa: E402
+from cli import main as cli_main  # noqa: E402
 
 # Set up the bot with required intents
 intents = discord.Intents.default()

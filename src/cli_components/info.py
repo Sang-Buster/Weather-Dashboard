@@ -5,8 +5,7 @@ import pandas as pd
 
 
 def get_available_date_range():
-    # Look for CSV files in src/data directory
-    data_dir = Path(__file__).parent
+    data_dir = Path(__file__).parent.parent / "data"
 
     if not data_dir.exists():
         rprint("[red]Data directory not found.[/red]")

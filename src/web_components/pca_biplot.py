@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from components.utils import get_analysis_data
+from web_components.utils import get_analysis_data
 
 
 def pca_biplot_components():

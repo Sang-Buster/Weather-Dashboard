@@ -11,8 +11,8 @@ def init_connection():
         maxPoolSize=100,  # Increased for parallel operations
         minPoolSize=20,  # More ready connections
         maxIdleTimeMS=45000,  # Longer idle timeout for connection reuse
-        connectTimeoutMS=2000,  # Quick connection timeout
-        socketTimeoutMS=30000,  # Longer socket timeout for large data transfers
+        connectTimeoutMS=5000,  # Quick connection timeout
+        socketTimeoutMS=45000,  # Longer socket timeout for large data transfers
         serverSelectionTimeoutMS=5000,  # Quick server selection
         retryWrites=True,
         retryReads=True,

@@ -1,23 +1,34 @@
-import os
+from cli_components import (
+    check_analysis_results,
+    delete_mongodb_collection,
+    run_eda_analysis,
+    run_ml_analysis,
+    get_available_date_range,
+    show_who_info,
+    show_head,
+    show_tail,
+    upload_csv_to_mongodb,
+    print_banner,
+    connect_to_mongodb,
+)
+
 import sys
 import argparse
 from datetime import datetime
 from rich import print as rprint
+from pathlib import Path
+
+# Define project paths
+PROJECT_ROOT = Path(__file__).parent
+DATA_DIR = PROJECT_ROOT / "data"
+ANALYSIS_RESULTS_DIR = DATA_DIR / "data_analysis_result"
+
+# Create directories if they don't exist
+DATA_DIR.mkdir(exist_ok=True)
+ANALYSIS_RESULTS_DIR.mkdir(exist_ok=True)
 
 # Add project root to Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-sys.path.insert(0, project_root)
-
-from src.data.data_cli_utils import print_banner, connect_to_mongodb  # noqa: E402
-from src.data.data_cli_upload import upload_csv_to_mongodb  # noqa: E402
-from src.data.data_cli_delete import delete_mongodb_collection  # noqa: E402
-from src.data.data_cli_check import check_analysis_results  # noqa: E402
-from src.data.data_cli_eda import run_eda_analysis, run_pca_analysis  # noqa: E402
-from src.data.data_cli_ml import run_ml_analysis  # noqa: E402
-from src.data.data_cli_info import get_available_date_range  # noqa: E402
-from src.data.data_cli_who import show_who_info  # noqa: E402
-from src.data.data_cli_head import show_head  # noqa: E402
-from src.data.data_cli_tail import show_tail  # noqa: E402
+sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def main():
@@ -125,7 +136,6 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
                 rprint("[red]Failed to delete collection.[/red]")
         elif args.command == "eda":
             run_eda_analysis(db)
-            run_pca_analysis(db)
         elif args.command == "ml":
             run_ml_analysis(db)
         elif args.command == "upload":

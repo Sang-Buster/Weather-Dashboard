@@ -1,6 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
-from components.utils import get_analysis_data
+from web_components.utils import get_analysis_data
 import pandas as pd
 
 

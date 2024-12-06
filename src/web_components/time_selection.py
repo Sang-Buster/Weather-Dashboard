@@ -1,5 +1,5 @@
 import streamlit as st
-from components.utils import load_data, filter_data, get_date_range
+from web_components.utils import load_data, filter_data, get_date_range
 from datetime import timedelta
 
 

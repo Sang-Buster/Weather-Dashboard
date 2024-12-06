@@ -15,10 +15,11 @@ from rich.progress import (
 )
 from rich.console import Console
 import streamlit as st
-from src.data.data_cli_utils import print_collection_stats
+from .utils import print_collection_stats
 from typing import Any
+from pathlib import Path
 
-DATA_DIR = "src/data"
+DATA_DIR = Path(__file__).parent.parent / "data"
 
 
 def process_chunk(args):

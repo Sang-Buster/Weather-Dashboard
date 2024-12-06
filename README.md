@@ -71,7 +71,7 @@ streamlit run src/app.py
 
 Simply run the CLI tool directly with Python:
 ```bash
-python src/data/data_cli.py --help
+python src/cli.py --help
 ```
 
 #### Option 2: Create CLI Alias (Optional)
@@ -88,14 +88,14 @@ For convenience, you can set up an alias named `meteorix`:
 2. **Create CLI Alias:**
    ```bash
    # Create alias for the CLI tool
-   alias meteorix="python src/data/data_cli.py"
+   alias meteorix="python src/cli.py"
    ```
 
 3. **Make Changes Permanent:**
    Add these lines to your shell configuration file (`~/.bashrc` or `~/.zshrc`):
    ```bash
    export PYTHONPATH="/absolute/path/to/weather-dashboard:$PYTHONPATH"
-   alias meteorix="python src/data/data_cli.py"
+   alias meteorix="python src/cli.py"
    ```
 
 4. **Apply Changes:**
@@ -104,7 +104,7 @@ For convenience, you can set up an alias named `meteorix`:
    - Run: `source ~/.bashrc` (or `source ~/.zshrc`)
 
 5. **Available Commands:**
-   The following commands work with either method (replace `meteorix` with `python src/data/data_cli.py` if not using the alias):
+   The following commands work with either method (replace `meteorix` with `python src/cli.py` if not using the alias):
    ```bash
    meteorix --help
    ```
@@ -179,9 +179,11 @@ meteorix tail 2024_03_20
  ┃ ┣ 📄project_proposal.md
  ┃ ┗ 📄project_report.md
  ┣ 📂src                         // Source code files
- ┃ ┣ 📂components                   // Dashboard components
- ┃ ┣ 📂data                         // CLI and data analysis scripts
- ┃ ┣ 📄app.py                       // Web app script
+ ┃ ┣ 📂cli_components               // CLI components
+ ┃ ┣ 📂web_components               // Dashboard components
+ ┃ ┣ 📂data                         // Data and analysis scripts
+ ┃ ┣ 📄app.py                       // Web app main script
+ ┃ ┣ 📄cli.py                       // CLI tool main script
  ┃ ┗ 📄meteorix.py                  // Discord bot script
  ┣ 📄.gitignore
  ┣ 📄LICENSE

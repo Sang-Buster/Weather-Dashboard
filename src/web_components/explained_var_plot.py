@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-from components.utils import get_analysis_data
+from web_components.utils import get_analysis_data
 
 
 def pca_explained_variance_component():

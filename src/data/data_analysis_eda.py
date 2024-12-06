@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import json
+from .constants import ANALYSIS_RESULTS_DIR
 
 
 # Read the CSV file
@@ -323,6 +324,15 @@ def main():
     ks_statistic, p_value = stats.kstest(df["3DSpeed_m_s"], "norm")
     print(f"KS statistic: {ks_statistic:.4f}")
     print(f"p-value: {p_value:.4f}")
+
+    # Save results
+    results = {
+        # Your analysis results
+    }
+
+    output_file = ANALYSIS_RESULTS_DIR / "correlation_data.json"
+    with open(output_file, "w") as f:
+        json.dump(results, f)
 
 
 if __name__ == "__main__":

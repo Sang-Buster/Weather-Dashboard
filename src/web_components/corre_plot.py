@@ -1,6 +1,6 @@
 import streamlit as st
 import plotly.express as px
-from components.utils import get_analysis_data
+from web_components.utils import get_analysis_data
 
 
 def correlation_plot_component():
