@@ -1,10 +1,20 @@
 <div align="center">
-  <img src="lib/fig/logo.png" alt="Logo" width="10%">
+  <img src="lib/fig/logo.png" alt="Logo" width="15%">
   <h1 align="center">Weather Dashboard</h1>
 </div>
 
 This project is a comprehensive weather data analysis system that combines a [Streamlit web dashboard](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#web-app-operations) for visualization, a [CLI tool (Meteorix)](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#cli-operations) for data management, and a [Discord bot](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#discord-bot-operations) for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
 
+<div align="center">
+  <h2>Table of Contents</h2>
+</div>
+
+<ol>
+  <li><a href="#web-app-operations">Web App Operations</a></li>
+  <li><a href="#cli-operations">CLI Operations</a></li>
+  <li><a href="#discord-bot-operations">Discord Bot Operations</a></li>
+  <li><a href="#project-structure">Project Structure</a></li>
+</ol>
 
 <div align="center">
   <h2>Web App Operations</h2>
