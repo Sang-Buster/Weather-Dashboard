@@ -326,13 +326,19 @@ def main():
     print(f"p-value: {p_value:.4f}")
 
     # Save results
-    results = {
-        # Your analysis results
-    }
-
+    correlation_vars = [
+        "3DSpeed_m_s",
+        "Azimuth_deg",
+        "Elev_deg",
+        "Press_Pa",
+        "Temp_C",
+        "Hum_RH",
+    ]
+    correlation_data = df[correlation_vars].corr().round(4).to_dict()
+    
     output_file = ANALYSIS_RESULTS_DIR / "correlation_data.json"
     with open(output_file, "w") as f:
-        json.dump(results, f)
+        json.dump(correlation_data, f, indent=2)
 
 
 if __name__ == "__main__":
