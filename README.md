@@ -5,7 +5,8 @@
 
 This project is a comprehensive weather data analysis system that combines a [Streamlit web dashboard](#web-app-operations) for visualization, a [CLI tool (Meteorix)](#cli-operations) for data management, and a [Discord bot](#discord-bot-operations) for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
 
-<div align="center">
+
+<div align='center'>
   <h2>Table of Contents</h2>
 </div>
 
@@ -103,13 +104,14 @@ For convenience, you can set up an alias named `meteorix`:
    - Restart your terminal, or
    - Run: `source ~/.bashrc` (or `source ~/.zshrc`)
 
-5. **Available Commands:**
-   The following commands work with either method (replace `meteorix` with `python src/cli.py` if not using the alias):
+5. **Show Available Commands:**
    ```bash
    meteorix --help
    ```
 
 ### Basic Usage
+The following commands work with either method (replace `meteorix` with `python src/cli.py` if not using the alias):
+
 ```bash
 # Show whoami
 meteorix who
@@ -133,7 +135,7 @@ meteorix tail 2024_03_20
 
 ### Setup Instructions
 
-1. **Add Bot Token to `secrets.toml`:**
+1. **Add Bot Token to `.streamlit/secrets.toml`:**
    ```toml
    [bot_token]
    token = "YOUR_BOT_TOKEN"
@@ -151,7 +153,7 @@ meteorix tail 2024_03_20
 
 1. **Mention Commands:**
    ```
-   @meteorix help           # Show all commands
+   @meteorix help          # Show all commands
    @meteorix info          # Show available date range
    @meteorix head          # Show earliest timestamp
    @meteorix tail          # Show latest timestamp
@@ -159,12 +161,17 @@ meteorix tail 2024_03_20
 
 2. **Slash Commands:**
    ```
-   /info                 # Show available date range
+   /help                # Show all commands
+   /info                # Show available date range
    /head 2024_03_20     # Show first 5 rows of specific date
    /tail                # Show latest timestamp
    ```
 
-## Project Structure
+
+<div align='center'>
+   <h2>Project Structure</h2>
+</div>
+
 ```
 📦weather-dashboard
  ┣ 📂.devcontainer               // Dev container configuration
