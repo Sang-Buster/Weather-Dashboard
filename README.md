@@ -3,7 +3,7 @@
   <h1 align="center">Weather Dashboard</h1>
 </div>
 
-This project is a comprehensive weather data analysis system that combines a **[Streamlit web dashboard](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#web-app-operations)** for visualization, a **[CLI tool (Meteorix)](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#cli-operations)** for data management, and a **[Discord bot](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#discord-bot-operations)** for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
+This project is a comprehensive weather data analysis system that combines a [Streamlit web dashboard](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#web-app-operations) for visualization, a [CLI tool (Meteorix)](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#cli-operations) for data management, and a [Discord bot](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#discord-bot-operations) for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
 
 
 <div align="center">
@@ -52,7 +52,7 @@ streamlit run src/app.py
 
 <div align="center">
   <h2>CLI Operations</h2>
-  <img src="lib/fig/banner.png" alt="Banner" width="50%">
+  <img src="lib/fig/banner.png" alt="Banner" width="60%">
 </div>
 
 ### Setup Instructions
@@ -118,7 +118,7 @@ meteorix tail 2024_03_20
 
 <div align="center">
   <h2>Discord Bot Operations</h2>
-  <img src="lib/fig/bot.png" alt="Bot" width="30%">
+  <img src="lib/fig/bot.png" alt="Bot" width="40%">
 </div>
 
 ### Setup Instructions
