@@ -17,6 +17,7 @@ from src.data.data_cli import main as cli_main  # noqa: E402
 # Set up the bot with required intents
 intents = discord.Intents.default()
 intents.message_content = True
+intents.messages = True
 
 
 def get_prefix(bot, message):
@@ -76,22 +77,34 @@ async def on_ready():
 @check_channel()
 async def help_command(ctx, command_name=None):
     if command_name:
+        if command_name not in VALID_COMMANDS:
+            error_message = f"""❌ Command `{command_name}` not found.
+
+**Available Commands:**
+• `info` - Show available date range
+• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
+• `delete` - Delete all weather data
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `check` - Check database collections
+• `who` - Show information about the bot and its creators
+• `help` - Show this help message
+• `help <command>` - Show detailed help for a specific command
+
+Try `@meteorix help` for more information."""
+            await ctx.send(error_message)
+            return
+
         # Command-specific help
-        try:
-            with redirect_stdout(io.StringIO()):
-                sys.argv = ["meteorix", command_name, "--help"]
+        f = io.StringIO()
+        with redirect_stdout(f):
+            sys.argv = ["meteorix", command_name, "--help"]
+            try:
                 cli_main()
-        except SystemExit:
-            # Capture the help output by redirecting stderr
-            f = io.StringIO()
-            with redirect_stdout(f):
-                sys.argv = ["meteorix", command_name, "--help"]
-                try:
-                    cli_main()
-                except SystemExit:
-                    pass
-            help_text = f.getvalue()
-            await ctx.send(f"```\n{help_text}\n```")
+            except SystemExit:
+                pass
+        help_text = f.getvalue()
+        await ctx.send(f"```\n{help_text}\n```")
     else:
         # General help
         help_text = """
@@ -217,6 +230,108 @@ async def who_slash(interaction: discord.Interaction):
     await run_cli_command_slash(interaction, ["who"])
 
 
+VALID_COMMANDS = ["info", "upload", "delete", "eda", "ml", "check", "who", "help"]
+
+
+def get_command_description(cmd):
+    descriptions = {
+        "info": "Show available date range",
+        "upload": "Upload weather data",
+        "delete": "Delete all weather data",
+        "eda": "Run exploratory data analysis",
+        "ml": "Run machine learning analysis",
+        "check": "Check database collections",
+        "who": "Show bot information",
+        "help": "Show help information",
+    }
+    return descriptions.get(cmd, "")
+
+
+@bot.tree.command(name="help", description="Show help information")
+@app_commands.describe(command_name="Select a command to get specific help for")
+@app_commands.choices(
+    command_name=[
+        app_commands.Choice(name=f"{cmd} - {get_command_description(cmd)}", value=cmd)
+        for cmd in VALID_COMMANDS
+    ]
+)
+@app_commands.check(check_channel_slash)
+async def help_slash(interaction: discord.Interaction, command_name: str = None):
+    await interaction.response.defer()
+
+    if command_name:
+        if command_name not in VALID_COMMANDS:
+            error_message = f"""❌ Command `{command_name}` not found.
+
+**Available Commands:**
+• `info` - Show available date range
+• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
+• `delete` - Delete all weather data
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `check` - Check database collections
+• `who` - Show information about the bot and its creators
+• `help` - Show this help message
+• `help <command>` - Show detailed help for a specific command
+
+Try `/help` for more information."""
+            await interaction.followup.send(error_message)
+            return
+
+        # If the command is "help", show the general help menu
+        if command_name == "help":
+            help_text = """**Meteorix Weather Bot Commands**
+Available Commands:
+• `info` - Show available date range
+• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
+• `delete` - Delete all weather data
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `check` - Check database collections
+• `who` - Show information about the bot and its creators
+• `help` - Show this help message
+• `help <command>` - Show detailed help for a specific command
+
+Examples:
+`/help upload` - Show upload command help
+`/upload 2024_03_20` - Upload single date
+`/upload 2024_03_20 2024_03_25` - Upload date range
+`/who` - Show bot information"""
+            await interaction.followup.send(help_text)
+            return
+
+        # Command-specific help for other commands
+        f = io.StringIO()
+        with redirect_stdout(f):
+            sys.argv = ["meteorix", command_name, "--help"]
+            try:
+                cli_main()
+            except SystemExit:
+                pass
+        help_text = f.getvalue()
+        await interaction.followup.send(f"```\n{help_text}\n```")
+    else:
+        # General help
+        help_text = """**Meteorix Weather Bot Commands**
+Available Commands:
+• `info` - Show available date range
+• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
+• `delete` - Delete all weather data
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `check` - Check database collections
+• `who` - Show information about the bot and its creators
+• `help` - Show this help message
+• `help <command>` - Show detailed help for a specific command
+
+Examples:
+`/help upload` - Show upload command help
+`/upload 2024_03_20` - Upload single date
+`/upload 2024_03_20 2024_03_25` - Upload date range
+`/who` - Show bot information"""
+        await interaction.followup.send(help_text)
+
+
 # Helper functions
 async def run_cli_command(ctx, args):
     f = io.StringIO()
@@ -288,6 +403,14 @@ async def on_command_error(ctx, error):
             else "unknown"
         )
 
+        if attempted_command == "help":
+            # Check if there's an invalid subcommand for help
+            args = ctx.message.content.split()[2:]
+            if args:
+                await ctx.send(f"❌ Command `{args[0]}` not found.")
+                return
+
+        # Show the standard error message with available commands
         error_message = f"""❌ Command `{attempted_command}` not found.
 
 **Available Commands:**
@@ -310,6 +433,51 @@ Try `@meteorix help` for more information."""
     else:
         # Handle other errors
         await ctx.send(f"```\nError: {str(error)}\n```")
+
+
+@bot.event
+async def on_message(message):
+    # Ignore messages from the bot itself
+    if message.author == bot.user:
+        return
+
+    # Check for mentions
+    if bot.user.id in [m.id for m in message.mentions]:
+        # If it's just a mention with no command, send a greeting
+        if message.content.strip() in [
+            f"<@{bot.user.id}>",
+            f"<@!{bot.user.id}>",
+            "@meteorix",
+        ]:
+            greeting = """👋 Hi there! I'm Meteorix, your weather data assistant.\nTry `@meteorix help` to see what I can do!"""
+            await message.channel.send(greeting)
+            return
+
+        # Process commands if there are any
+        await bot.process_commands(message)
+
+
+@bot.event
+async def on_message_edit(before, after):
+    # Ignore edits from the bot itself
+    if after.author == bot.user:
+        return
+
+    # Check if the edited message mentions the bot
+    if bot.user.id in [m.id for m in after.mentions]:
+        # Process the edited message as a command
+        await bot.process_commands(after)
+
+
+# Remove the old message handlers if they exist
+if hasattr(bot, "_old_on_message"):
+    bot.remove_listener(bot._old_on_message)
+if hasattr(bot, "_old_on_message_edit"):
+    bot.remove_listener(bot._old_on_message_edit)
+
+# Store the new handlers
+bot._old_on_message = on_message
+bot._old_on_message_edit = on_message_edit
 
 
 def run_bot():
