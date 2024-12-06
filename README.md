@@ -3,7 +3,7 @@
   <h1 align="center">Weather Dashboard</h1>
 </div>
 
-This project is a comprehensive weather data analysis system that combines a [Streamlit web dashboard](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#web-app-operations) for visualization, a [CLI tool (Meteorix)](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#cli-operations) for data management, and a [Discord bot](https://github.com/Sang-Buster/weather-dashboard/tree/main?tab=readme-ov-file#discord-bot-operations) for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
+This project is a comprehensive weather data analysis system that combines a [Streamlit web dashboard](#web-app-operations) for visualization, a [CLI tool (Meteorix)](#cli-operations) for data management, and a [Discord bot](#discord-bot-operations) for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
 
 <div align="center">
   <h2>Table of Contents</h2>
@@ -169,25 +169,20 @@ meteorix tail 2024_03_20
 📦weather-dashboard
  ┣ 📂.devcontainer               // Dev container configuration
  ┣ 📂.github                     // GitHub workflows and actions
- ┃ ┗ 📂workflows
- ┃ ┃ ┗ 📄ci_cd.yml
  ┣ 📂.streamlit                  // Streamlit configuration files
  ┃ ┣ 📄config.toml                  // App configuration
  ┃ ┗ 📄secrets.toml                 // Secrets configuration
  ┣ 📂lib                         // Library and documentation files
  ┃ ┣ 📂fig                          // Plots and images
- ┃ ┃ ┣ 📂eda
- ┃ ┃ ┣ 📂ml
- ┃ ┃ ┣ 📂pca
- ┃ ┃ ┗ 📄banner.png
  ┃ ┣ 📄project_instructions.pdf
+ ┃ ┣ 📄project_presentation.pdf
  ┃ ┣ 📄project_proposal.md
  ┃ ┗ 📄project_report.md
  ┣ 📂src                         // Source code files
  ┃ ┣ 📂components                   // Dashboard components
- ┃ ┣ 📂data                         // Data analysis and CLI scripts
- ┃ ┣ 📄app.py                       // Web app file
- ┃ ┗ 📄meteorix.py                  // Discord bot file
+ ┃ ┣ 📂data                         // CLI and data analysis scripts
+ ┃ ┣ 📄app.py                       // Web app script
+ ┃ ┗ 📄meteorix.py                  // Discord bot script
  ┣ 📄.gitignore
  ┣ 📄LICENSE
  ┣ 📄README.md
