@@ -95,56 +95,12 @@ For convenience, you can set up an alias named `meteorix`:
    - Restart your terminal, or
    - Run: `source ~/.bashrc` (or `source ~/.zshrc`)
 
-### Available Commands
-
-The following commands work with either method (replace `meteorix` with `python src/data/data_cli.py` if not using the alias):
-
-1. **Show Available Commands:**
+5. **Available Commands:**
+   The following commands work with either method (replace `meteorix` with `python src/data/data_cli.py` if not using the alias):
    ```bash
    meteorix --help
    ```
 
-2. **Upload Weather Data:**
-   ```bash
-   # Upload single date
-   meteorix upload 2024_10_08
-   
-   # Upload date range
-   meteorix upload 2024_10_08 2024_10_10
-   ```
-
-3. **Run Data Analysis:**
-   ```bash
-   # Run EDA and PCA analysis
-   meteorix eda
-   
-   # Run ML analysis
-   meteorix ml
-   ```
-
-4. **Check Analysis Results:**
-   ```bash
-   # View contents of all analysis collections
-   meteorix check
-   ```
-
-5. **Delete Weather Data:**
-   ```bash
-   # Delete all weather data from MongoDB
-   meteorix delete
-   ```
-
-6. **Show Available Date Range:**
-   ```bash
-   # Display available dates and identify gaps
-   meteorix info
-   ```
-
-7. **Show Bot Information:**
-   ```bash
-   # Display information about the bot and its creators
-   meteorix who
-   ```
 
 ## Discord Bot Integration
 
