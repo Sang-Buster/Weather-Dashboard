@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from rich import print as rprint
 from pathlib import Path
+import pandas as pd
 
 
 def get_available_date_range():
@@ -12,12 +13,27 @@ def get_available_date_range():
         return False
 
     dates = []
+    file_info = []  # Store information about each file
+    total_rows = 0
+    total_size = 0
+
     for file in data_dir.glob("*_weather_station_data.csv"):
         try:
             # Extract date from filename
             date_str = file.name.split("_weather")[0]
             date = datetime.strptime(date_str, "%Y_%m_%d")
             dates.append(date)
+
+            # Get file size in MB
+            size_mb = file.stat().st_size / (1024 * 1024)
+            total_size += size_mb
+
+            # Get row count
+            df = pd.read_csv(file)
+            row_count = len(df)
+            total_rows += row_count
+
+            file_info.append((date, row_count, size_mb))
         except ValueError:
             continue
 
@@ -26,6 +42,7 @@ def get_available_date_range():
         return False
 
     dates.sort()
+    file_info.sort(key=lambda x: x[0])  # Sort by date
 
     # Find missing dates
     missing_dates = []
@@ -40,6 +57,17 @@ def get_available_date_range():
     rprint(
         f"[green]Available date range: {dates[0].strftime('%m/%d/%Y')} to {dates[-1].strftime('%m/%d/%Y')}[/green]"
     )
+
+    # Print file details
+    rprint("\n[cyan]File Details:[/cyan]")
+    for date, rows, size in file_info:
+        rprint(
+            f"[cyan]- {date.strftime('%m/%d/%Y')}: {rows:,} rows, {size:.2f} MB[/cyan]"
+        )
+
+    # Print totals
+    rprint(f"\n[green]Total rows across all files: {total_rows:,}[/green]")
+    rprint(f"[green]Total size of all files: {total_size:.2f} MB[/green]")
 
     if missing_dates:
         rprint("\n[yellow]Missing dates:[/yellow]")

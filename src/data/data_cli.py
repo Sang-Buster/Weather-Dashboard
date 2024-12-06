@@ -16,13 +16,15 @@ from src.data.data_cli_eda import run_eda_analysis, run_pca_analysis  # noqa: E4
 from src.data.data_cli_ml import run_ml_analysis  # noqa: E402
 from src.data.data_cli_info import get_available_date_range  # noqa: E402
 from src.data.data_cli_who import show_who_info  # noqa: E402
+from src.data.data_cli_head import show_head  # noqa: E402
+from src.data.data_cli_tail import show_tail  # noqa: E402
 
 
 def main():
     print_banner()
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload,delete,eda,ml,check,info,who} ...",
+        usage="meteorix [-h] {upload,delete,eda,ml,check,info,who,head,tail} ...",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -86,6 +88,28 @@ def main():
     )
     who_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
+    # Head command with updated help
+    head_parser = subparsers.add_parser(
+        "head",
+        help="Show earliest logged timestamp or first 5 rows if date specified",
+        description="""Without a date: Shows the earliest timestamp in the dataset.
+With a date (YYYY_MM_DD format): Shows the first 5 rows of that specific date.""",
+    )
+    head_parser.add_argument(
+        "date", nargs="?", help="Optional: Date to show first 5 rows for (YYYY_MM_DD)"
+    )
+
+    # Tail command with updated help
+    tail_parser = subparsers.add_parser(
+        "tail",
+        help="Show latest logged timestamp or last 5 rows if date specified",
+        description="""Without a date: Shows the latest timestamp in the dataset.
+With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date.""",
+    )
+    tail_parser.add_argument(
+        "date", nargs="?", help="Optional: Date to show last 5 rows for (YYYY_MM_DD)"
+    )
+
     args = parser.parse_args()
     db = connect_to_mongodb()
 
@@ -124,6 +148,10 @@ def main():
                 rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
         elif args.command == "info":
             get_available_date_range()
+        elif args.command == "head":
+            show_head(args.date if hasattr(args, "date") else None)
+        elif args.command == "tail":
+            show_tail(args.date if hasattr(args, "date") else None)
 
     except KeyboardInterrupt:
         rprint("\n[yellow]Operation cancelled by user.[/yellow]")

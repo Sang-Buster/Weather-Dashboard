@@ -21,8 +21,19 @@ intents.messages = True
 
 
 def get_prefix(bot, message):
-    # This returns the bot's mention as a valid prefix
-    return [f"<@{bot.user.id}> ", f"<@!{bot.user.id}> "]
+    # Get the bot's role ID
+    bot_role = next(
+        (role for role in message.guild.roles if role.name.lower() == "meteorix"), None
+    )
+    bot_role_id = bot_role.id if bot_role else None
+
+    # Return all valid prefix formats
+    return [
+        f"<@{bot.user.id}> ",  # User mention
+        f"<@!{bot.user.id}> ",  # Nickname mention
+        f"<@&{bot_role_id}> " if bot_role_id else None,  # Role mention
+        "@meteorix ",  # Plain text mention
+    ]
 
 
 class MeteorBot(commands.Bot):
@@ -87,7 +98,9 @@ async def help_command(ctx, command_name=None):
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot and its creators
+• `who` - Show information about the bot
+• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
+• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -108,24 +121,29 @@ Try `@meteorix help` for more information."""
     else:
         # General help
         help_text = """
-**Meteorix Weather Bot Commands**
-Use `@meteorix help <command>` for detailed help on a specific command.
+--------------------------------------------------------------------------------
+      °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
+--------------------------------------------------------------------------------
 
-Available Commands:
+**Available Commands:**
 • `info` - Show available date range
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot and its creators
+• `who` - Show information about the bot
+• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
+• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
-Examples:
+**Examples:**
 `@meteorix help upload` - Show upload command help
 `@meteorix upload 2024_03_20` - Upload single date
 `@meteorix upload 2024_03_20 2024_03_25` - Upload date range
+`@meteorix head` - Show earliest logged timestamp
+`@meteorix head 2024_03_20` - Show first 5 rows of specific date
 `@meteorix who` - Show bot information
 """
         await ctx.send(help_text)
@@ -176,6 +194,24 @@ async def who(ctx):
     await run_cli_command(ctx, ["who"])
 
 
+@bot.command(name="head")
+@check_channel()
+async def head(ctx, date=None):
+    if date:
+        await run_cli_command(ctx, ["head", date])
+    else:
+        await run_cli_command(ctx, ["head"])
+
+
+@bot.command(name="tail")
+@check_channel()
+async def tail(ctx, date=None):
+    if date:
+        await run_cli_command(ctx, ["tail", date])
+    else:
+        await run_cli_command(ctx, ["tail"])
+
+
 # Slash commands
 @bot.tree.command(name="info", description="Show available date range")
 @app_commands.check(check_channel_slash)
@@ -222,15 +258,44 @@ async def check_slash(interaction: discord.Interaction):
     await run_cli_command_slash(interaction, ["check"])
 
 
-@bot.tree.command(
-    name="who", description="Show information about the bot and its creators"
-)
+@bot.tree.command(name="who", description="Show information about the bot")
 @app_commands.check(check_channel_slash)
 async def who_slash(interaction: discord.Interaction):
     await run_cli_command_slash(interaction, ["who"])
 
 
-VALID_COMMANDS = ["info", "upload", "delete", "eda", "ml", "check", "who", "help"]
+@bot.tree.command(name="head", description="Show first 5 rows of data")
+@app_commands.describe(date="Optional: Date to show data for (YYYY_MM_DD)")
+@app_commands.check(check_channel_slash)
+async def head_slash(interaction: discord.Interaction, date: str = None):
+    if date:
+        await run_cli_command_slash(interaction, ["head", date])
+    else:
+        await run_cli_command_slash(interaction, ["head"])
+
+
+@bot.tree.command(name="tail", description="Show last 5 rows of data")
+@app_commands.describe(date="Optional: Date to show data for (YYYY_MM_DD)")
+@app_commands.check(check_channel_slash)
+async def tail_slash(interaction: discord.Interaction, date: str = None):
+    if date:
+        await run_cli_command_slash(interaction, ["tail", date])
+    else:
+        await run_cli_command_slash(interaction, ["tail"])
+
+
+VALID_COMMANDS = [
+    "info",
+    "upload",
+    "delete",
+    "eda",
+    "ml",
+    "check",
+    "who",
+    "help",
+    "head",
+    "tail",
+]
 
 
 def get_command_description(cmd):
@@ -243,6 +308,8 @@ def get_command_description(cmd):
         "check": "Check database collections",
         "who": "Show bot information",
         "help": "Show help information",
+        "head": "Show first 5 rows of data",
+        "tail": "Show last 5 rows of data",
     }
     return descriptions.get(cmd, "")
 
@@ -270,7 +337,9 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot and its creators
+• `who` - Show information about the bot
+• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
+• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -280,22 +349,30 @@ Try `/help` for more information."""
 
         # If the command is "help", show the general help menu
         if command_name == "help":
-            help_text = """**Meteorix Weather Bot Commands**
-Available Commands:
+            help_text = """
+--------------------------------------------------------------------------------
+      °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
+--------------------------------------------------------------------------------
+
+**Available Commands:**
 • `info` - Show available date range
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot and its creators
+• `who` - Show information about the bot
+• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
+• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
-Examples:
+**Examples:**
 `/help upload` - Show upload command help
 `/upload 2024_03_20` - Upload single date
 `/upload 2024_03_20 2024_03_25` - Upload date range
+`/head` - Show earliest logged timestamp
+`/head 2024_03_20` - Show first 5 rows of specific date
 `/who` - Show bot information"""
             await interaction.followup.send(help_text)
             return
@@ -312,22 +389,30 @@ Examples:
         await interaction.followup.send(f"```\n{help_text}\n```")
     else:
         # General help
-        help_text = """**Meteorix Weather Bot Commands**
-Available Commands:
+        help_text = """
+--------------------------------------------------------------------------------
+      °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
+--------------------------------------------------------------------------------
+
+**Available Commands:**
 • `info` - Show available date range
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot and its creators
+• `who` - Show information about the bot
+• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
+• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
-Examples:
+**Examples:**
 `/help upload` - Show upload command help
 `/upload 2024_03_20` - Upload single date
 `/upload 2024_03_20 2024_03_25` - Upload date range
+`/head` - Show earliest logged timestamp
+`/head 2024_03_20` - Show first 5 rows of specific date
 `/who` - Show bot information"""
         await interaction.followup.send(help_text)
 
@@ -420,7 +505,7 @@ async def on_command_error(ctx, error):
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot and its creators
+• `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -441,15 +526,32 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # Check for mentions
-    if bot.user.id in [m.id for m in message.mentions]:
+    # Get the bot's role ID (assuming the role has the same name as the bot)
+    bot_role = next(
+        (role for role in message.guild.roles if role.name.lower() == "meteorix"), None
+    )
+    bot_role_id = bot_role.id if bot_role else None
+
+    # Check for mentions in multiple ways
+    is_mentioned = (
+        bot.user.id in [m.id for m in message.mentions]  # Direct mentions
+        or f"<@{bot.user.id}>" in message.content  # Raw mention format
+        or f"<@!{bot.user.id}>" in message.content  # Nickname mention format
+        or (
+            bot_role_id and f"<@&{bot_role_id}>" in message.content
+        )  # Role mention format
+        or message.content.lower().startswith("@meteorix")  # Plain text mention
+    )
+
+    if is_mentioned:
         # If it's just a mention with no command, send a greeting
         if message.content.strip() in [
             f"<@{bot.user.id}>",
             f"<@!{bot.user.id}>",
+            f"<@&{bot_role_id}>" if bot_role_id else None,
             "@meteorix",
         ]:
-            greeting = """👋 Hi there! I'm Meteorix, your weather data assistant.\nTry `@meteorix help` to see what I can do!"""
+            greeting = """👋 Hi there! I'm Meteorix, your weather data assistant.Try `@meteorix help` to see what I can do!"""
             await message.channel.send(greeting)
             return
 
@@ -463,8 +565,14 @@ async def on_message_edit(before, after):
     if after.author == bot.user:
         return
 
-    # Check if the edited message mentions the bot
-    if bot.user.id in [m.id for m in after.mentions]:
+    # Check for mentions in multiple ways
+    is_mentioned = (
+        bot.user.id in [m.id for m in after.mentions]  # Direct mentions
+        or f"<@{bot.user.id}>" in after.content  # Raw mention format
+        or f"<@!{bot.user.id}>" in after.content  # Nickname mention format
+    )
+
+    if is_mentioned:
         # Process the edited message as a command
         await bot.process_commands(after)
 
