@@ -72,21 +72,21 @@ def main():
     )
     check_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
-    # Info command
-    info_parser = subparsers.add_parser(
-        "info",
-        help="Show available date range",
-        description="Display the date range of available weather station data files and identify any missing dates.",
-    )
-    info_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
     # Who command
     who_parser = subparsers.add_parser(
         "who",
-        help="Show information about the bot and its creators",
+        help="Show information about the bot",
         description="Display detailed information about the Meteorix bot and its creators.",
     )
     who_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+
+    # Info command
+    info_parser = subparsers.add_parser(
+        "info",
+        help="Show available date range and file statistics",
+        description="Display available date range, file details including row counts and sizes, and identify any missing dates in the sequence.",
+    )
+    info_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
     # Head command with updated help
     head_parser = subparsers.add_parser(

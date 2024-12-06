@@ -1,17 +1,18 @@
 <div align="center">
+  <img src="lib/fig/logo.png" alt="Logo" width="30%">
   <h1 align="center">Weather Dashboard</h1>
 </div>
 
-This project is a web application built with Streamlit that visualizes weather data, specifically focusing on wind data. It provides interactive controls and visualizations to help users understand [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) behavior under various conditions.
+This project is a comprehensive weather data analysis system that combines a **Streamlit web dashboard** for visualization, a **CLI tool (Meteorix)** for data management, and a **Discord bot** for remote CLI operations. It focuses on analyzing [Hurricane Milton](https://en.wikipedia.org/wiki/Hurricane_Milton) wind patterns and provides interactive tools across multiple interfaces.
 
 <div align="center">
-  <img src="lib/fig/banner.png" alt="Weather Dashboard Banner" width="100%">
+  <img src="lib/fig/dashboard.png" alt="Dashboard" width="100%">
+  <img src="lib/fig/banner.png" alt="Banner" width="100%">
 </div>
 
+## Web App Operations
 
-## Setup Instructions
-
-Follow these steps to set up the project environment after you have cloned this repo:
+### Setup Instructions
 
 1. **Create a new [`conda`](https://github.com/conda-forge/miniforge) environment:**
    ```bash
@@ -33,40 +34,34 @@ Follow these steps to set up the project environment after you have cloned this 
    uv pip install -r requirements.txt
    ```
 
-5. **Create a `.streamlit/secrets.toml` file and**
+5. **Create a `.streamlit/secrets.toml` file:**
    ```bash
    touch .streamlit/secrets.toml
    ```
 
-6. **Add the following content in `secrets.toml`, but use your own MongoDB URI:**
+6. **Add MongoDB URI to `secrets.toml`:**
    ```toml
    [mongo]
    uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
    ```
 
-7. **Run the Streamlit application:**
-   ```bash
-   streamlit run src/app.py
-   ```
-
-8. **Development Instructions-Code Linting:**
-   ```bash
-   ruff check src
-   ruff format src
-   ```
+### Running the Web App
+```bash
+streamlit run src/app.py
+```
 
 ## CLI Operations
 
-The project includes a CLI tool for managing weather data and analysis results. You can use it in two ways:
+### Setup Instructions
 
-### Option 1: Direct Python Command
+#### Option 1: Direct Python Command
 
 Simply run the CLI tool directly with Python:
 ```bash
 python src/data/data_cli.py --help
 ```
 
-### Option 2: Create CLI Alias (Optional)
+#### Option 2: Create CLI Alias (Optional)
 
 For convenience, you can set up an alias named `meteorix`:
 
@@ -101,14 +96,27 @@ For convenience, you can set up an alias named `meteorix`:
    meteorix --help
    ```
 
+### Basic Usage
+```bash
+# Show whoami
+meteorix who
 
-## Discord Bot Integration
+# Show available date range and file statistics
+meteorix info
 
-The project includes a Discord bot that inherits all CLI functionalities. The bot provides both mention-based commands and slash commands.
+# Upload data for a specific date
+meteorix upload 2024_03_20
 
-### Setup Instructions:
+# Show first/last 5 rows of data
+meteorix head 2024_03_20
+meteorix tail 2024_03_20
+```
 
-1. **Add Discord Bot Token to secrets.toml:**
+## Discord Bot Operations
+
+### Setup Instructions
+
+1. **Add Bot Token to `secrets.toml`:**
    ```toml
    [bot_token]
    token = "YOUR_BOT_TOKEN"
@@ -117,29 +125,29 @@ The project includes a Discord bot that inherits all CLI functionalities. The bo
    id = "YOUR_CHANNEL_ID"
    ```
 
-2. **Run the Discord Bot:**
+2. **Run the Bot:**
    ```bash
    python src/meteorix.py
    ```
 
-### Using the Bot:
+### Basic Usage
 
 1. **Mention Commands:**
    ```
-   @meteorix help           # Show all available commands
-   @meteorix help <command> # Show detailed help for specific command
+   @meteorix help           # Show all commands
    @meteorix info          # Show available date range
-   @meteorix who           # Show bot information
+   @meteorix head          # Show earliest timestamp
+   @meteorix tail          # Show latest timestamp
    ```
 
 2. **Slash Commands:**
-   Type `/` in Discord to see all available commands with descriptions.
+   ```
+   /info                 # Show available date range
+   /head 2024_03_20     # Show first 5 rows of specific date
+   /tail                # Show latest timestamp
+   ```
 
-The bot inherits all functionalities from the CLI tool and provides them through Discord's interface, making it easy to manage weather data and analysis directly from Discord.
-
-
-#### File Structure
-
+## Project Structure
 ```
 📦weather-dashboard
  ┣ 📂.devcontainer               // Dev container configuration
@@ -167,4 +175,4 @@ The bot inherits all functionalities from the CLI tool and provides them through
  ┣ 📄LICENSE
  ┣ 📄README.md
  ┗ 📄requirements.txt            // Python dependencies
- ```
+```

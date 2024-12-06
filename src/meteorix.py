@@ -92,7 +92,7 @@ async def help_command(ctx, command_name=None):
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info` - Show available date range
+• `info` - Show available date range and file statistics
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -126,7 +126,7 @@ Try `@meteorix help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info` - Show available date range
+• `info` - Show available date range and file statistics
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -300,7 +300,7 @@ VALID_COMMANDS = [
 
 def get_command_description(cmd):
     descriptions = {
-        "info": "Show available date range",
+        "info": "Show available date range and file statistics",
         "upload": "Upload weather data",
         "delete": "Delete all weather data",
         "eda": "Run exploratory data analysis",
@@ -331,7 +331,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info` - Show available date range
+• `info` - Show available date range and file statistics
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -355,7 +355,7 @@ Try `/help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info` - Show available date range
+• `info` - Show available date range and file statistics
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -395,7 +395,7 @@ Try `/help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info` - Show available date range
+• `info` - Show available date range and file statistics
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -499,7 +499,7 @@ async def on_command_error(ctx, error):
         error_message = f"""❌ Command `{attempted_command}` not found.
 
 **Available Commands:**
-• `info` - Show available date range
+• `info` - Show available date range and file statistics
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
