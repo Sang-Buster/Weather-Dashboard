@@ -87,7 +87,12 @@ def main():
     info_parser = subparsers.add_parser(
         "info",
         help="Show available date range and file statistics",
-        description="Display available date range, file details including row counts and sizes, and identify any missing dates in the sequence.",
+        description="Display available date range, file details including row counts and sizes, and identify any missing dates in the sequence. Optionally filter by month.",
+    )
+    info_parser.add_argument(
+        "month",
+        nargs="?",
+        help="Optional: Month to show statistics for (YYYY_MM)",
     )
     info_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
@@ -149,7 +154,7 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             except ValueError:
                 rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
         elif args.command == "info":
-            get_available_date_range()
+            get_available_date_range(args.month if hasattr(args, "month") else None)
         elif args.command == "head":
             show_head(args.date if hasattr(args, "date") else None)
         elif args.command == "tail":

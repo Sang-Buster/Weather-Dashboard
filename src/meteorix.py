@@ -93,7 +93,7 @@ async def help_command(ctx, command_name=None):
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info` - Show available date range and file statistics
+• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -127,7 +127,7 @@ Try `@meteorix help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info` - Show available date range and file statistics
+• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -152,8 +152,11 @@ Try `@meteorix help` for more information."""
 
 @bot.command(name="info")
 @check_channel()
-async def info(ctx):
-    await run_cli_command(ctx, ["info"])
+async def info(ctx, month=None):
+    if month:
+        await run_cli_command(ctx, ["info", month])
+    else:
+        await run_cli_command(ctx, ["info"])
 
 
 @bot.command(name="upload")
@@ -215,9 +218,13 @@ async def tail(ctx, date=None):
 
 # Slash commands
 @bot.tree.command(name="info", description="Show available date range")
+@app_commands.describe(month="Optional: Month to show statistics for (YYYY_MM)")
 @app_commands.check(check_channel_slash)
-async def info_slash(interaction: discord.Interaction):
-    await run_cli_command_slash(interaction, ["info"])
+async def info_slash(interaction: discord.Interaction, month: str = None):
+    if month:
+        await run_cli_command_slash(interaction, ["info", month])
+    else:
+        await run_cli_command_slash(interaction, ["info"])
 
 
 @bot.tree.command(name="upload", description="Upload weather data (format: YYYY_MM_DD)")
@@ -332,7 +339,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info` - Show available date range and file statistics
+• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -356,7 +363,7 @@ Try `/help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info` - Show available date range and file statistics
+• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -396,7 +403,7 @@ Try `/help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info` - Show available date range and file statistics
+• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -528,7 +535,7 @@ async def on_command_error(ctx, error):
         error_message = f"""❌ Command `{attempted_command}` not found.
 
 **Available Commands:**
-• `info` - Show available date range and file statistics
+• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis

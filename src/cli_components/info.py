@@ -6,12 +6,21 @@ import pandas as pd
 from src import CSV_DIR
 
 
-def get_available_date_range():
+def get_available_date_range(month=None):
     data_dir = Path(CSV_DIR)
 
     if not data_dir.exists():
         rprint("[red]Data directory not found.[/red]")
         return False
+
+    # If month is provided, validate format
+    target_date = None
+    if month:
+        try:
+            target_date = datetime.strptime(month, "%Y_%m")
+        except ValueError:
+            rprint("[red]Invalid month format. Use YYYY_MM.[/red]")
+            return False
 
     dates = []
     file_info = []  # Store information about each file
@@ -23,6 +32,13 @@ def get_available_date_range():
             # Extract date from filename
             date_str = file.name.split("_weather")[0]
             date = datetime.strptime(date_str, "%Y_%m_%d")
+
+            # Skip if month is specified and doesn't match
+            if target_date and (
+                date.year != target_date.year or date.month != target_date.month
+            ):
+                continue
+
             dates.append(date)
 
             # Get file size in MB
@@ -39,7 +55,10 @@ def get_available_date_range():
             continue
 
     if not dates:
-        rprint("[yellow]No weather station data files found.[/yellow]")
+        if month:
+            rprint(f"[yellow]No weather station data files found for {month}.[/yellow]")
+        else:
+            rprint("[yellow]No weather station data files found.[/yellow]")
         return False
 
     dates.sort()
@@ -48,11 +67,34 @@ def get_available_date_range():
     # Find missing dates
     missing_dates = []
     if len(dates) > 1:
-        for i in range(len(dates) - 1):
-            delta = (dates[i + 1] - dates[i]).days
-            if delta > 1:
-                for j in range(1, delta):
-                    missing_dates.append(dates[i] + timedelta(days=j))
+        # If month is specified, we should check all days in that month
+        if target_date:
+            # Get the first and last day of the month
+            first_day = target_date.replace(day=1)
+            if target_date.month == 12:
+                last_day = target_date.replace(
+                    year=target_date.year + 1, month=1, day=1
+                )
+            else:
+                last_day = target_date.replace(month=target_date.month + 1, day=1)
+
+            # Create a set of all dates in the month
+            all_dates = set()
+            current = first_day
+            while current < last_day:
+                all_dates.add(current)
+                current += timedelta(days=1)
+
+            # Find missing dates by comparing with actual dates
+            existing_dates = set(dates)
+            missing_dates = sorted(list(all_dates - existing_dates))
+        else:
+            # Original logic for finding gaps in sequential dates
+            for i in range(len(dates) - 1):
+                delta = (dates[i + 1] - dates[i]).days
+                if delta > 1:
+                    for j in range(1, delta):
+                        missing_dates.append(dates[i] + timedelta(days=j))
 
     # Print results
     rprint(
