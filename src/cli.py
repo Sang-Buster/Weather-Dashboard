@@ -10,6 +10,7 @@ from cli_components import (
     upload_csv_to_mongodb,
     print_banner,
     connect_to_mongodb,
+    spit_csv_data,
 )
 
 import sys
@@ -24,15 +25,19 @@ sys.path.insert(0, str(SRC_DIR))
 
 
 def main():
-    print_banner()
+    # Only print banner if not using spit command
+    if len(sys.argv) > 1 and sys.argv[1] != "spit":
+        print_banner()
+
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload,delete,eda,ml,check,info,who,head,tail} ...",
+        usage="meteorix [-h] {upload,delete,check,head,tail,info,spit,eda,ml,who,help} ...",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # Upload command
+    # Define subparsers in the desired order
+    # 1. Upload command
     upload_parser = subparsers.add_parser(
         "upload",
         help="Upload weather data to MongoDB",
@@ -43,7 +48,7 @@ def main():
         "end_date", nargs="?", help="End date (YYYY_MM_DD, optional)"
     )
 
-    # Delete command
+    # 2. Delete command
     delete_parser = subparsers.add_parser(
         "delete",
         help="Delete all weather data",
@@ -51,23 +56,7 @@ def main():
     )
     delete_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
-    # EDA command with no arguments
-    eda_parser = subparsers.add_parser(
-        "eda",
-        help="Run exploratory data analysis",
-        description="Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
-    )
-    eda_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
-    # ML command with no arguments
-    ml_parser = subparsers.add_parser(
-        "ml",
-        help="Run machine learning analysis",
-        description="Execute machine learning models for weather prediction and upload results to MongoDB.",
-    )
-    ml_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
-    # Check command with no arguments
+    # 3. Check command
     check_parser = subparsers.add_parser(
         "check",
         help="Check database collections",
@@ -75,15 +64,29 @@ def main():
     )
     check_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
-    # Who command
-    who_parser = subparsers.add_parser(
-        "who",
-        help="Show information about the bot",
-        description="Display detailed information about the Meteorix bot and its creators.",
+    # 4. Head command
+    head_parser = subparsers.add_parser(
+        "head",
+        help="Show earliest logged timestamp or first 5 rows if date specified",
+        description="""Without a date: Shows the earliest timestamp in the dataset.
+With a date (YYYY_MM_DD format): Shows the first 5 rows of that specific date.""",
     )
-    who_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+    head_parser.add_argument(
+        "date", nargs="?", help="Optional: Date to show first 5 rows for (YYYY_MM_DD)"
+    )
 
-    # Info command
+    # 5. Tail command
+    tail_parser = subparsers.add_parser(
+        "tail",
+        help="Show latest logged timestamp or last 5 rows if date specified",
+        description="""Without a date: Shows the latest timestamp in the dataset.
+With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date.""",
+    )
+    tail_parser.add_argument(
+        "date", nargs="?", help="Optional: Date to show last 5 rows for (YYYY_MM_DD)"
+    )
+
+    # 6. Info command
     info_parser = subparsers.add_parser(
         "info",
         help="Show available date range and file statistics",
@@ -96,27 +99,40 @@ def main():
     )
     info_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
-    # Head command with updated help
-    head_parser = subparsers.add_parser(
-        "head",
-        help="Show earliest logged timestamp or first 5 rows if date specified",
-        description="""Without a date: Shows the earliest timestamp in the dataset.
-With a date (YYYY_MM_DD format): Shows the first 5 rows of that specific date.""",
+    # 7. Spit command
+    spit_parser = subparsers.add_parser(
+        "spit",
+        help="Get raw CSV data for specified dates",
+        description="Retrieve and output raw CSV data for a specific date or date range.",
     )
-    head_parser.add_argument(
-        "date", nargs="?", help="Optional: Date to show first 5 rows for (YYYY_MM_DD)"
+    spit_parser.add_argument("start_date", help="Start date (YYYY_MM_DD)")
+    spit_parser.add_argument(
+        "end_date", nargs="?", help="End date (YYYY_MM_DD, optional)"
     )
 
-    # Tail command with updated help
-    tail_parser = subparsers.add_parser(
-        "tail",
-        help="Show latest logged timestamp or last 5 rows if date specified",
-        description="""Without a date: Shows the latest timestamp in the dataset.
-With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date.""",
+    # 8. EDA command
+    eda_parser = subparsers.add_parser(
+        "eda",
+        help="Run exploratory data analysis",
+        description="Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
     )
-    tail_parser.add_argument(
-        "date", nargs="?", help="Optional: Date to show last 5 rows for (YYYY_MM_DD)"
+    eda_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+
+    # 9. ML command
+    ml_parser = subparsers.add_parser(
+        "ml",
+        help="Run machine learning analysis",
+        description="Execute machine learning models for weather prediction and upload results to MongoDB.",
     )
+    ml_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+
+    # 10. Who command
+    who_parser = subparsers.add_parser(
+        "who",
+        help="Show information about the bot",
+        description="Display detailed information about the Meteorix bot and its creators.",
+    )
+    who_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
 
     args = parser.parse_args()
     db = connect_to_mongodb()
@@ -159,6 +175,24 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             show_head(args.date if hasattr(args, "date") else None)
         elif args.command == "tail":
             show_tail(args.date if hasattr(args, "date") else None)
+        elif args.command == "spit":
+            try:
+                start = datetime.strptime(args.start_date, "%Y_%m_%d")
+                end = (
+                    datetime.strptime(args.end_date, "%Y_%m_%d")
+                    if args.end_date
+                    else start
+                )
+                if start > end:
+                    sys.stderr.write(
+                        "[red]Error: Start date must be before or equal to end date.[/red]\n"
+                    )
+                    return
+                filename, csv_buffer = spit_csv_data(args.start_date, args.end_date)
+                # Print only the CSV data, no extra output
+                sys.stdout.write(csv_buffer.getvalue())
+            except ValueError:
+                sys.stderr.write("[red]Invalid date format. Use YYYY_MM_DD.[/red]\n")
 
     except KeyboardInterrupt:
         rprint("\n[yellow]Operation cancelled by user.[/yellow]")

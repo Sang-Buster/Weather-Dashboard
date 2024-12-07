@@ -8,6 +8,7 @@ from .head import show_head
 from .tail import show_tail
 from .upload import upload_csv_to_mongodb
 from .utils import print_banner, connect_to_mongodb
+from .spit import spit_csv_data
 
 __all__ = [
     "check_analysis_results",
@@ -22,4 +23,5 @@ __all__ = [
     "upload_csv_to_mongodb",
     "print_banner",
     "connect_to_mongodb",
+    "spit_csv_data",
 ]

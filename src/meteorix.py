@@ -5,7 +5,6 @@ from pathlib import Path
 from datetime import datetime
 import streamlit as st
 import discord
-import toml
 from discord import app_commands
 from discord.ext import commands
 
@@ -51,8 +50,7 @@ bot = MeteorBot()
 
 
 ALLOWED_CHANNEL_IDS = [
-    int(channel_id) 
-    for channel_id in st.secrets["channel_id"].values()
+    int(channel_id) for channel_id in st.secrets["channel_id"].values()
 ]
 
 
@@ -60,7 +58,9 @@ ALLOWED_CHANNEL_IDS = [
 def check_channel():
     async def predicate(ctx):
         if ctx.channel.id not in ALLOWED_CHANNEL_IDS:
-            allowed_channels = [f"<#{channel_id}>" for channel_id in ALLOWED_CHANNEL_IDS]
+            allowed_channels = [
+                f"<#{channel_id}>" for channel_id in ALLOWED_CHANNEL_IDS
+            ]
             await ctx.send(
                 f"❌ This command can only be used in: {', '.join(allowed_channels)}"
             )
@@ -92,19 +92,51 @@ async def on_ready():
 @check_channel()
 async def help_command(ctx, command_name=None):
     if command_name:
+        # Special case for "help" command
+        if command_name == "help":
+            help_text = """
+---------------------------------------------------------------
+      °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
+---------------------------------------------------------------
+
+**Available Commands:**
+• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
+• `delete` - Delete all weather data
+• `check` - Check database collections
+• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
+• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
+• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `who` - Show information about the bot
+• `help` - Show this help message
+• `help <command>` - Show detailed help for a specific command
+
+**Examples:**
+`@meteorix help upload` - Show upload command help
+`@meteorix upload 2024_03_20` - Upload single date
+`@meteorix upload 2024_03_20 2024_03_25` - Upload date range
+`@meteorix head` - Show earliest logged timestamp
+`@meteorix head 2024_03_20` - Show first 5 rows of specific date
+`@meteorix who` - Show bot information"""
+            await ctx.send(help_text)
+            return
+
         if command_name not in VALID_COMMANDS:
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
-• `eda` - Run exploratory data analysis
-• `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
+• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -122,23 +154,25 @@ Try `@meteorix help` for more information."""
                 pass
         help_text = f.getvalue()
         await ctx.send(f"```\n{help_text}\n```")
+
     else:
         # General help
         help_text = """
---------------------------------------------------------------------------------
+---------------------------------------------------------------
       °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
---------------------------------------------------------------------------------
+---------------------------------------------------------------
 
 **Available Commands:**
-• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
-• `eda` - Run exploratory data analysis
-• `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
+• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -151,15 +185,6 @@ Try `@meteorix help` for more information."""
 `@meteorix who` - Show bot information
 """
         await ctx.send(help_text)
-
-
-@bot.command(name="info")
-@check_channel()
-async def info(ctx, month=None):
-    if month:
-        await run_cli_command(ctx, ["info", month])
-    else:
-        await run_cli_command(ctx, ["info"])
 
 
 @bot.command(name="upload")
@@ -177,28 +202,10 @@ async def delete(ctx):
     await run_cli_command(ctx, ["delete"])
 
 
-@bot.command(name="eda")
-@check_channel()
-async def eda(ctx):
-    await run_cli_command(ctx, ["eda"])
-
-
-@bot.command(name="ml")
-@check_channel()
-async def ml(ctx):
-    await run_cli_command(ctx, ["ml"])
-
-
 @bot.command(name="check")
 @check_channel()
 async def check(ctx):
     await run_cli_command(ctx, ["check"])
-
-
-@bot.command(name="who")
-@check_channel()
-async def who(ctx):
-    await run_cli_command(ctx, ["who"])
 
 
 @bot.command(name="head")
@@ -217,6 +224,42 @@ async def tail(ctx, date=None):
         await run_cli_command(ctx, ["tail", date])
     else:
         await run_cli_command(ctx, ["tail"])
+
+
+@bot.command(name="info")
+@check_channel()
+async def info(ctx, month=None):
+    if month:
+        await run_cli_command(ctx, ["info", month])
+    else:
+        await run_cli_command(ctx, ["info"])
+
+
+@bot.command(name="spit")
+@check_channel()
+async def spit(ctx, start_date, end_date=None):
+    if end_date:
+        await run_cli_command(ctx, ["spit", start_date, end_date])
+    else:
+        await run_cli_command(ctx, ["spit", start_date])
+
+
+@bot.command(name="eda")
+@check_channel()
+async def eda(ctx):
+    await run_cli_command(ctx, ["eda"])
+
+
+@bot.command(name="ml")
+@check_channel()
+async def ml(ctx):
+    await run_cli_command(ctx, ["ml"])
+
+
+@bot.command(name="who")
+@check_channel()
+async def who(ctx):
+    await run_cli_command(ctx, ["who"])
 
 
 # Slash commands
@@ -295,6 +338,24 @@ async def tail_slash(interaction: discord.Interaction, date: str = None):
         await run_cli_command_slash(interaction, ["tail"])
 
 
+@bot.tree.command(
+    name="spit",
+    description="Retrieve and output raw CSV data for a specific date or date range",
+)
+@app_commands.describe(
+    start_date="Start date (YYYY_MM_DD)",
+    end_date="End date (YYYY_MM_DD, optional)",
+)
+@app_commands.check(check_channel_slash)
+async def spit_slash(
+    interaction: discord.Interaction, start_date: str, end_date: str = None
+):
+    if end_date:
+        await run_cli_command_slash(interaction, ["spit", start_date, end_date])
+    else:
+        await run_cli_command_slash(interaction, ["spit", start_date])
+
+
 VALID_COMMANDS = [
     "info",
     "upload",
@@ -306,6 +367,7 @@ VALID_COMMANDS = [
     "help",
     "head",
     "tail",
+    "spit",
 ]
 
 
@@ -321,6 +383,7 @@ def get_command_description(cmd):
         "help": "Show help information",
         "head": "Show first 5 rows of data",
         "tail": "Show last 5 rows of data",
+        "spit": "Get raw CSV data for specified dates",
     }
     return descriptions.get(cmd, "")
 
@@ -342,15 +405,16 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
-• `eda` - Run exploratory data analysis
-• `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
+• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -361,20 +425,21 @@ Try `/help` for more information."""
         # If the command is "help", show the general help menu
         if command_name == "help":
             help_text = """
---------------------------------------------------------------------------------
+---------------------------------------------------------------
       °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
---------------------------------------------------------------------------------
+---------------------------------------------------------------
 
 **Available Commands:**
-• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
-• `eda` - Run exploratory data analysis
-• `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
+• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -401,20 +466,21 @@ Try `/help` for more information."""
     else:
         # General help
         help_text = """
---------------------------------------------------------------------------------
+---------------------------------------------------------------
       °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
---------------------------------------------------------------------------------
+---------------------------------------------------------------
 
 **Available Commands:**
-• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
-• `eda` - Run exploratory data analysis
-• `ml` - Run machine learning analysis
 • `check` - Check database collections
-• `who` - Show information about the bot
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
+• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `eda` - Run exploratory data analysis
+• `ml` - Run machine learning analysis
+• `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
 
@@ -424,7 +490,8 @@ Try `/help` for more information."""
 `/upload 2024_03_20 2024_03_25` - Upload date range
 `/head` - Show earliest logged timestamp
 `/head 2024_03_20` - Show first 5 rows of specific date
-`/who` - Show bot information"""
+`/who` - Show bot information
+"""
         await interaction.followup.send(help_text)
 
 
@@ -443,13 +510,12 @@ async def run_cli_command(ctx, args):
 
         # If output is very long, save it to a file and upload it
         if len(output) > 1900:  # Discord's message limit is 2000 characters
-            # Create a temporary file with the output
+            # Use csv extension for spit command, txt for others
+            file_ext = "csv" if args[0] == "spit" else "txt"
             temp_file = io.StringIO(output)
-
-            # Create a Discord file attachment
             file = discord.File(
                 fp=temp_file,
-                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_ext}",
             )
 
             # Send the file with a message
@@ -483,13 +549,12 @@ async def run_cli_command_slash(interaction: discord.Interaction, args):
 
         # If output is very long, save it to a file and upload it
         if len(output) > 1900:
-            # Create a temporary file with the output
+            # Use csv extension for spit command, txt for others
+            file_ext = "csv" if args[0] == "spit" else "txt"
             temp_file = io.StringIO(output)
-
-            # Create a Discord file attachment
             file = discord.File(
                 fp=temp_file,
-                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_ext}",
             )
 
             # Send the file with a message
@@ -539,12 +604,15 @@ async def on_command_error(ctx, error):
         error_message = f"""❌ Command `{attempted_command}` not found.
 
 **Available Commands:**
-• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
+• `check` - Check database collections
+• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
+• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
+• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
-• `check` - Check database collections
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -605,11 +673,21 @@ async def on_message_edit(before, after):
     if after.author == bot.user:
         return
 
+    # Get the bot's role ID (assuming the role has the same name as the bot)
+    bot_role = next(
+        (role for role in after.guild.roles if role.name.lower() == "meteorix"), None
+    )
+    bot_role_id = bot_role.id if bot_role else None
+
     # Check for mentions in multiple ways
     is_mentioned = (
         bot.user.id in [m.id for m in after.mentions]  # Direct mentions
         or f"<@{bot.user.id}>" in after.content  # Raw mention format
         or f"<@!{bot.user.id}>" in after.content  # Nickname mention format
+        or (
+            bot_role_id and f"<@&{bot_role_id}>" in after.content
+        )  # Role mention format
+        or after.content.lower().startswith("@meteorix")  # Plain text mention
     )
 
     if is_mentioned:
