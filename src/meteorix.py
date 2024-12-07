@@ -2,6 +2,7 @@ import io
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
+from datetime import datetime
 
 import discord
 import toml
@@ -9,9 +10,8 @@ from discord import app_commands
 from discord.ext import commands
 
 # Add the project root to Python path
-from src import ROOT_DIR, STREAMLIT_SECRETS_PATH
-
-sys.path.insert(0, str(ROOT_DIR))
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from cli import main as cli_main  # noqa: E402
 
@@ -431,10 +431,25 @@ async def run_cli_command(ctx, args):
         if not output.strip():
             output = "Command completed successfully with no output."
 
-        chunks = [output[i : i + 1900] for i in range(0, len(output), 1900)]
+        # If output is very long, save it to a file and upload it
+        if len(output) > 1900:  # Discord's message limit is 2000 characters
+            # Create a temporary file with the output
+            temp_file = io.StringIO(output)
 
-        for chunk in chunks:
-            formatted_output = f"```\n{chunk}\n```"
+            # Create a Discord file attachment
+            file = discord.File(
+                fp=temp_file,
+                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            )
+
+            # Send the file with a message
+            await ctx.send(
+                "Output was too long to display directly. Here's the complete output:",
+                file=file,
+            )
+        else:
+            # For shorter outputs, send directly as a message
+            formatted_output = f"```\n{output}\n```"
             await ctx.send(formatted_output)
 
     except Exception as e:
@@ -456,13 +471,26 @@ async def run_cli_command_slash(interaction: discord.Interaction, args):
         if not output.strip():
             output = "Command completed successfully with no output."
 
-        chunks = [output[i : i + 1900] for i in range(0, len(output), 1900)]
+        # If output is very long, save it to a file and upload it
+        if len(output) > 1900:
+            # Create a temporary file with the output
+            temp_file = io.StringIO(output)
 
-        first_chunk = chunks[0]
-        await interaction.followup.send(f"```\n{first_chunk}\n```")
+            # Create a Discord file attachment
+            file = discord.File(
+                fp=temp_file,
+                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            )
 
-        for chunk in chunks[1:]:
-            await interaction.channel.send(f"```\n{chunk}\n```")
+            # Send the file with a message
+            await interaction.followup.send(
+                "Output was too long to display directly. Here's the complete output:",
+                file=file,
+            )
+        else:
+            # For shorter outputs, send directly as a message
+            formatted_output = f"```\n{output}\n```"
+            await interaction.followup.send(formatted_output)
 
     except Exception as e:
         await interaction.followup.send(f"```\nError: {str(e)}\n```")
@@ -590,7 +618,10 @@ bot._old_on_message_edit = on_message_edit
 
 
 def run_bot():
-    with open(STREAMLIT_SECRETS_PATH, "r") as f:
+    root_dir = Path(__file__).parent.parent
+    secrets_path = root_dir / ".streamlit" / "secrets.toml"
+
+    with open(secrets_path, "r") as f:
         secrets = toml.load(f)
     token = secrets["bot_token"]["token"]
     bot.run(token)
