@@ -162,6 +162,8 @@ meteorix tail 2024_03_20
    # add more channels as needed
    ```
 
+   You can start the bot immediately using `python src/meteorix.py`. However, to keep it running continuously, it's recommended to set up a systemd service:
+
 2. **Create Systemd Service File:**
    ```bash
    sudo nano /etc/systemd/system/meteorix-bot.service

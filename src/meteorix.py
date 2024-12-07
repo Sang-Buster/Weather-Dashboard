@@ -100,8 +100,8 @@ async def help_command(ctx, command_name=None):
 ---------------------------------------------------------------
 
 **Available Commands:**
-• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
-• `delete` - Delete all weather data
+• `upload <start_date> [end_date]` - Upload weather data to database (format: YYYY_MM_DD)
+• `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -127,8 +127,8 @@ async def help_command(ctx, command_name=None):
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
-• `delete` - Delete all weather data
+• `upload <start_date> [end_date]` - Upload weather data to database (format: YYYY_MM_DD)
+• `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -163,8 +163,8 @@ Try `@meteorix help` for more information."""
 ---------------------------------------------------------------
 
 **Available Commands:**
-• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
-• `delete` - Delete all weather data
+• `upload <start_date> [end_date]` - Upload weather data to database (format: YYYY_MM_DD)
+• `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -405,8 +405,8 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
-• `delete` - Delete all weather data
+• `upload <start_date> [end_date]` - Upload weather data to database (format: YYYY_MM_DD)
+• `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -430,8 +430,8 @@ Try `/help` for more information."""
 ---------------------------------------------------------------
 
 **Available Commands:**
-• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
-• `delete` - Delete all weather data
+• `upload <start_date> [end_date]` - Upload weather data to database (format: YYYY_MM_DD)
+• `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -471,8 +471,8 @@ Try `/help` for more information."""
 ---------------------------------------------------------------
 
 **Available Commands:**
-• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
-• `delete` - Delete all weather data
+• `upload <start_date> [end_date]` - Upload weather data to database (format: YYYY_MM_DD)
+• `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -508,23 +508,30 @@ async def run_cli_command(ctx, args):
         if not output.strip():
             output = "Command completed successfully with no output."
 
-        # If output is very long, save it to a file and upload it
-        if len(output) > 1900:  # Discord's message limit is 2000 characters
-            # Use csv extension for spit command, txt for others
-            file_ext = "csv" if args[0] == "spit" else "txt"
+        # For spit command, always send as file
+        if args[0] == "spit":
             temp_file = io.StringIO(output)
             file = discord.File(
                 fp=temp_file,
-                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_ext}",
+                filename=f"output_spit_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
             )
-
-            # Send the file with a message
+            await ctx.send(
+                "Here's the CSV data:",
+                file=file,
+            )
+        # For very long outputs (except head/tail), send as file
+        elif len(output) > 1900 and args[0] not in ["head", "tail"]:
+            temp_file = io.StringIO(output)
+            file = discord.File(
+                fp=temp_file,
+                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            )
             await ctx.send(
                 "Output was too long to display directly. Here's the complete output:",
                 file=file,
             )
         else:
-            # For shorter outputs, send directly as a message
+            # Use fixed-width formatting for all outputs
             formatted_output = f"```\n{output}\n```"
             await ctx.send(formatted_output)
 
@@ -535,7 +542,6 @@ async def run_cli_command(ctx, args):
 
 async def run_cli_command_slash(interaction: discord.Interaction, args):
     await interaction.response.defer()
-
     f = io.StringIO()
     try:
         with redirect_stdout(f):
@@ -547,28 +553,36 @@ async def run_cli_command_slash(interaction: discord.Interaction, args):
         if not output.strip():
             output = "Command completed successfully with no output."
 
-        # If output is very long, save it to a file and upload it
-        if len(output) > 1900:
-            # Use csv extension for spit command, txt for others
-            file_ext = "csv" if args[0] == "spit" else "txt"
+        # For spit command, always send as file
+        if args[0] == "spit":
             temp_file = io.StringIO(output)
             file = discord.File(
                 fp=temp_file,
-                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_ext}",
+                filename=f"output_spit_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
             )
-
-            # Send the file with a message
+            await interaction.followup.send(
+                "Here's the CSV data:",
+                file=file,
+            )
+        # For very long outputs (except head/tail), send as file
+        elif len(output) > 1900 and args[0] not in ["head", "tail"]:
+            temp_file = io.StringIO(output)
+            file = discord.File(
+                fp=temp_file,
+                filename=f"output_{args[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            )
             await interaction.followup.send(
                 "Output was too long to display directly. Here's the complete output:",
                 file=file,
             )
         else:
-            # For shorter outputs, send directly as a message
+            # Use fixed-width formatting for all outputs
             formatted_output = f"```\n{output}\n```"
             await interaction.followup.send(formatted_output)
 
     except Exception as e:
-        await interaction.followup.send(f"```\nError: {str(e)}\n```")
+        error_msg = f"```\nError: {str(e)}\n```"
+        await interaction.followup.send(error_msg)
 
 
 @bot.tree.error
@@ -604,8 +618,8 @@ async def on_command_error(ctx, error):
         error_message = f"""❌ Command `{attempted_command}` not found.
 
 **Available Commands:**
-• `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
-• `delete` - Delete all weather data
+• `upload <start_date> [end_date]` - Upload weather data to database (format: YYYY_MM_DD)
+• `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified

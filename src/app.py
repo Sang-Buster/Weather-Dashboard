@@ -12,13 +12,13 @@ from web_components import (
     predicted_plot_components,
 )
 
-import os
 import sys
+from pathlib import Path
 import streamlit as st
 
 
 # Add the project root directory to the Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, project_root)
 
 # App information

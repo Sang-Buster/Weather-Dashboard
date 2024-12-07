@@ -37,20 +37,57 @@ def show_head(date_str=None):
         return
 
     try:
-        df = pd.read_csv(csv_path)
-        total_rows = len(df)
-        
-        if total_rows == 0:
-            rprint(f"[yellow]The CSV file {os.path.basename(csv_path)} is empty[/yellow]")
-            return
-            
+        total_rows = sum(1 for _ in open(csv_path)) - 1  # -1 for header
+
+        # Define column names based on the metadata
+        columns = [
+            "tNow",
+            "u_m_s",
+            "v_m_s",
+            "w_m_s",
+            "2dSpeed_m_s",
+            "3DSpeed_m_s",
+            "Azimuth_deg",
+            "Elev_deg",
+            "Press_Pa",
+            "Temp_C",
+            "Hum_RH",
+            "SonicTemp_C",
+            "Error",
+        ]
+
         if date_str:
+            # Read only the first 5 rows when date is specified, skip header
+            df = pd.read_csv(csv_path, nrows=5, skiprows=1, names=columns)
+
+            # Create display DataFrame with rounded values (2 decimal places)
+            df_display = pd.DataFrame(
+                {
+                    "Timestamp": df["tNow"],
+                    "Pressure (Pa)": df["Press_Pa"].round(2),
+                    "Temp (°F)": (df["Temp_C"].astype(float) * 9 / 5 + 32).round(2),
+                    "RH (%)": df["Hum_RH"].round(2),
+                    "3D Wind Speed (mph)": (
+                        df["3DSpeed_m_s"].astype(float) * 2.23694
+                    ).round(2),
+                }
+            )
+
             rprint(
                 f"[green]First 5 out of {total_rows} total rows in {os.path.basename(csv_path)}:[/green]"
             )
-            rprint(df.head().to_string())
+            rprint(df_display.to_string(index=False))
         else:
+            # Read only the first row when no date, skip header
+            df = pd.read_csv(csv_path, nrows=1, skiprows=1, names=columns)
+            first_row = df.iloc[0]
             rprint(f"[green]Earliest data file: {os.path.basename(csv_path)}[/green]")
-            rprint(f"First timestamp: {df.iloc[0]['tNow']}")
+            rprint(f"Timestamp: {first_row['tNow']}")
+            rprint(f"Pressure: {float(first_row['Press_Pa']):.2f} Pa")
+            rprint(f"Temperature: {(float(first_row['Temp_C']) * 9/5 + 32):.2f}°F")
+            rprint(f"Relative Humidity: {float(first_row['Hum_RH']):.2f}%")
+            rprint(
+                f"3D Wind Speed: {(float(first_row['3DSpeed_m_s']) * 2.23694):.2f} mph"
+            )
     except Exception as e:
         rprint(f"[red]Error reading CSV: {str(e)}[/red]")
