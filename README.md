@@ -24,32 +24,46 @@ This project is a comprehensive weather data analysis system that combines a [St
 
 ### Setup Instructions
 
-1. **Create a new [`conda`](https://github.com/conda-forge/miniforge) environment:**
+1. **Clone the repository and navigate to project folder:**
    ```bash
-   conda create -n tmp python=3.12 -y
+   git clone https://github.com/Sang-Buster/weather-dashboard
+   cd weather-dashboard
    ```
 
-2. **Activate the conda environment:**
+2. **Install uv first:**
    ```bash
-   conda activate tmp
+   # macOS/Linux
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+
+   # Windows
+   powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-3. **Install [`uv`](https://docs.astral.sh/uv/) first:**
+3. **Create a virtual environment:**
    ```bash
-   pip install uv
+   uv venv --python 3.12.1
    ```
 
-4. **Install the required packages:**
+4. **Activate the virtual environment:**
+   ```bash
+   # macOS/Linux
+   source .venv/bin/activate
+
+   # Windows
+   .venv\Scripts\activate
+   ```
+
+5. **Install the required packages:**
    ```bash
    uv pip install -r requirements.txt
    ```
 
-5. **Create a `.streamlit/secrets.toml` file:**
+6. **Create a `.streamlit/secrets.toml` file:**
    ```bash
    touch .streamlit/secrets.toml
    ```
 
-6. **Add MongoDB URI to `secrets.toml`:**
+7. **Add MongoDB URI to `secrets.toml`:**
    ```toml
    [mongo]
    uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
