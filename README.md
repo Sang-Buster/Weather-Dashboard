@@ -109,8 +109,10 @@ For convenience, you can set up an alias named `meteorix`:
 3. **Make Changes Permanent:**
    Add these lines to your shell configuration file (`~/.bashrc` or `~/.zshrc`):
    ```bash
-   export PYTHONPATH="/absolute/path/to/weather-dashboard:$PYTHONPATH"
-   alias meteorix="python src/cli.py"
+   REPO_DIR="/var/tmp/weather-dashboard"
+   PYTHON_PATH="$REPO_DIR/.venv/bin/python"
+   CLI_PATH="$REPO_DIR/src/cli.py"
+   alias meteorix="$PYTHON_PATH $CLI_PATH"
    ```
 
 4. **Apply Changes:**
