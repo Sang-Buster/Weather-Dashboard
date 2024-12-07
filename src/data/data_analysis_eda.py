@@ -5,7 +5,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import json
-from .constants import ANALYSIS_RESULTS_DIR
+
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from src.data.constants import ANALYSIS_RESULTS_DIR  # noqa: E402
 
 
 # Read the CSV file
@@ -68,10 +76,10 @@ def set_dark_style():
     )
 
 
-def create_and_save_visualizations(df, output_dir="lib/fig/eda/"):
+def create_and_save_visualizations(df, output_dir, analysis_output_dir):
     # Create output directories if they don't exist
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs("src/data/data_analysis_result", exist_ok=True)
+    os.makedirs(analysis_output_dir, exist_ok=True)
 
     # Set dark style
     set_dark_style()
@@ -271,7 +279,9 @@ def main():
     df = load_weather_data("src/data/merged_weather_data.csv")
 
     # Create and save individual plots
-    create_and_save_visualizations(df, output_dir="lib/fig/eda/")
+    create_and_save_visualizations(
+        df, output_dir="lib/fig/eda/", analysis_output_dir=ANALYSIS_RESULTS_DIR
+    )
 
     # Print correlation matrix
     correlation_vars = [
@@ -335,7 +345,7 @@ def main():
         "Hum_RH",
     ]
     correlation_data = df[correlation_vars].corr().round(4).to_dict()
-    
+
     output_file = ANALYSIS_RESULTS_DIR / "correlation_data.json"
     with open(output_file, "w") as f:
         json.dump(correlation_data, f, indent=2)

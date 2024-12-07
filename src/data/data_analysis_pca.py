@@ -7,7 +7,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 from pathlib import Path
-from .constants import ANALYSIS_RESULTS_DIR
+import sys
+
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from src.data.constants import ANALYSIS_RESULTS_DIR  # noqa: E402
 
 
 def load_and_prepare_data(file_path: str) -> tuple[pd.DataFrame, list]:
@@ -175,50 +181,50 @@ def main():
     plot_pca_results(loadings, explained_variance_ratio, cumulative_variance_ratio)
     print("Plots generated and saved")
 
-    # Analyze temporal importance
-    model, feature_importance, X_train, X_test, y_train, y_test = (
-        analyze_temporal_importance(df, features)
-    )
-    print("Temporal importance analysis completed")
+    # # Analyze temporal importance
+    # model, feature_importance, X_train, X_test, y_train, y_test = (
+    #     analyze_temporal_importance(df, features)
+    # )
+    # print("Temporal importance analysis completed")
 
-    # Print results
-    print("\nPCA Analysis Results:")
+    # # Print results
+    # print("\nPCA Analysis Results:")
 
-    # Create and print explained variance table
-    variance_df = pd.DataFrame(
-        {
-            "Principal Component": [
-                f"PC{i+1}" for i in range(len(explained_variance_ratio))
-            ],
-            "Individual Variance Explained": explained_variance_ratio,
-            "Cumulative Variance Explained": cumulative_variance_ratio,
-        }
-    )
-    variance_df = variance_df.set_index("Principal Component")
-    variance_df = variance_df.round(4)
-    print("\nExplained Variance Table:")
-    print(variance_df.to_string())
+    # # Create and print explained variance table
+    # variance_df = pd.DataFrame(
+    #     {
+    #         "Principal Component": [
+    #             f"PC{i+1}" for i in range(len(explained_variance_ratio))
+    #         ],
+    #         "Individual Variance Explained": explained_variance_ratio,
+    #         "Cumulative Variance Explained": cumulative_variance_ratio,
+    #     }
+    # )
+    # variance_df = variance_df.set_index("Principal Component")
+    # variance_df = variance_df.round(4)
+    # print("\nExplained Variance Table:")
+    # print(variance_df.to_string())
 
-    # Print loadings table with better formatting
-    print("\nComponent Loadings Table:")
-    loadings_formatted = loadings.round(4)
-    print(loadings_formatted.to_string())
+    # # Print loadings table with better formatting
+    # print("\nComponent Loadings Table:")
+    # loadings_formatted = loadings.round(4)
+    # print(loadings_formatted.to_string())
 
-    # Print top contributing features for each principal component
-    print("\nTop 3 Contributing Features for each Principal Component:")
-    for pc in loadings.columns[:3]:  # First 3 PCs
-        top_features = loadings[pc].abs().sort_values(ascending=False).head(3)
-        print(f"\n{pc}:")
-        for feat, value in top_features.items():
-            print(f"  {feat}: {value:.4f}")
+    # # Print top contributing features for each principal component
+    # print("\nTop 3 Contributing Features for each Principal Component:")
+    # for pc in loadings.columns[:3]:  # First 3 PCs
+    #     top_features = loadings[pc].abs().sort_values(ascending=False).head(3)
+    #     print(f"\n{pc}:")
+    #     for feat, value in top_features.items():
+    #         print(f"  {feat}: {value:.4f}")
 
-    print("\nTemporal Importance Analysis:")
-    print(f"Model: {model}")
-    print(f"R² Score: {model.score(X_test, y_test):.4f}")
+    # print("\nTemporal Importance Analysis:")
+    # print(f"Model: {model}")
+    # print(f"R² Score: {model.score(X_test, y_test):.4f}")
 
-    # Print top 10 most important temporal features
-    print("\nTop 10 Most Important Temporal Features:")
-    print(feature_importance.head(10).to_string(index=False))
+    # # Print top 10 most important temporal features
+    # print("\nTop 10 Most Important Temporal Features:")
+    # print(feature_importance.head(10).to_string(index=False))
 
 
 if __name__ == "__main__":
