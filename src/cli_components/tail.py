@@ -52,5 +52,8 @@ def show_tail(date_str=None):
         else:
             rprint(f"[green]Latest data file: {os.path.basename(csv_path)}[/green]")
             rprint(f"Last timestamp: {df.iloc[-1]['tNow']}")
+            last_row = df.iloc[-1] # get last row of dataframe
+            myStr='Temp={0:0.1f}(F), RH={1:0.1f}(%), P={2:0.1f}(Pa), WindSpd={3:0.1f}(mph)'.format( last_row['Temp_C']*(9/5)+32 , last_row['Hum_RH'] , last_row['Press_Pa'] , last_row['3DSpeed_m_s']*2.237 )
+            rprint(f"[cyan]conditions as of [{last_row['tNow']}] {myStr}[/cyan]")
     except Exception as e:
         rprint(f"[red]Error reading CSV: {str(e)}[/red]")
