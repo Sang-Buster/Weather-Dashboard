@@ -3,7 +3,7 @@ import sys
 from contextlib import redirect_stdout
 from pathlib import Path
 from datetime import datetime
-
+import streamlit as st
 import discord
 import toml
 from discord import app_commands
@@ -49,18 +49,20 @@ class MeteorBot(commands.Bot):
 
 bot = MeteorBot()
 
-# Load channel ID from secrets
-with open(Path(__file__).parent.parent / ".streamlit" / "secrets.toml", "r") as f:
-    secrets = toml.load(f)
-ALLOWED_CHANNEL_ID = int(secrets["channel_id"]["id"])
+
+ALLOWED_CHANNEL_IDS = [
+    int(channel_id) 
+    for channel_id in st.secrets["channel_id"].values()
+]
 
 
-# Separate checks for message commands and slash commands
+# Update the channel check functions
 def check_channel():
     async def predicate(ctx):
-        if ctx.channel.id != ALLOWED_CHANNEL_ID:
+        if ctx.channel.id not in ALLOWED_CHANNEL_IDS:
+            allowed_channels = [f"<#{channel_id}>" for channel_id in ALLOWED_CHANNEL_IDS]
             await ctx.send(
-                f"❌ This command can only be used in <#{ALLOWED_CHANNEL_ID}>"
+                f"❌ This command can only be used in: {', '.join(allowed_channels)}"
             )
             return False
         return True
@@ -69,7 +71,7 @@ def check_channel():
 
 
 def check_channel_slash(interaction: discord.Interaction):
-    if interaction.channel_id != ALLOWED_CHANNEL_ID:
+    if interaction.channel_id not in ALLOWED_CHANNEL_IDS:
         return False
     return True
 
@@ -77,11 +79,12 @@ def check_channel_slash(interaction: discord.Interaction):
 @bot.event
 async def on_ready():
     print(f"Bot is ready! Logged in as {bot.user}")
-    channel = bot.get_channel(ALLOWED_CHANNEL_ID)
-    if channel:
-        print(f"Listening in channel: #{channel.name}")
-    else:
-        print(f"Warning: Could not find channel with ID {ALLOWED_CHANNEL_ID}")
+    for channel_id in ALLOWED_CHANNEL_IDS:
+        channel = bot.get_channel(channel_id)
+        if channel:
+            print(f"Listening in channel: #{channel.name}")
+        else:
+            print(f"Warning: Could not find channel with ID {channel_id}")
 
 
 # Message-based commands
@@ -93,7 +96,7 @@ async def help_command(ctx, command_name=None):
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -127,7 +130,7 @@ Try `@meteorix help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -339,7 +342,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
             error_message = f"""❌ Command `{command_name}` not found.
 
 **Available Commands:**
-• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -363,7 +366,7 @@ Try `/help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -403,7 +406,7 @@ Try `/help` for more information."""
 --------------------------------------------------------------------------------
 
 **Available Commands:**
-• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -508,8 +511,9 @@ async def on_app_command_error(
     interaction: discord.Interaction, error: app_commands.AppCommandError
 ):
     if isinstance(error, app_commands.CheckFailure):
+        allowed_channels = [f"<#{channel_id}>" for channel_id in ALLOWED_CHANNEL_IDS]
         await interaction.response.send_message(
-            f"❌ This command can only be used in <#{ALLOWED_CHANNEL_ID}>",
+            f"❌ This command can only be used in: {', '.join(allowed_channels)}",
             ephemeral=True,
         )
 
@@ -535,7 +539,7 @@ async def on_command_error(ctx, error):
         error_message = f"""❌ Command `{attempted_command}` not found.
 
 **Available Commands:**
-• `info <month>` - Show available date range and file statistics for a specific month (YYYY_MM)
+• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `upload <start_date> [end_date]` - Upload weather data (format: YYYY_MM_DD)
 • `delete` - Delete all weather data
 • `eda` - Run exploratory data analysis
@@ -625,12 +629,7 @@ bot._old_on_message_edit = on_message_edit
 
 
 def run_bot():
-    root_dir = Path(__file__).parent.parent
-    secrets_path = root_dir / ".streamlit" / "secrets.toml"
-
-    with open(secrets_path, "r") as f:
-        secrets = toml.load(f)
-    token = secrets["bot_token"]["token"]
+    token = st.secrets["bot_token"]["token"]
     bot.run(token)
 
 

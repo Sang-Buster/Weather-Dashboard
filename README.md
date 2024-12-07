@@ -157,12 +157,57 @@ meteorix tail 2024_03_20
    token = "YOUR_BOT_TOKEN"
 
    [channel_id]
-   id = "YOUR_CHANNEL_ID"
+   channel_1_id = "YOUR_CHANNEL_ID_1"
+   channel_2_id = "YOUR_CHANNEL_ID_2"
+   # add more channels as needed
    ```
 
-2. **Run the Bot:**
+2. **Create Systemd Service File:**
    ```bash
-   python src/meteorix.py
+   sudo nano /etc/systemd/system/meteorix-bot.service
+   ```
+
+3. **Add the following configuration** (adjust paths and username):
+   ```ini
+   [Unit]
+   Description=Meteorix Discord Bot
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=YOUR_USERNAME
+   WorkingDirectory=/path/to/weather-dashboard
+   Environment="PATH=/path/to/weather-dashboard/.venv/bin"
+   ExecStart=/path/to/weather-dashboard/.venv/bin/python /path/to/weather-dashboard/src/meteorix.py
+   Restart=always
+   RestartSec=10
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+4. **Enable and Start the Service:**
+   ```bash
+   # Enable the service to start on boot
+   sudo systemctl enable meteorix-bot
+
+   # Start the service
+   sudo systemctl start meteorix-bot
+
+   # Check service status
+   sudo systemctl status meteorix-bot
+   ```
+
+5. **Common Service Commands:**
+   ```bash
+   # Stop the bot
+   sudo systemctl stop meteorix-bot
+
+   # Restart the bot (after code changes)
+   sudo systemctl restart meteorix-bot
+
+   # View live logs
+   sudo journalctl -u meteorix-bot -f
    ```
 
 ### Basic Usage
