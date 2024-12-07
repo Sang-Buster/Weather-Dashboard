@@ -16,19 +16,11 @@ import sys
 import argparse
 from datetime import datetime
 from rich import print as rprint
-from pathlib import Path
 
-# Define project paths
-PROJECT_ROOT = Path(__file__).parent
-DATA_DIR = PROJECT_ROOT / "data"
-ANALYSIS_RESULTS_DIR = DATA_DIR / "data_analysis_result"
-
-# Create directories if they don't exist
-DATA_DIR.mkdir(exist_ok=True)
-ANALYSIS_RESULTS_DIR.mkdir(exist_ok=True)
+from src import SRC_DIR
 
 # Add project root to Python path
-sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(SRC_DIR))
 
 
 def main():

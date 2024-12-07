@@ -9,8 +9,9 @@ from discord import app_commands
 from discord.ext import commands
 
 # Add the project root to Python path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+from src import ROOT_DIR, STREAMLIT_SECRETS_PATH
+
+sys.path.insert(0, str(ROOT_DIR))
 
 from cli import main as cli_main  # noqa: E402
 
@@ -589,10 +590,7 @@ bot._old_on_message_edit = on_message_edit
 
 
 def run_bot():
-    root_dir = Path(__file__).parent.parent
-    secrets_path = root_dir / ".streamlit" / "secrets.toml"
-
-    with open(secrets_path, "r") as f:
+    with open(STREAMLIT_SECRETS_PATH, "r") as f:
         secrets = toml.load(f)
     token = secrets["bot_token"]["token"]
     bot.run(token)

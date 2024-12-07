@@ -3,9 +3,11 @@ from rich import print as rprint
 from pathlib import Path
 import pandas as pd
 
+from src import CSV_DIR
+
 
 def get_available_date_range():
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(CSV_DIR)
 
     if not data_dir.exists():
         rprint("[red]Data directory not found.[/red]")

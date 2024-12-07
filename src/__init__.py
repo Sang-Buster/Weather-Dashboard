@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent.parent
 SRC_DIR = Path(__file__).parent
 DATA_DIR = SRC_DIR / "data"
+CSV_DIR = "/var/tmp/wx"
 LIB_DIR = ROOT_DIR / "lib"
 
 # Analysis directories
@@ -17,6 +18,9 @@ EDA_FIG_DIR = FIGURE_DIR / "eda"
 
 # Data file paths
 WEATHER_DATA_PATH = DATA_DIR / "merged_weather_data.csv"
+
+# Streamlit secrets path
+STREAMLIT_SECRETS_PATH = ROOT_DIR / ".streamlit" / "secrets.toml"
 
 # Create necessary directories
 for directory in [ANALYSIS_RESULTS_DIR, ML_FIG_DIR, PCA_FIG_DIR, EDA_FIG_DIR]:

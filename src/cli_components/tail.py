@@ -5,9 +5,11 @@ from rich import print as rprint
 import pandas as pd
 import glob
 
+from src import CSV_DIR
+
 
 def get_csv_path(date_str=None):
-    data_dir = Path(__file__).parent.parent / "data"
+    data_dir = Path(CSV_DIR)
 
     if date_str:
         try:

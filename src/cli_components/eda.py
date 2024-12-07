@@ -3,7 +3,7 @@ from datetime import datetime, UTC
 from rich import print as rprint
 from data.data_analysis_eda import main as run_eda
 from data.data_analysis_pca import main as run_pca
-from data import ANALYSIS_RESULTS_DIR
+from src import ANALYSIS_RESULTS_DIR
 from .utils import print_collection_stats
 
 

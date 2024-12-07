@@ -19,7 +19,9 @@ from .utils import print_collection_stats
 from typing import Any
 from pathlib import Path
 
-DATA_DIR = Path(__file__).parent.parent / "data"
+from src import CSV_DIR
+
+DATA_DIR = Path(CSV_DIR)
 
 
 def process_chunk(args):
