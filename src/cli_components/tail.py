@@ -39,6 +39,11 @@ def show_tail(date_str=None):
     try:
         df = pd.read_csv(csv_path)
         total_rows = len(df)
+        
+        if total_rows == 0:
+            rprint(f"[yellow]The CSV file {os.path.basename(csv_path)} is empty[/yellow]")
+            return
+            
         if date_str:
             rprint(
                 f"[green]Last 5 out of {total_rows} total rows in {os.path.basename(csv_path)}:[/green]"
