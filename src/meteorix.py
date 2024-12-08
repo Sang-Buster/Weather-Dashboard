@@ -273,7 +273,9 @@ async def info_slash(interaction: discord.Interaction, month: str = None):
         await run_cli_command_slash(interaction, ["info"])
 
 
-@bot.tree.command(name="upload", description="Upload weather data (format: YYYY_MM_DD)")
+@bot.tree.command(
+    name="upload", description="Upload weather data to MongoDB (format: YYYY_MM_DD)"
+)
 @app_commands.describe(
     start_date="Start date in YYYY_MM_DD format",
     end_date="End date in YYYY_MM_DD format (optional)",
@@ -288,7 +290,7 @@ async def upload_slash(
         await run_cli_command_slash(interaction, ["upload", start_date])
 
 
-@bot.tree.command(name="delete", description="Delete all weather data")
+@bot.tree.command(name="delete", description="Delete all weather data from MongoDB")
 @app_commands.check(check_channel_slash)
 async def delete_slash(interaction: discord.Interaction):
     await run_cli_command_slash(interaction, ["delete"])
@@ -374,8 +376,8 @@ VALID_COMMANDS = [
 def get_command_description(cmd):
     descriptions = {
         "info": "Show available date range and file statistics",
-        "upload": "Upload weather data",
-        "delete": "Delete all weather data",
+        "upload": "Upload weather data to MongoDB",
+        "delete": "Delete all weather data from MongoDB",
         "eda": "Run exploratory data analysis",
         "ml": "Run machine learning analysis",
         "check": "Check database collections",
