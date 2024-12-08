@@ -11,6 +11,7 @@ from cli_components import (
     print_banner,
     connect_to_mongodb,
     spit_csv_data,
+    create_weather_plot,
 )
 
 import sys
@@ -25,179 +26,186 @@ sys.path.insert(0, str(SRC_DIR))
 
 
 def main():
-    # Only print banner if not using spit command
-    if len(sys.argv) > 1 and sys.argv[1] != "spit":
+    # Only print banner if not using spit or plot command
+    if len(sys.argv) > 1 and sys.argv[1] not in ["spit"]:
         print_banner()
 
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload,delete,check,head,tail,info,spit,eda,ml,who,help} ...",
+        usage="meteorix [-h] {upload,delete,check,head,tail,info,spit,eda,ml,who,plot,help} ...",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # Define subparsers in the desired order
-    # 1. Upload command
-    upload_parser = subparsers.add_parser(
-        "upload",
-        help="Upload weather data to MongoDB",
-        description="Upload weather station data from CSV files to MongoDB.",
-    )
-    upload_parser.add_argument("start_date", help="Start date (YYYY_MM_DD)")
-    upload_parser.add_argument(
-        "end_date", nargs="?", help="End date (YYYY_MM_DD, optional)"
-    )
-
-    # 2. Delete command
-    delete_parser = subparsers.add_parser(
-        "delete",
-        help="Delete all weather data from MongoDB",
-        description="Remove all weather data records from the MongoDB collection.",
-    )
-    delete_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
-    # 3. Check command
-    check_parser = subparsers.add_parser(
-        "check",
-        help="Check database collections",
-        description="Display detailed statistics and content preview for all MongoDB collections.",
-    )
-    check_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
-    # 4. Head command
-    head_parser = subparsers.add_parser(
-        "head",
-        help="Show earliest logged timestamp or first 5 rows if date specified",
-        description="""Without a date: Shows the earliest timestamp in the dataset.
+    # Command configurations
+    commands = {
+        "upload": {
+            "help": "Upload weather data to MongoDB",
+            "description": "Upload weather station data from CSV files to MongoDB.",
+            "args": [
+                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
+                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
+            ],
+        },
+        "delete": {
+            "help": "Delete all weather data from MongoDB",
+            "description": "Remove all weather data records from the MongoDB collection.",
+            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
+        },
+        "check": {
+            "help": "Check database collections",
+            "description": "Display detailed statistics and content preview for all MongoDB collections.",
+            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
+        },
+        "head": {
+            "help": "Show earliest logged timestamp or first 5 rows if date specified",
+            "description": """Without a date: Shows the earliest timestamp in the dataset.
 With a date (YYYY_MM_DD format): Shows the first 5 rows of that specific date.""",
-    )
-    head_parser.add_argument(
-        "date", nargs="?", help="Optional: Date to show first 5 rows for (YYYY_MM_DD)"
-    )
-
-    # 5. Tail command
-    tail_parser = subparsers.add_parser(
-        "tail",
-        help="Show latest logged timestamp or last 5 rows if date specified",
-        description="""Without a date: Shows the latest timestamp in the dataset.
+            "args": [
+                (
+                    "date",
+                    {
+                        "nargs": "?",
+                        "help": "Optional: Date to show first 5 rows for (YYYY_MM_DD)",
+                    },
+                )
+            ],
+        },
+        "tail": {
+            "help": "Show latest logged timestamp or last 5 rows if date specified",
+            "description": """Without a date: Shows the latest timestamp in the dataset.
 With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date.""",
-    )
-    tail_parser.add_argument(
-        "date", nargs="?", help="Optional: Date to show last 5 rows for (YYYY_MM_DD)"
-    )
+            "args": [
+                (
+                    "date",
+                    {
+                        "nargs": "?",
+                        "help": "Optional: Date to show last 5 rows for (YYYY_MM_DD)",
+                    },
+                )
+            ],
+        },
+        "info": {
+            "help": "Show available date range and file statistics",
+            "description": "Display available date range, file details including row counts and sizes, and identify any missing dates in the sequence. Optionally filter by month.",
+            "args": [
+                (
+                    "month",
+                    {
+                        "nargs": "?",
+                        "help": "Optional: Month to show statistics for (YYYY_MM)",
+                    },
+                ),
+                ("--force", {"action": "store_true", "help": argparse.SUPPRESS}),
+            ],
+        },
+        "spit": {
+            "help": "Get raw CSV data for specified dates",
+            "description": "Retrieve and output raw CSV data for a specific date or date range.",
+            "args": [
+                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
+                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
+            ],
+        },
+        "eda": {
+            "help": "Run exploratory data analysis",
+            "description": "Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
+            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
+        },
+        "ml": {
+            "help": "Run machine learning analysis",
+            "description": "Execute machine learning models for weather prediction and upload results to MongoDB.",
+            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
+        },
+        "who": {
+            "help": "Show information about the bot",
+            "description": "Display detailed information about the Meteorix bot and its creators.",
+            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
+        },
+        "plot": {
+            "help": "Create weather data plots",
+            "description": "Generate plots of weather data for a specific date or date range.",
+            "args": [
+                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
+                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
+            ],
+        },
+    }
 
-    # 6. Info command
-    info_parser = subparsers.add_parser(
-        "info",
-        help="Show available date range and file statistics",
-        description="Display available date range, file details including row counts and sizes, and identify any missing dates in the sequence. Optionally filter by month.",
-    )
-    info_parser.add_argument(
-        "month",
-        nargs="?",
-        help="Optional: Month to show statistics for (YYYY_MM)",
-    )
-    info_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
-    # 7. Spit command
-    spit_parser = subparsers.add_parser(
-        "spit",
-        help="Get raw CSV data for specified dates",
-        description="Retrieve and output raw CSV data for a specific date or date range.",
-    )
-    spit_parser.add_argument("start_date", help="Start date (YYYY_MM_DD)")
-    spit_parser.add_argument(
-        "end_date", nargs="?", help="End date (YYYY_MM_DD, optional)"
-    )
-
-    # 8. EDA command
-    eda_parser = subparsers.add_parser(
-        "eda",
-        help="Run exploratory data analysis",
-        description="Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
-    )
-    eda_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
-    # 9. ML command
-    ml_parser = subparsers.add_parser(
-        "ml",
-        help="Run machine learning analysis",
-        description="Execute machine learning models for weather prediction and upload results to MongoDB.",
-    )
-    ml_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
-
-    # 10. Who command
-    who_parser = subparsers.add_parser(
-        "who",
-        help="Show information about the bot",
-        description="Display detailed information about the Meteorix bot and its creators.",
-    )
-    who_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+    # Create subparsers from command configurations
+    for cmd, config in commands.items():
+        parser_obj = subparsers.add_parser(
+            cmd, help=config["help"], description=config["description"]
+        )
+        for arg_name, arg_config in config["args"]:
+            parser_obj.add_argument(arg_name, **arg_config)
 
     args = parser.parse_args()
     db = connect_to_mongodb()
 
-    try:
-        if args.command == "who":
-            show_who_info()
-        elif args.command == "check":
-            check_analysis_results(db)
-        elif args.command == "delete":
-            if delete_mongodb_collection(db):
-                rprint("[green]Collection deleted successfully.[/green]")
-            else:
-                rprint("[red]Failed to delete collection.[/red]")
-        elif args.command == "eda":
-            run_eda_analysis(db)
-        elif args.command == "ml":
-            run_ml_analysis(db)
-        elif args.command == "upload":
-            try:
-                start = datetime.strptime(args.start_date, "%Y_%m_%d")
-                end = (
-                    datetime.strptime(args.end_date, "%Y_%m_%d")
-                    if args.end_date
-                    else start
-                )
-                if start > end:
-                    rprint(
-                        "[red]Error: Start date must be before or equal to end date.[/red]"
-                    )
-                    return
-                success = upload_csv_to_mongodb(args.start_date, args.end_date, db)
-                if not success:
-                    rprint("[red]Upload failed[/red]")
-            except ValueError:
-                rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
-        elif args.command == "info":
-            get_available_date_range(args.month if hasattr(args, "month") else None)
-        elif args.command == "head":
-            show_head(args.date if hasattr(args, "date") else None)
-        elif args.command == "tail":
-            show_tail(args.date if hasattr(args, "date") else None)
-        elif args.command == "spit":
-            try:
-                start = datetime.strptime(args.start_date, "%Y_%m_%d")
-                end = (
-                    datetime.strptime(args.end_date, "%Y_%m_%d")
-                    if args.end_date
-                    else start
-                )
-                if start > end:
-                    sys.stderr.write(
-                        "[red]Error: Start date must be before or equal to end date.[/red]\n"
-                    )
-                    return
-                filename, csv_buffer = spit_csv_data(args.start_date, args.end_date)
-                # Print only the CSV data, no extra output
-                sys.stdout.write(csv_buffer.getvalue())
-            except ValueError:
-                sys.stderr.write("[red]Invalid date format. Use YYYY_MM_DD.[/red]\n")
+    # Command handlers
+    handlers = {
+        "who": lambda: show_who_info(),
+        "check": lambda: check_analysis_results(db),
+        "delete": lambda: rprint("[green]Collection deleted successfully.[/green]")
+        if delete_mongodb_collection(db)
+        else rprint("[red]Failed to delete collection.[/red]"),
+        "eda": lambda: run_eda_analysis(db),
+        "ml": lambda: run_ml_analysis(db),
+        "info": lambda: get_available_date_range(
+            args.month if hasattr(args, "month") else None
+        ),
+        "head": lambda: show_head(args.date if hasattr(args, "date") else None),
+        "tail": lambda: show_tail(args.date if hasattr(args, "date") else None),
+    }
 
+    # Date-based command handlers
+    date_handlers = {
+        "upload": lambda start, end: upload_csv_to_mongodb(start, end, db),
+        "spit": lambda start, end: sys.stdout.write(
+            spit_csv_data(start, end)[1].getvalue()
+        ),
+        "plot": lambda start, end: handle_plot_command(start, end, save_locally=True),
+    }
+
+    try:
+        if args.command in handlers:
+            handlers[args.command]()
+        elif args.command in date_handlers:
+            handle_date_command(args, date_handlers[args.command])
     except KeyboardInterrupt:
         rprint("\n[yellow]Operation cancelled by user.[/yellow]")
     except Exception as e:
         rprint(f"[red]Error: {str(e)}[/red]")
+
+
+def handle_date_command(args, handler):
+    """Handle commands that require date processing."""
+    try:
+        start = datetime.strptime(args.start_date, "%Y_%m_%d")
+        end = datetime.strptime(args.end_date, "%Y_%m_%d") if args.end_date else start
+
+        if start > end:
+            rprint("[red]Error: Start date must be before or equal to end date.[/red]")
+            return
+
+        handler(args.start_date, args.end_date)
+    except ValueError:
+        rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
+
+
+def handle_plot_command(start_date, end_date, save_locally=True):
+    """Handle plot command specifically."""
+    try:
+        filenames, buffers, filepaths = create_weather_plot(
+            start_date, end_date, save_locally=save_locally
+        )
+
+        if save_locally:
+            for filepath in filepaths:
+                rprint(f"[green]Plot saved as: {filepath}[/green]")
+    except Exception as e:
+        rprint(f"[red]Error creating plot: {str(e)}[/red]")
 
 
 if __name__ == "__main__":

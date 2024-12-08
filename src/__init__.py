@@ -15,6 +15,7 @@ FIGURE_DIR = LIB_DIR / "fig"
 ML_FIG_DIR = FIGURE_DIR / "ml"
 PCA_FIG_DIR = FIGURE_DIR / "pca"
 EDA_FIG_DIR = FIGURE_DIR / "eda"
+BOT_FIGURE_DIR = FIGURE_DIR / "bot"
 
 # Data file paths
 WEATHER_DATA_PATH = DATA_DIR / "merged_weather_data.csv"
