@@ -39,13 +39,10 @@ This project is a comprehensive weather data analysis system that combines a [St
    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-3. **Create a virtual environment:**
+3. **Create and activate virtual environment:**
    ```bash
    uv venv --python 3.12.1
-   ```
 
-4. **Activate the virtual environment:**
-   ```bash
    # macOS/Linux
    source .venv/bin/activate
 
@@ -53,17 +50,40 @@ This project is a comprehensive weather data analysis system that combines a [St
    .venv\Scripts\activate
    ```
 
-5. **Install the required packages:**
+4. **Install the required packages:**
    ```bash
    uv pip install -r requirements.txt
    ```
 
-6. **Create a `.streamlit/secrets.toml` file:**
+## Development Setup
+
+1. **Install pre-commit:**
+   ```bash
+   uv pip install pre-commit
+   ```
+   Pre-commit helps maintain code quality by running automated checks before commits are made.
+
+2. **Install git hooks:**
+   ```bash
+   pre-commit install --hook-type commit-msg --hook-type pre-commit --hook-type pre-push
+
+   # it should output something like below:
+   # pre-commit installed at .git/hooks/commit-msg
+   # pre-commit installed at .git/hooks/pre-commit
+   # pre-commit installed at .git/hooks/pre-push
+   ```
+
+   These hooks perform different checks at various stages:
+   - `commit-msg`: Ensures commit messages follow the conventional format
+   - `pre-commit`: Runs Ruff linting and formatting checks before each commit
+   - `pre-push`: Performs final validation before pushing to remote
+
+3. **Create a `.streamlit/secrets.toml` file:**
    ```bash
    touch .streamlit/secrets.toml
    ```
 
-7. **Add MongoDB URI to `secrets.toml`:**
+4. **Add MongoDB URI to `secrets.toml`:**
    ```toml
    [mongo]
    uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
@@ -73,6 +93,13 @@ This project is a comprehensive weather data analysis system that combines a [St
 ```bash
 streamlit run src/app.py
 ```
+
+### Features
+- Real-time weather data visualization
+- Interactive wind pattern analysis
+- Historical data comparison
+- Customizable data filters
+- Export capabilities for further analysis
 
 
 <div align="center">
