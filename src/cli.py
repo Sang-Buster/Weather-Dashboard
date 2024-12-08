@@ -51,7 +51,7 @@ def main():
     # 2. Delete command
     delete_parser = subparsers.add_parser(
         "delete",
-        help="Delete all weather data",
+        help="Delete all weather data from MongoDB",
         description="Remove all weather data records from the MongoDB collection.",
     )
     delete_parser.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
