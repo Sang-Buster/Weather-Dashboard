@@ -39,10 +39,13 @@ This project is a comprehensive weather data analysis system that combines a [St
    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
 
-3. **Create and activate virtual environment:**
+3. **Create a virtual environment at `/weather-dashboard/.venv/`:**
    ```bash
    uv venv --python 3.12.1
+   ```
 
+4. **Activate the virtual environment:**
+   ```bash
    # macOS/Linux
    source .venv/bin/activate
 
@@ -50,7 +53,7 @@ This project is a comprehensive weather data analysis system that combines a [St
    .venv\Scripts\activate
    ```
 
-4. **Install the required packages:**
+5. **Install the required packages:**
    ```bash
    uv pip install -r requirements.txt
    ```
@@ -93,13 +96,6 @@ This project is a comprehensive weather data analysis system that combines a [St
 ```bash
 streamlit run src/app.py
 ```
-
-### Features
-- Real-time weather data visualization
-- Interactive wind pattern analysis
-- Historical data comparison
-- Customizable data filters
-- Export capabilities for further analysis
 
 
 <div align="center">
