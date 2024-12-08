@@ -13,6 +13,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from cli import main as cli_main  # noqa: E402
+from cli_components.plot import create_weather_plot  # noqa: E402
 
 # Set up the bot with required intents
 intents = discord.Intents.default()
@@ -107,6 +108,7 @@ async def help_command(ctx, command_name=None):
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `who` - Show information about the bot
@@ -119,6 +121,7 @@ async def help_command(ctx, command_name=None):
 `@meteorix upload 2024_03_20 2024_03_25` - Upload date range
 `@meteorix head` - Show earliest logged timestamp
 `@meteorix head 2024_03_20` - Show first 5 rows of specific date
+`@meteorix plot 2024_03_20` - Generate plot for single date
 `@meteorix who` - Show bot information"""
             await ctx.send(help_text)
             return
@@ -134,6 +137,7 @@ async def help_command(ctx, command_name=None):
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `who` - Show information about the bot
@@ -170,6 +174,7 @@ Try `@meteorix help` for more information."""
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `who` - Show information about the bot
@@ -182,8 +187,8 @@ Try `@meteorix help` for more information."""
 `@meteorix upload 2024_03_20 2024_03_25` - Upload date range
 `@meteorix head` - Show earliest logged timestamp
 `@meteorix head 2024_03_20` - Show first 5 rows of specific date
-`@meteorix who` - Show bot information
-"""
+`@meteorix plot 2024_03_20` - Generate plot for single date
+`@meteorix who` - Show bot information"""
         await ctx.send(help_text)
 
 
@@ -260,6 +265,29 @@ async def ml(ctx):
 @check_channel()
 async def who(ctx):
     await run_cli_command(ctx, ["who"])
+
+
+@bot.command(name="plot")
+@check_channel()
+async def plot(ctx, start_date, end_date=None):
+    try:
+        # Generate plots in memory only (bypass CLI completely)
+        filenames, plot_buffers, _ = create_weather_plot(
+            start_date, end_date, save_locally=False
+        )
+
+        files = [
+            discord.File(fp=buffer, filename=fname)
+            for fname, buffer in zip(filenames, plot_buffers)
+        ]
+
+        await ctx.send(
+            f"📊 Weather plots for {start_date}"
+            + (f" to {end_date}" if end_date else ""),
+            files=files,
+        )
+    except Exception as e:
+        await ctx.send(f"Error creating plots: {str(e)}")
 
 
 # Slash commands
@@ -358,6 +386,21 @@ async def spit_slash(
         await run_cli_command_slash(interaction, ["spit", start_date])
 
 
+@bot.tree.command(name="plot", description="Create weather data plots")
+@app_commands.describe(
+    start_date="Start date in YYYY_MM_DD format",
+    end_date="End date in YYYY_MM_DD format (optional)",
+)
+@app_commands.check(check_channel_slash)
+async def plot_slash(
+    interaction: discord.Interaction, start_date: str, end_date: str = None
+):
+    if end_date:
+        await run_cli_command_slash(interaction, ["plot", start_date, end_date])
+    else:
+        await run_cli_command_slash(interaction, ["plot", start_date])
+
+
 VALID_COMMANDS = [
     "info",
     "upload",
@@ -370,6 +413,7 @@ VALID_COMMANDS = [
     "head",
     "tail",
     "spit",
+    "plot",
 ]
 
 
@@ -386,6 +430,7 @@ def get_command_description(cmd):
         "head": "Show first 5 rows of data",
         "tail": "Show last 5 rows of data",
         "spit": "Get raw CSV data for specified dates",
+        "plot": "Create weather data plots",
     }
     return descriptions.get(cmd, "")
 
@@ -414,6 +459,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `who` - Show information about the bot
@@ -439,6 +485,7 @@ Try `/help` for more information."""
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `who` - Show information about the bot
@@ -451,6 +498,7 @@ Try `/help` for more information."""
 `/upload 2024_03_20 2024_03_25` - Upload date range
 `/head` - Show earliest logged timestamp
 `/head 2024_03_20` - Show first 5 rows of specific date
+`/plot 2024_03_20` - Generate plot for single date
 `/who` - Show bot information"""
             await interaction.followup.send(help_text)
             return
@@ -480,6 +528,7 @@ Try `/help` for more information."""
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
 • `who` - Show information about the bot
@@ -492,6 +541,7 @@ Try `/help` for more information."""
 `/upload 2024_03_20 2024_03_25` - Upload date range
 `/head` - Show earliest logged timestamp
 `/head 2024_03_20` - Show first 5 rows of specific date
+`/plot 2024_03_20` - Generate plot for single date
 `/who` - Show bot information
 """
         await interaction.followup.send(help_text)
@@ -499,29 +549,45 @@ Try `/help` for more information."""
 
 # Helper functions
 async def run_cli_command(ctx, args):
-    f = io.StringIO()
     try:
+        # For plot command, bypass cli_main entirely and use create_weather_plot directly
+        if args[0] == "plot":
+            # Generate plots in memory
+            filenames, plot_buffers, _ = create_weather_plot(
+                args[1], args[2] if len(args) > 2 else None
+            )
+
+            # Create discord.File objects directly from memory buffers
+            files = [
+                discord.File(fp=buffer, filename=fname)
+                for fname, buffer in zip(filenames, plot_buffers)
+            ]
+
+            await ctx.send(
+                f"📊 Weather plots for {args[1]}"
+                + (f" to {args[2]}" if len(args) > 2 else ""),
+                files=files,
+            )
+            return  # Ensure the function exits here to prevent further processing
+
+        # For other commands, use the normal CLI output handling
+        f = io.StringIO()
         with redirect_stdout(f):
             sys.argv = ["meteorix"] + args
             cli_main()
 
+        # Rest of the command handling...
         output = f.getvalue()
-
         if not output.strip():
             output = "Command completed successfully with no output."
 
-        # For spit command, always send as file
         if args[0] == "spit":
             temp_file = io.StringIO(output)
             file = discord.File(
                 fp=temp_file,
                 filename=f"output_spit_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
             )
-            await ctx.send(
-                "Here's the CSV data:",
-                file=file,
-            )
-        # For very long outputs (except head/tail), send as file
+            await ctx.send("Here's the CSV data:", file=file)
         elif len(output) > 1900 and args[0] not in ["head", "tail"]:
             temp_file = io.StringIO(output)
             file = discord.File(
@@ -533,7 +599,6 @@ async def run_cli_command(ctx, args):
                 file=file,
             )
         else:
-            # Use fixed-width formatting for all outputs
             formatted_output = f"```\n{output}\n```"
             await ctx.send(formatted_output)
 
@@ -548,15 +613,34 @@ async def run_cli_command_slash(interaction: discord.Interaction, args):
     try:
         with redirect_stdout(f):
             sys.argv = ["meteorix"] + args
-            cli_main()
+            if args[0] == "plot":
+                # For plot command, only get the plots without running CLI output
+                filenames, plot_buffers, _ = create_weather_plot(
+                    args[1], args[2] if len(args) > 2 else None
+                )
+            else:
+                cli_main()
 
         output = f.getvalue()
 
         if not output.strip():
             output = "Command completed successfully with no output."
 
+        # For plot command, send all generated images
+        if args[0] == "plot":
+            # Create discord.File objects for each plot
+            files = [
+                discord.File(fp=buffer, filename=fname)
+                for fname, buffer in zip(filenames, plot_buffers)
+            ]
+
+            await interaction.followup.send(
+                f"📊 Weather plots for {args[1]}"
+                + (f" to {args[2]}" if len(args) > 2 else ""),
+                files=files,
+            )
         # For spit command, always send as file
-        if args[0] == "spit":
+        elif args[0] == "spit":
             temp_file = io.StringIO(output)
             file = discord.File(
                 fp=temp_file,
@@ -675,7 +759,7 @@ async def on_message(message):
             f"<@&{bot_role_id}>" if bot_role_id else None,
             "@meteorix",
         ]:
-            greeting = """👋 Hi there! I'm Meteorix, your weather data assistant.Try `@meteorix help` to see what I can do!"""
+            greeting = """ Hi there! I'm Meteorix, your weather data assistant. Try `@meteorix help` to see what I can do!"""
             await message.channel.send(greeting)
             return
 
