@@ -12,6 +12,7 @@ from cli_components import (
     connect_to_mongodb,
     spit_csv_data,
     create_weather_plot,
+    toggle_monitor,
 )
 
 import sys
@@ -112,6 +113,27 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             "description": "Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
             "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
         },
+        "plot": {
+            "help": "Create weather data plots",
+            "description": "Generate plots of weather data for a specific date or date range.",
+            "args": [
+                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
+                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
+            ],
+        },
+        "monitor": {
+            "help": "Enable/disable/check data collection monitoring",
+            "description": "Monitor data collection status and send alerts if data is stale",
+            "args": [
+                (
+                    "action",
+                    {
+                        "choices": ["enable", "disable", "status"],
+                        "help": "Enable, disable, or check monitoring status",
+                    },
+                ),
+            ],
+        },
         "ml": {
             "help": "Run machine learning analysis",
             "description": "Execute machine learning models for weather prediction and upload results to MongoDB.",
@@ -121,14 +143,6 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             "help": "Show information about the bot",
             "description": "Display detailed information about the Meteorix bot and its creators.",
             "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
-        },
-        "plot": {
-            "help": "Create weather data plots",
-            "description": "Generate plots of weather data for a specific date or date range.",
-            "args": [
-                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
-                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
-            ],
         },
     }
 
@@ -157,6 +171,7 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
         ),
         "head": lambda: show_head(args.date if hasattr(args, "date") else None),
         "tail": lambda: show_tail(args.date if hasattr(args, "date") else None),
+        "monitor": lambda: toggle_monitor(args.action),
     }
 
     # Date-based command handlers

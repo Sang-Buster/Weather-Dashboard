@@ -39,9 +39,22 @@ def pca_biplot_components():
         # Get PC scores from the data
         df = st.session_state.filtered_df
 
+        # Handle missing values
+        df_clean = df[features].copy()
+
+        # Option 1: Drop rows with any missing values
+        df_clean = df_clean.dropna()
+
+        # Option 2: Or impute missing values with mean (uncomment if you prefer this approach)
+        # df_clean = df_clean.fillna(df_clean.mean())
+
+        if len(df_clean) == 0:
+            st.error("No valid data points after removing missing values.")
+            return
+
         # Standardize the features
         scaler = StandardScaler()
-        scaled_features = scaler.fit_transform(df[features])
+        scaled_features = scaler.fit_transform(df_clean)
 
         # Perform PCA to get scores
         pca = PCA()
@@ -92,43 +105,18 @@ def pca_biplot_components():
                 )
             )
 
-        # Add legend for PC colors
-        for i, (pc, color) in enumerate(
-            [("PC1", colors[0]), ("PC2", colors[1]), ("PC3", colors[2])]
-        ):
-            fig.add_trace(
-                go.Scatter3d(
-                    x=[None],
-                    y=[None],
-                    z=[None],
-                    mode="markers",
-                    marker=dict(size=10, color=color),
-                    name=f"Dominant {pc}",
-                    showlegend=True,
-                )
-            )
-
         # Update layout
         fig.update_layout(
-            title={
-                "text": "3D PCA Biplot",
-                "x": 0.5,
-                "xanchor": "center",
-            },
             scene=dict(
-                xaxis_title=f"PC1 ({explained_variance_3d[0]:.1%} explained var)",
-                yaxis_title=f"PC2 ({explained_variance_3d[1]:.1%} explained var)",
-                zaxis_title=f"PC3 ({explained_variance_3d[2]:.1%} explained var)",
-                aspectmode="cube",
+                xaxis_title=f"PC1 ({explained_variance_3d[0]:.1f}%)",
+                yaxis_title=f"PC2 ({explained_variance_3d[1]:.1f}%)",
+                zaxis_title=f"PC3 ({explained_variance_3d[2]:.1f}%)",
             ),
-            width=600,
-            height=620,
-            showlegend=True,
+            margin=dict(l=0, r=0, b=0, t=0),
         )
 
+        # Display the plot
         st.plotly_chart(fig, use_container_width=True)
 
-    except FileNotFoundError:
-        st.error("PCA data file not found. Please run the data analysis first.")
     except Exception as e:
         st.error(f"Error loading PCA biplot: {str(e)}")

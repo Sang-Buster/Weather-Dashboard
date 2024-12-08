@@ -7,6 +7,7 @@ import streamlit as st
 import discord
 from discord import app_commands
 from discord.ext import commands
+import asyncio
 
 # Add the project root to Python path
 project_root = Path(__file__).parent.parent
@@ -14,6 +15,11 @@ sys.path.insert(0, str(project_root))
 
 from cli import main as cli_main  # noqa: E402
 from cli_components.plot import create_weather_plot  # noqa: E402
+from cli_components.monitor import (  # noqa: E402
+    toggle_monitor,
+    check_data_freshness,
+    get_monitor_config,
+)
 
 # Set up the bot with required intents
 intents = discord.Intents.default()
@@ -87,6 +93,16 @@ async def on_ready():
         else:
             print(f"Warning: Could not find channel with ID {channel_id}")
 
+    # Sync slash commands
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s)")
+    except Exception as e:
+        print(f"Failed to sync commands: {e}")
+
+    # Start the monitoring task
+    bot.loop.create_task(check_data_collection())
+
 
 # Message-based commands
 @bot.command(name="help")
@@ -114,6 +130,7 @@ async def help_command(ctx, command_name=None):
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
+• `monitor` - Monitor data collection status
 
 **Examples:**
 `@meteorix help upload` - Show upload command help
@@ -122,7 +139,10 @@ async def help_command(ctx, command_name=None):
 `@meteorix head` - Show earliest logged timestamp
 `@meteorix head 2024_03_20` - Show first 5 rows of specific date
 `@meteorix plot 2024_03_20` - Generate plot for single date
-`@meteorix who` - Show bot information"""
+`@meteorix who` - Show bot information
+`@meteorix monitor enable` - Enable data collection monitoring
+`@meteorix monitor disable` - Disable data collection monitoring
+`@meteorix monitor status` - Check current monitoring status"""
             await ctx.send(help_text)
             return
 
@@ -137,9 +157,10 @@ async def help_command(ctx, command_name=None):
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
-• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
+• `monitor` - Monitor data collection status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -174,9 +195,10 @@ Try `@meteorix help` for more information."""
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
-• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
+• `monitor` - Monitor data collection status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -188,7 +210,10 @@ Try `@meteorix help` for more information."""
 `@meteorix head` - Show earliest logged timestamp
 `@meteorix head 2024_03_20` - Show first 5 rows of specific date
 `@meteorix plot 2024_03_20` - Generate plot for single date
-`@meteorix who` - Show bot information"""
+`@meteorix who` - Show bot information
+`@meteorix monitor enable` - Enable data collection monitoring
+`@meteorix monitor disable` - Disable data collection monitoring
+`@meteorix monitor status` - Check current monitoring status"""
         await ctx.send(help_text)
 
 
@@ -288,6 +313,29 @@ async def plot(ctx, start_date, end_date=None):
         )
     except Exception as e:
         await ctx.send(f"Error creating plots: {str(e)}")
+
+
+@bot.command(name="monitor")
+@check_channel()
+async def monitor_command(ctx, action=None):
+    """Monitor data collection status"""
+    if not action:
+        await ctx.send("❌ Please specify an action: `enable`, `disable`, or `status`")
+        return
+
+    if action.lower() not in ["enable", "disable", "status"]:
+        await ctx.send("❌ Invalid action. Use `enable`, `disable`, or `status`")
+        return
+
+    # Capture the output from toggle_monitor
+    f = io.StringIO()
+    with redirect_stdout(f):
+        toggle_monitor(action.lower())
+
+    # Send the formatted output
+    output = f.getvalue()
+    if output:
+        await ctx.send(f"```\n{output}\n```")
 
 
 # Slash commands
@@ -401,6 +449,27 @@ async def plot_slash(
         await run_cli_command_slash(interaction, ["plot", start_date])
 
 
+@bot.tree.command(name="monitor", description="Monitor data collection status")
+@app_commands.describe(action="Enable, disable, or check monitoring status")
+@app_commands.choices(
+    action=[
+        app_commands.Choice(name="enable", value="enable"),
+        app_commands.Choice(name="disable", value="disable"),
+        app_commands.Choice(name="status", value="status"),
+    ]
+)
+@app_commands.check(check_channel_slash)
+async def monitor_slash(interaction: discord.Interaction, action: str):
+    # Capture the output from toggle_monitor
+    f = io.StringIO()
+    with redirect_stdout(f):
+        toggle_monitor(action)
+
+    # Send the formatted output
+    output = f.getvalue()
+    await interaction.response.send_message(f"```\n{output}\n```")
+
+
 VALID_COMMANDS = [
     "info",
     "upload",
@@ -414,6 +483,7 @@ VALID_COMMANDS = [
     "tail",
     "spit",
     "plot",
+    "monitor",
 ]
 
 
@@ -431,6 +501,7 @@ def get_command_description(cmd):
         "tail": "Show last 5 rows of data",
         "spit": "Get raw CSV data for specified dates",
         "plot": "Create weather data plots",
+        "monitor": "Monitor data collection status",
     }
     return descriptions.get(cmd, "")
 
@@ -459,9 +530,10 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
-• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
+• `monitor` - Monitor data collection status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -485,9 +557,10 @@ Try `/help` for more information."""
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
-• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
+• `monitor` - Monitor data collection status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -499,7 +572,10 @@ Try `/help` for more information."""
 `/head` - Show earliest logged timestamp
 `/head 2024_03_20` - Show first 5 rows of specific date
 `/plot 2024_03_20` - Generate plot for single date
-`/who` - Show bot information"""
+`/who` - Show bot information
+`/monitor enable` - Enable data collection monitoring
+`/monitor disable` - Disable data collection monitoring
+`/monitor status` - Check current monitoring status"""
             await interaction.followup.send(help_text)
             return
 
@@ -528,9 +604,10 @@ Try `/help` for more information."""
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
 • `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
-• `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
+• `monitor` - Monitor data collection status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -543,6 +620,9 @@ Try `/help` for more information."""
 `/head 2024_03_20` - Show first 5 rows of specific date
 `/plot 2024_03_20` - Generate plot for single date
 `/who` - Show bot information
+`/monitor enable` - Enable data collection monitoring
+`/monitor disable` - Disable data collection monitoring
+`/monitor status` - Check current monitoring status
 """
         await interaction.followup.send(help_text)
 
@@ -713,6 +793,8 @@ async def on_command_error(ctx, error):
 • `spit <start_date> [end_date]` - Get raw CSV data for specified dates
 • `eda` - Run exploratory data analysis
 • `ml` - Run machine learning analysis
+• `plot <start_date> [end_date]` - Generate weather plots for specified dates
+• `monitor` - Monitor data collection status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -809,6 +891,54 @@ bot._old_on_message_edit = on_message_edit
 def run_bot():
     token = st.secrets["bot_token"]["token"]
     bot.run(token)
+
+
+# Add monitoring task
+async def check_data_collection():
+    """Background task to monitor data collection"""
+    await bot.wait_until_ready()
+
+    last_alert_time = {}  # Store last alert time per channel
+    alert_cooldown = 1800  # 30 minutes in seconds
+
+    while not bot.is_closed():
+        try:
+            config = get_monitor_config()
+
+            if config["enabled"]:
+                fresh, latest_time = check_data_freshness()
+
+                if not fresh:
+                    current_time = datetime.now()
+
+                    for channel_id in ALLOWED_CHANNEL_IDS:
+                        # Check if enough time has passed since last alert
+                        if (
+                            channel_id not in last_alert_time
+                            or (
+                                current_time - last_alert_time[channel_id]
+                            ).total_seconds()
+                            >= alert_cooldown
+                        ):
+                            channel = bot.get_channel(channel_id)
+                            if channel:
+                                time_str = (
+                                    latest_time.strftime("%Y-%m-%d %H:%M:%S")
+                                    if latest_time
+                                    else "N/A"
+                                )
+                                await channel.send(
+                                    f"⚠️ **Alert**: No new data collected in the last {config['alert_threshold_minutes']} minutes!\n"
+                                    f"Latest data point: {time_str}"
+                                )
+                                last_alert_time[channel_id] = current_time
+
+            # Use the configured check interval
+            await asyncio.sleep(config["check_interval_minutes"] * 60)
+
+        except Exception as e:
+            print(f"Error in monitoring task: {str(e)}")
+            await asyncio.sleep(60)  # Wait a minute before retrying if there's an error
 
 
 if __name__ == "__main__":

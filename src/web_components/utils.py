@@ -81,7 +81,7 @@ def get_date_range():
 
 @st.cache_data(ttl=3600)
 def load_data():
-    """Load weather data using chunked aggregation for large datasets"""
+    """Load weather data using chunked queries for large datasets"""
     try:
         if "date_range" not in st.session_state:
             date_range = get_date_range()
@@ -96,88 +96,78 @@ def load_data():
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        # Get total count first
-        count_pipeline = [
+        # Get total count
+        total_count = collection.count_documents(
             {
-                "$match": {
-                    "tNow": {
-                        "$gte": st.session_state.date_range["min_date"],
-                        "$lte": st.session_state.date_range["max_date"],
-                    }
+                "tNow": {
+                    "$gte": st.session_state.date_range["min_date"],
+                    "$lte": st.session_state.date_range["max_date"],
                 }
-            },
-            {"$count": "total"},
-        ]
-        total_count = list(collection.aggregate(count_pipeline))[0]["total"]
+            }
+        )
 
-        # Initialize empty DataFrame
+        if total_count == 0:
+            st.error("No data found for the specified date range")
+            return pd.DataFrame()
+
+        # Initialize empty list for chunks
         chunks = []
-        chunk_size = 50000  # Process 50k documents at a time
+        chunk_size = 10000
         processed = 0
 
-        # Chunked aggregation pipeline
-        while processed < total_count:
-            pipeline = [
-                # Use index for date range
-                {
-                    "$match": {
-                        "tNow": {
-                            "$gte": st.session_state.date_range["min_date"],
-                            "$lte": st.session_state.date_range["max_date"],
-                        }
-                    }
-                },
-                # Project all fields
-                {
-                    "$project": {
-                        "_id": 0,
-                        "tNow": 1,
-                        "Temp_C": 1,
-                        "Press_Pa": 1,
-                        "Hum_RH": 1,
-                        "2dSpeed_m_s": 1,
-                        "3DSpeed_m_s": 1,
-                        "u_m_s": 1,
-                        "v_m_s": 1,
-                        "w_m_s": 1,
-                        "Azimuth_deg": 1,
-                        "Elev_deg": 1,
-                        "SonicTemp_C": 1,
-                    }
-                },
-                # Sort by date
-                {"$sort": {"tNow": 1}},
-                # Skip processed documents
-                {"$skip": processed},
-                # Limit chunk size
-                {"$limit": chunk_size},
-            ]
+        # Simple find operation with projection
+        cursor = collection.find(
+            {
+                "tNow": {
+                    "$gte": st.session_state.date_range["min_date"],
+                    "$lte": st.session_state.date_range["max_date"],
+                }
+            },
+            {
+                "_id": 0,
+                "tNow": 1,
+                "Temp_C": 1,
+                "Press_Pa": 1,
+                "Hum_RH": 1,
+                "2dSpeed_m_s": 1,
+                "3DSpeed_m_s": 1,
+                "u_m_s": 1,
+                "v_m_s": 1,
+                "w_m_s": 1,
+                "Azimuth_deg": 1,
+                "Elev_deg": 1,
+                "SonicTemp_C": 1,
+            },
+        ).batch_size(chunk_size)
 
-            # Process chunk
-            cursor = collection.aggregate(
-                pipeline,
-                allowDiskUse=True,
-                batchSize=10000,
-            )
+        # Process in chunks
+        current_chunk = []
+        for doc in cursor:
+            current_chunk.append(doc)
+            processed += 1
 
-            # Convert chunk to DataFrame
-            chunk_df = pd.DataFrame(list(cursor))
-            if not chunk_df.empty:
-                chunks.append(chunk_df)
+            if len(current_chunk) >= chunk_size:
+                chunks.append(pd.DataFrame(current_chunk))
+                current_chunk = []
 
-            # Update progress
-            processed += len(chunk_df)
-            progress = min(processed / total_count, 1.0)
-            progress_bar.progress(progress)
-            status_text.text(f"Loaded {processed:,} of {total_count:,} records...")
+                # Update progress
+                progress = min(processed / total_count, 1.0)
+                progress_bar.progress(progress)
+                status_text.text(f"Loaded {processed:,} of {total_count:,} records...")
+
+        # Add remaining documents
+        if current_chunk:
+            chunks.append(pd.DataFrame(current_chunk))
 
         # Combine all chunks
         if chunks:
             df = pd.concat(chunks, ignore_index=True)
 
-            # Optimize datetime operations
+            # Convert and sort by timestamp
             df["tNow"] = pd.to_datetime(df["tNow"], utc=True)
-            # Vectorized operations
+            df.sort_values("tNow", inplace=True)
+
+            # Add derived columns
             df["hour"] = df["tNow"].dt.hour
             df["day"] = df["tNow"].dt.day
 
