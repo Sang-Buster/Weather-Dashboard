@@ -11,6 +11,7 @@ from .ml import (
     pr_curve_plot_component,
     predicted_plot_components,
 )
+from .wind_3d import wind_3d_component
 
 __all__ = [
     "wind_rose_component",
@@ -24,4 +25,5 @@ __all__ = [
     "roc_curve_plot_component",
     "pr_curve_plot_component",
     "predicted_plot_components",
+    "wind_3d_component",
 ]

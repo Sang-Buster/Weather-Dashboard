@@ -3,13 +3,14 @@ from web_components import (
     wind_time_series_component,
     environmental_time_series_component,
     time_selection_component,
-    correlation_plot_component,
+    # correlation_plot_component,
     scatter_plot_component,
     pca_explained_variance_component,
     pca_biplot_components,
     roc_curve_plot_component,
     pr_curve_plot_component,
     predicted_plot_components,
+    wind_3d_component,
 )
 
 import sys
@@ -75,7 +76,8 @@ def main():
     # Correlation Plot + Scatter Plot
     col3, col4 = st.columns(2)
     with col3:
-        correlation_plot_component()
+        # correlation_plot_component()
+        wind_3d_component()
     with col4:
         scatter_plot_component()
 
