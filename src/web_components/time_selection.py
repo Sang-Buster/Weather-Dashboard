@@ -26,7 +26,7 @@ def time_selection_component():
     # Set default date range to last 24 hours
     default_end_date = max_date
     default_start_date = (
-        st.session_state.date_range["max_date"] - timedelta(hours=24)
+        st.session_state.date_range["max_date"] - timedelta(hours=72)
     ).date()
 
     # Date range picker with try-except block

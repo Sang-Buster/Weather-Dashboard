@@ -42,10 +42,22 @@ def main():
     commands = {
         "upload": {
             "help": "Upload weather data to MongoDB",
-            "description": "Upload weather station data from CSV files to MongoDB.",
+            "description": "Upload weather station data from CSV files to MongoDB. If no dates specified, uploads the last 3 days.",
             "args": [
-                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
-                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
+                (
+                    "start_date",
+                    {
+                        "nargs": "?",
+                        "help": "Start date (YYYY_MM_DD, optional). If only start_date is provided, it will upload just that single day",
+                    },
+                ),
+                (
+                    "end_date",
+                    {
+                        "nargs": "?",
+                        "help": "End date (YYYY_MM_DD, optional). Required only if uploading a date range",
+                    },
+                ),
             ],
         },
         "delete": {
@@ -197,14 +209,27 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
 def handle_date_command(args, handler):
     """Handle commands that require date processing."""
     try:
-        start = datetime.strptime(args.start_date, "%Y_%m_%d")
-        end = datetime.strptime(args.end_date, "%Y_%m_%d") if args.end_date else start
-
-        if start > end:
-            rprint("[red]Error: Start date must be before or equal to end date.[/red]")
+        # If no dates provided, just call the handler
+        if not args.start_date:
+            handler(None, None)
             return
 
-        handler(args.start_date, args.end_date)
+        # Parse start date if provided
+        start = datetime.strptime(args.start_date, "%Y_%m_%d")
+
+        # Parse end date if provided, otherwise use start date
+        if args.end_date:
+            end = datetime.strptime(args.end_date, "%Y_%m_%d")
+            if start > end:
+                rprint(
+                    "[red]Error: Start date must be before or equal to end date.[/red]"
+                )
+                return
+            handler(args.start_date, args.end_date)
+        else:
+            # Only start date provided
+            handler(args.start_date, None)
+
     except ValueError:
         rprint("[red]Invalid date format. Use YYYY_MM_DD.[/red]")
 

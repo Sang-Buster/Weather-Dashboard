@@ -2,6 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+import plotly.express as px
 
 
 def create_wind_rose(df):
@@ -32,9 +33,13 @@ def create_wind_rose(df):
         "NNW",
     ]
 
-    # Define speed bins in mph
-    speed_bins = [0, 4.5, 9, 13.5, 18, 22.5, np.inf]
-    speed_labels = ["0-4.5", "4.5-9", "9-13.5", "13.5-18", "18-22.5", "22.5+"]
+    # Dynamically create speed bins based on data
+    max_speed = df["2dSpeed_mph"].max()
+    num_bins = 6  # You can adjust this number
+    speed_bins = np.linspace(0, max_speed, num_bins + 1)
+    speed_labels = [
+        f"{speed_bins[i]:.1f}-{speed_bins[i+1]:.1f}" for i in range(len(speed_bins) - 1)
+    ]
 
     # Categorize data
     df.loc[:, "dir_cat"] = pd.cut(
@@ -62,21 +67,15 @@ def create_wind_rose(df):
     # Create wind rose
     fig = go.Figure()
 
-    colors = [
-        "#440154",
-        "#404387",
-        "#29788E",
-        "#22A784",
-        "#79D151",
-        "#FDE724",
-    ]  # Viridis-like color sequence
+    # RdYlBu (Blue through yellow to red, very distinct)
+    colors = px.colors.diverging.RdYlBu[::-1][: len(speed_labels)]
 
     for i, speed_cat in enumerate(speed_labels):
         fig.add_trace(
             go.Barpolar(
                 r=wind_percentages[speed_cat],
                 theta=dir_labels,
-                name=speed_cat,
+                name=f"{speed_cat} mph",
                 marker_color=colors[i],
                 marker_line_width=1,
                 opacity=0.8,
@@ -124,8 +123,11 @@ def create_wind_rose(df):
 
 
 def create_wind_rose_over_time(df):
+    # Make an explicit copy at the start
+    df = df.copy()
+
     # Convert wind speed from m/s to mph
-    df["2dSpeed_mph"] = df["2dSpeed_m_s"] * 2.23694  # 1 m/s = 2.23694 mph
+    df["2dSpeed_mph"] = df["2dSpeed_m_s"] * 2.23694
 
     # Define direction bins
     dir_bins = np.arange(0, 361, 22.5)
@@ -148,19 +150,23 @@ def create_wind_rose_over_time(df):
         "NNW",
     ]
 
-    # Define speed bins in mph
-    speed_bins = [0, 4.5, 9, 13.5, 18, 22.5, np.inf]
-    speed_labels = ["0-4.5", "4.5-9", "9-13.5", "13.5-18", "18-22.5", "22.5+"]
+    # Dynamically create speed bins based on data
+    max_speed = df["2dSpeed_mph"].max()
+    num_bins = 6  # You can adjust this number
+    speed_bins = np.linspace(0, max_speed, num_bins + 1)
+    speed_labels = [
+        f"{speed_bins[i]:.1f}-{speed_bins[i+1]:.1f}" for i in range(len(speed_bins) - 1)
+    ]
 
     # Categorize data
-    df["dir_cat"] = pd.cut(
+    df.loc[:, "dir_cat"] = pd.cut(
         df["Azimuth_deg"],
         bins=dir_bins,
         labels=dir_labels,
         include_lowest=True,
         ordered=False,
     )
-    df["speed_cat"] = pd.cut(
+    df.loc[:, "speed_cat"] = pd.cut(
         df["2dSpeed_mph"],
         bins=speed_bins,
         labels=speed_labels,
@@ -178,21 +184,15 @@ def create_wind_rose_over_time(df):
     # Create wind rose
     fig = go.Figure()
 
-    colors = [
-        "#440154",
-        "#404387",
-        "#29788E",
-        "#22A784",
-        "#79D151",
-        "#FDE724",
-    ]  # Viridis-like color sequence
+    # RdYlBu (Blue through yellow to red, very distinct)
+    colors = px.colors.diverging.RdYlBu[::-1][: len(speed_labels)]
 
     for i, speed_cat in enumerate(speed_labels):
         fig.add_trace(
             go.Barpolar(
                 r=wind_percentages[speed_cat],
                 theta=dir_labels,
-                name=speed_cat,
+                name=f"{speed_cat} mph",
                 marker_color=colors[i],
                 marker_line_width=1,
                 opacity=0.8,
@@ -239,6 +239,7 @@ def create_wind_rose_over_time(df):
     return fig
 
 
+@st.fragment
 def wind_rose_component():
     # Check if filtered_df exists in session state
     if "filtered_df" not in st.session_state:
@@ -247,6 +248,18 @@ def wind_rose_component():
 
     # Make an explicit copy
     df = st.session_state.filtered_df.copy()
+
+    # Check if dataframe is empty
+    if df.empty:
+        st.warning("No data available for the selected date range.")
+        return
+
+    # Ensure minimum data points for meaningful visualization
+    if len(df) < 10:  # You can adjust this threshold
+        st.warning(
+            "Not enough data points for wind rose visualization. Need at least 10 measurements."
+        )
+        return
 
     # Ensure 'tNow' is a datetime column
     df.loc[:, "tNow"] = pd.to_datetime(df["tNow"])

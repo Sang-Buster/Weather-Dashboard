@@ -23,7 +23,6 @@ def init_connection():
     )
 
 
-@st.cache_data(ttl=3600)
 def get_analysis_data(collection_name, data_type):
     """Get analysis data from MongoDB collection by type."""
     try:
@@ -79,7 +78,6 @@ def get_date_range():
         return None
 
 
-@st.cache_data(ttl=3600)
 def load_data():
     """Load weather data using chunked queries for large datasets"""
     try:
