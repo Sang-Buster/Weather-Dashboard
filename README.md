@@ -113,7 +113,7 @@ streamlit run src/app.py
 
 <div align="center">
   <h2>CLI Operations</h2>
-  <img src="lib/fig/banner.png" alt="Banner" width="60%">
+  <img src="lib/fig/banner.gif" alt="Banner" width="60%">
 </div>
 
 ### Setup Instructions
