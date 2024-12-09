@@ -38,12 +38,59 @@ def categorize_wind_direction(degrees):
 def create_wind_rose(ax, wind_speed, wind_dir, title="Wind Rose"):
     """Create wind rose using matplotlib."""
     # Set up directional bins (every 45 degrees)
-    dir_bins = np.arange(-22.5, 360 - 22.5 + 45, 45)
-    dir_labels = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    dir_bins = np.arange(-11.25, 360 - 11.25 + 22.5, 22.5)
+    dir_labels = [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+    ]
+    # Set up more speed bins (in mph)
+    speed_bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, float("inf")]
+    speed_labels = [
+        "0-5",
+        "5-10",
+        "10-15",
+        "15-20",
+        "20-25",
+        "25-30",
+        "30-35",
+        "35-40",
+        "40-45",
+        "45-50",
+        "50-55",
+        "55-60",
+        "60+",
+    ]
 
-    # Set up speed bins (in mph)
-    speed_bins = [0, 5, 10, 15, 20, 25]
-    speed_labels = ["0-5", "5-10", "10-15", "15-20", "20-25"]
+    # Extended color palette with more distinct colors for higher speeds
+    colors = [
+        "#2ecc71",  # Light breeze (green)
+        "#3498db",  # Gentle breeze (blue)
+        "#f1c40f",  # Moderate breeze (yellow)
+        "#e67e22",  # Fresh breeze (orange)
+        "#e74c3c",  # Strong breeze (red)
+        "#9b59b6",  # Near gale (purple)
+        "#34495e",  # Gale (dark blue)
+        "#c0392b",  # Strong gale (dark red)
+        "#d35400",  # Storm (dark orange)
+        "#8e44ad",  # Violent storm (dark purple)
+        "#ff1493",  # Deep pink for 50-55
+        "#00ffff",  # Cyan for 55-60
+        "#ff0000",  # Bright red for 60+
+    ]
 
     # Convert angles to 0-360
     wind_dir = wind_dir % 360
@@ -53,48 +100,54 @@ def create_wind_rose(ax, wind_speed, wind_dir, title="Wind Rose"):
 
     # Count frequencies
     for i in range(len(speed_bins) - 1):
-        mask = (wind_speed >= speed_bins[i]) & (wind_speed < speed_bins[i + 1])
+        if i == len(speed_bins) - 2:  # Last bin (60+)
+            mask = wind_speed >= speed_bins[i]
+        else:
+            mask = (wind_speed >= speed_bins[i]) & (wind_speed < speed_bins[i + 1])
         dir_hist, _ = np.histogram(wind_dir[mask], bins=dir_bins)
         freq[i] = dir_hist
 
     # Convert to percentages
     freq = freq * 100.0 / len(wind_speed)
 
-    # Set up colors - using a more distinct color palette
-    colors = [
-        "#2ecc71",  # Light breeze (green)
-        "#3498db",  # Gentle breeze (blue)
-        "#f1c40f",  # Moderate breeze (yellow)
-        "#e67e22",  # Fresh breeze (orange)
-        "#e74c3c",  # Strong breeze (red)
-    ]
-
     # Plot each speed bin
-    width = np.pi / 4  # 45 degrees in radians
-    theta = np.radians(np.arange(0, 360, 45))
+    width = np.pi / 8
+    theta = np.radians(np.arange(0, 360, 22.5))
+
+    # Keep track of which speed bins have data
+    active_bins = []
+    active_colors = []
+    active_labels = []
 
     for i in range(len(speed_bins) - 1):
-        ax.bar(
-            theta,
-            freq[i],
-            width=width,
-            bottom=np.sum(freq[:i], axis=0),
-            color=colors[i],
-            label=f"{speed_labels[i]} mph",
-            edgecolor="white",
-            alpha=0.8,
-        )
+        if np.any(freq[i] > 0):  # Only plot and add to legend if bin has data
+            ax.bar(
+                theta,
+                freq[i],
+                width=width,
+                bottom=np.sum(freq[:i], axis=0),
+                color=colors[i],
+                label=f"{speed_labels[i]} mph",
+                edgecolor="white",
+                alpha=0.8,
+            )
+            active_bins.append(i)
+            active_colors.append(colors[i])
+            active_labels.append(f"{speed_labels[i]} mph")
 
     # Customize the plot
     ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)  # clockwise
-    ax.set_thetagrids(np.arange(0, 360, 45), dir_labels)
+    ax.set_thetagrids(np.arange(0, 360, 22.5), dir_labels)
     ax.set_title(title)
-    ax.legend(
-        title="Wind Speed (mph)",
-        bbox_to_anchor=(1.2, -0.1),  # Moved to bottom right
-        loc="lower right",
-    )  # Align to lower right
+
+    # Only show legend if there are active bins
+    if active_bins:
+        ax.legend(
+            title="Wind Speed (mph)",
+            bbox_to_anchor=(1.2, -0.1),  # Moved to bottom right
+            loc="lower right",
+        )
 
 
 def create_wind_plots(
@@ -154,8 +207,8 @@ def create_wind_plots(
     q = ax2.quiver(
         times,
         speeds,
-        np.sin(directions),  # X component
-        np.cos(directions),  # Y component
+        np.sin(directions + np.pi),  # X component
+        np.cos(directions + np.pi),  # Y component
         scale=50,  # Scale for arrow size
         width=0.002,  # Arrow width
         headwidth=3,  # Arrow head width

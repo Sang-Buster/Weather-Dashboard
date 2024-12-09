@@ -349,9 +349,7 @@ async def info_slash(interaction: discord.Interaction, month: str = None):
         await run_cli_command_slash(interaction, ["info"])
 
 
-@bot.tree.command(
-    name="upload", description="Upload weather data to MongoDB (format: YYYY_MM_DD)"
-)
+@bot.tree.command(name="upload", description="Upload weather data to MongoDB")
 @app_commands.describe(
     start_date="Start date in YYYY_MM_DD format",
     end_date="End date in YYYY_MM_DD format (optional)",
