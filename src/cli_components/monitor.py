@@ -22,12 +22,22 @@ def get_monitor_config() -> dict:
         "check_interval_minutes": 3,
     }
 
-    try:
-        if MONITOR_CONFIG_FILE.exists():
+    # Force update existing config with new defaults
+    if MONITOR_CONFIG_FILE.exists():
+        try:
             with open(MONITOR_CONFIG_FILE, "r") as f:
-                return {**default_config, **json.load(f)}
-        return default_config
-    except Exception:
+                current_config = json.load(f)
+            # Update with new defaults and save
+            updated_config = {**current_config, **default_config}
+            save_monitor_config(updated_config)
+            return updated_config
+        except Exception:
+            # If there's any error, save new defaults
+            save_monitor_config(default_config)
+            return default_config
+    else:
+        # If file doesn't exist, create with defaults
+        save_monitor_config(default_config)
         return default_config
 
 
@@ -55,8 +65,12 @@ def get_latest_data_time() -> Optional[datetime]:
         if df.empty:
             return None
 
-        # Get the last timestamp
-        last_timestamp = pd.to_datetime(df["tNow"].iloc[-1])
+        # Get the last timestamp from the 'tNow' column
+        # Read only the last row for efficiency
+        last_row = pd.read_csv(
+            latest_file, nrows=1, skiprows=lambda x: x > 0 and x < len(df)
+        )
+        last_timestamp = pd.to_datetime(last_row["tNow"].iloc[0])
         return last_timestamp.to_pydatetime()
 
     except Exception as e:
@@ -92,13 +106,11 @@ def show_monitor_status() -> None:
     status = (
         "[green]enabled[/green]" if config["enabled"] else "[yellow]disabled[/yellow]"
     )
-    data_status = "[green]fresh[/green]" if fresh else "[red]stale[/red]"
     time_str = latest_time.strftime("%Y-%m-%d %H:%M:%S") if latest_time else "N/A"
 
     rprint(f"Monitor state: {status}")
     rprint(f"Alert threshold: {config['alert_threshold_minutes']} minutes")
     rprint(f"Check interval: {config['check_interval_minutes']} minutes")
-    rprint(f"Current data status: {data_status}")
     rprint(f"Latest data point: {time_str}")
 
     if latest_time:
