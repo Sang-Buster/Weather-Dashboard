@@ -11,18 +11,18 @@ This project is a comprehensive weather data analysis system that combines a [St
 </div>
 
 <ol>
+  <li><a href="#setup-instructions">Setup Instructions</a></li>
+  <li><a href="#development-setup">Development Setup</a></li>
   <li><a href="#web-app-operations">Web App Operations</a></li>
   <li><a href="#cli-operations">CLI Operations</a></li>
   <li><a href="#discord-bot-operations">Discord Bot Operations</a></li>
   <li><a href="#project-structure">Project Structure</a></li>
 </ol>
 
-<div align="center">
-  <h2>Web App Operations</h2>
-  <img src="lib/fig/dashboard.png" alt="Dashboard" width="100%">
-</div>
 
-### Setup Instructions
+<div align="center">
+  <h2>Setup Instructions</h2>
+</div>
 
 1. **Clone the repository and navigate to project folder:**
    ```bash
@@ -34,7 +34,9 @@ This project is a comprehensive weather data analysis system that combines a [St
    ```bash
    # macOS/Linux
    curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
 
+   ```bash
    # Windows
    powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
    ```
@@ -48,7 +50,9 @@ This project is a comprehensive weather data analysis system that combines a [St
    ```bash
    # macOS/Linux
    source .venv/bin/activate
+   ```
 
+   ```bash
    # Windows
    .venv\Scripts\activate
    ```
@@ -58,7 +62,10 @@ This project is a comprehensive weather data analysis system that combines a [St
    uv pip install -r requirements.txt
    ```
 
-## Development Setup
+
+<div align="center">
+  <h2>Development Setup</h2>
+</div>
 
 1. **Install pre-commit:**
    ```bash
@@ -92,7 +99,13 @@ This project is a comprehensive weather data analysis system that combines a [St
    uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
    ```
 
-### Running the Web App
+<div align="center">
+  <h2>Web App Operations</h2>
+  <img src="lib/fig/dashboard.png" alt="Dashboard" width="100%">
+</div>
+
+Running the web app locally is as simple as running the following command:
+
 ```bash
 streamlit run src/app.py
 ```
@@ -279,6 +292,8 @@ meteorix tail 2024_03_20
  ┃ ┣ 📄cli.py                       // CLI tool main script
  ┃ ┗ 📄meteorix.py                  // Discord bot script
  ┣ 📄.gitignore
+ ┣ 📄.pre-commit-config.yaml
+ ┣ 📄.pre-commit_msg_template.py
  ┣ 📄LICENSE
  ┣ 📄README.md
  ┗ 📄requirements.txt            // Python dependencies
