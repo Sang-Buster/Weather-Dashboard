@@ -80,14 +80,14 @@ def get_date_range():
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def load_data_cached(min_date, max_date):
-    """Cached version of data loading from MongoDB"""
+def load_data_cached(min_date, max_date, _progress_callback=None):
+    """Cached version of data loading from MongoDB with progress updates"""
     try:
         client = init_connection()
         db = client["weather_dashboard"]
         collection = db["weather_data"]
 
-        # Query documents
+        # Query documents with batch processing
         cursor = collection.find(
             {
                 "tNow": {
@@ -112,8 +112,14 @@ def load_data_cached(min_date, max_date):
             },
         )
 
+        documents = []
+        batch_size = 5000  # Process in batches for smoother progress updates
+        for i, doc in enumerate(cursor):
+            documents.append(doc)
+            if _progress_callback and i % batch_size == 0:
+                _progress_callback(i)
+
         # Convert to DataFrame
-        documents = list(cursor)
         df = pd.DataFrame(documents)
 
         if len(df) > 0:
@@ -167,10 +173,18 @@ def load_data():
         status_text.text("Loading data...")
         progress_bar.progress(0)
 
-        # Load data with caching
+        def update_progress(current_count):
+            progress = min(current_count / total_count, 1.0)
+            progress_bar.progress(progress)
+            status_text.text(
+                f"Loading data... {current_count:,} of {total_count:,} records"
+            )
+
+        # Load data with progress updates
         df, loaded_count = load_data_cached(
             st.session_state.date_range["min_date"],
             st.session_state.date_range["max_date"],
+            _progress_callback=update_progress,
         )
 
         # Update progress to show completion

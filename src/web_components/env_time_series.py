@@ -59,7 +59,7 @@ def environmental_time_series_component():
 
 def create_env_plot(df, selected_vars):
     # Downsample data more efficiently - using iloc
-    df_plot = df.iloc[::5]  # Much faster than .copy()
+    df_plot = df.iloc[::10]
 
     # Define color scheme for each variable
     color_scheme = {

@@ -119,7 +119,7 @@ def wind_time_series_component():
 
 def create_wind_plot(df, selected_speeds, arrow_interval, interval_map, gust_interval):
     # Downsample data more efficiently - using iloc
-    df_plot = df.iloc[::5]  # Much faster than .copy()
+    df_plot = df.iloc[::10]
 
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
