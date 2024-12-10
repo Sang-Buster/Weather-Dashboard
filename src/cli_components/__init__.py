@@ -11,6 +11,7 @@ from .utils import print_banner, connect_to_mongodb
 from .spit import spit_csv_data
 from .plot import create_weather_plot
 from .monitor import toggle_monitor
+from .append import append_csv_to_mongodb
 
 __all__ = [
     "check_analysis_results",
@@ -28,4 +29,5 @@ __all__ = [
     "spit_csv_data",
     "create_weather_plot",
     "toggle_monitor",
+    "append_csv_to_mongodb",
 ]

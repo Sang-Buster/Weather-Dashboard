@@ -118,9 +118,7 @@ async def help_command(ctx, command_name=None):
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-  - No dates: uploads last 3 days
-  - Start date only: uploads single date
-  - Both dates: uploads date range (format: YYYY_MM_DD)
+• `append <start_date> [end_date]` - Append weather data to database
 • `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -155,9 +153,7 @@ async def help_command(ctx, command_name=None):
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-  - No dates: uploads last 3 days
-  - Start date only: uploads single date
-  - Both dates: uploads date range (format: YYYY_MM_DD)
+• `append <start_date> [end_date]` - Append weather data to database
 • `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -196,9 +192,7 @@ Try `@meteorix help` for more information."""
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-  - No dates: uploads last 3 days
-  - Start date only: uploads single date
-  - Both dates: uploads date range (format: YYYY_MM_DD)
+• `append <start_date> [end_date]` - Append weather data to database
 • `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -237,6 +231,15 @@ async def upload(ctx, start_date=None, end_date=None):
         await run_cli_command(ctx, ["upload", start_date])
     else:
         await run_cli_command(ctx, ["upload"])
+
+
+@bot.command(name="append")
+@check_channel()
+async def append(ctx, start_date, end_date=None):
+    if end_date:
+        await run_cli_command(ctx, ["append", start_date, end_date])
+    else:
+        await run_cli_command(ctx, ["append", start_date])
 
 
 @bot.command(name="delete")
@@ -381,6 +384,23 @@ async def upload_slash(
         await run_cli_command_slash(interaction, ["upload"])  # No dates = last 3 days
 
 
+@bot.tree.command(name="append", description="Append weather data to MongoDB")
+@app_commands.describe(
+    start_date="Start date in YYYY_MM_DD format (required)",
+    end_date="End date in YYYY_MM_DD format (optional)",
+)
+@app_commands.check(check_channel_slash)
+async def append_slash(
+    interaction: discord.Interaction,
+    start_date: str,
+    end_date: str = None,
+):
+    if end_date:
+        await run_cli_command_slash(interaction, ["append", start_date, end_date])
+    else:
+        await run_cli_command_slash(interaction, ["append", start_date])
+
+
 @bot.tree.command(name="delete", description="Delete all weather data from MongoDB")
 @app_commands.check(check_channel_slash)
 async def delete_slash(interaction: discord.Interaction):
@@ -488,6 +508,7 @@ async def monitor_slash(interaction: discord.Interaction, action: str):
 VALID_COMMANDS = [
     "info",
     "upload",
+    "append",
     "delete",
     "eda",
     "ml",
@@ -506,6 +527,7 @@ def get_command_description(cmd):
     descriptions = {
         "info": "Show available date range and file statistics",
         "upload": "Upload weather data to MongoDB",
+        "append": "Append weather data to MongoDB",
         "delete": "Delete all weather data from MongoDB",
         "eda": "Run exploratory data analysis",
         "ml": "Run machine learning analysis",
@@ -539,6 +561,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
+• `append <start_date> [end_date]` - Append weather data to database
 • `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -566,9 +589,7 @@ Try `/help` for more information."""
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-  - No dates: uploads last 3 days
-  - Start date only: uploads single date
-  - Both dates: uploads date range (format: YYYY_MM_DD)
+• `append <start_date> [end_date]` - Append weather data to database
 • `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -617,6 +638,7 @@ Try `/help` for more information."""
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
+• `append <start_date> [end_date]` - Append weather data to database
 • `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -805,6 +827,7 @@ async def on_command_error(ctx, error):
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
+• `append <start_date> [end_date]` - Append weather data to database
 • `delete` - Delete all weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
