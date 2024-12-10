@@ -29,7 +29,7 @@ def process_chunk(args):
     """Process a chunk of the DataFrame and upload to MongoDB."""
     chunk_df, uri, date, chunk_id = args
     try:
-        client = MongoClient(uri)
+        client = MongoClient(uri, w=0)
         db = client["weather_dashboard"]
         collection = db["weather_data"]
 
@@ -41,8 +41,12 @@ def process_chunk(args):
             lambda row: {**row.to_dict(), "tNow": row["tNow"].to_pydatetime()}, axis=1
         ).tolist()
 
-        # Insert documents
-        collection.insert_many(documents, ordered=False)
+        # Use larger batch sizes for insert_many
+        batch_size = 10000
+        for i in range(0, len(documents), batch_size):
+            batch = documents[i : i + batch_size]
+            collection.insert_many(batch, ordered=False)
+
         client.close()
         return True, len(documents)
     except Exception as e:
@@ -54,12 +58,17 @@ def upload_csv_to_mongodb(
 ) -> bool:
     """Upload multiple dates using multiprocessing and chunking."""
     try:
+        if db is None:
+            rprint("[red]Error: Database connection not provided[/red]")
+            return False
+
         uri = st.secrets["mongo"]["uri"]
+        collection = db["weather_data"]
 
         # Calculate dates first
         end = datetime.now()
         if not start_date:
-            # No start date provided, default to 2 days ago
+            # No start date provided, default to 3 days ago
             start = end - timedelta(days=2)
         else:
             # Start date provided, parse it
@@ -76,24 +85,17 @@ def upload_csv_to_mongodb(
         start_date = start.strftime("%Y_%m_%d")
         end_date = end.strftime("%Y_%m_%d")
 
+        # First, delete ALL existing data from the collection
+        result = collection.delete_many({})
+        rprint(
+            f"[yellow]Cleared database. Deleted {result.deleted_count:,} existing records[/yellow]"
+        )
+
         dates = []
         current = start
         while current <= end:
             dates.append(current.strftime("%Y_%m_%d"))
             current += timedelta(days=1)
-
-        # Clear existing data for the date range
-        collection = db["weather_data"]
-        start_datetime = start.replace(hour=0, minute=0, second=0)
-        end_datetime = end.replace(hour=23, minute=59, second=59)
-
-        # Delete documents within the date range
-        result = collection.delete_many(
-            {"tNow": {"$gte": start_datetime, "$lte": end_datetime}}
-        )
-        rprint(
-            f"[yellow]Deleted {result.deleted_count:,} existing records for selected dates[/yellow]"
-        )
 
         rprint(f"\n[bold blue]{'='*50}[/bold blue]")
         rprint(f"[bold green]Starting upload of {len(dates)} dates[/bold green]")
@@ -118,7 +120,7 @@ def upload_csv_to_mongodb(
 
                 # Process chunks without progress bar
                 num_processes = min(cpu_count(), 8)
-                chunk_size = ceil(total_rows / (num_processes * 2))
+                chunk_size = ceil(total_rows / num_processes)
                 chunks = [df[i : i + chunk_size] for i in range(0, len(df), chunk_size)]
 
                 chunk_args = [(chunk, uri, date, i) for i, chunk in enumerate(chunks)]
@@ -162,8 +164,11 @@ def upload_csv_to_mongodb(
                     # Calculate optimal chunk size and number of processes
                     num_processes = min(cpu_count(), 8)  # Limit to 8 processes max
                     chunk_size = ceil(
-                        total_rows / (num_processes * 2)
-                    )  # Create 2 chunks per process
+                        total_rows / num_processes
+                    )  # Larger chunks, one per process
+
+                    # Create index if it doesn't exist (do this once before bulk inserts)
+                    collection.create_index("tNow", background=True)
 
                     # Create chunks
                     chunks = [
