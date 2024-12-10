@@ -79,15 +79,15 @@ def get_date_range():
         return None
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
-def load_data_cached(min_date, max_date, _progress_callback=None):
-    """Cached version of data loading from MongoDB with progress updates"""
+@st.cache_data(ttl=1800, show_spinner=False)
+def fetch_data_cached(min_date, max_date):
+    """Cached version of data loading from MongoDB"""
     try:
         client = init_connection()
         db = client["weather_dashboard"]
         collection = db["weather_data"]
 
-        # Query documents with batch processing
+        # Query all documents at once (cached version)
         cursor = collection.find(
             {
                 "tNow": {
@@ -112,34 +112,15 @@ def load_data_cached(min_date, max_date, _progress_callback=None):
             },
         )
 
-        documents = []
-        batch_size = 5000  # Process in batches for smoother progress updates
-        for i, doc in enumerate(cursor):
-            documents.append(doc)
-            if _progress_callback and i % batch_size == 0:
-                _progress_callback(i)
-
-        # Convert to DataFrame
-        df = pd.DataFrame(documents)
-
-        if len(df) > 0:
-            # Convert and sort by timestamp
-            df["tNow"] = pd.to_datetime(df["tNow"], utc=True)
-            df.sort_values("tNow", inplace=True)
-
-            # Add derived columns
-            df["hour"] = df["tNow"].dt.hour
-            df["day"] = df["tNow"].dt.day
-
-        return df, len(documents)
-
+        documents = list(cursor)
+        return documents
     except Exception as e:
         st.error(f"Error loading data: {str(e)}")
-        return pd.DataFrame(), 0
+        return []
 
 
 def load_data():
-    """Load weather data using cached function"""
+    """Load weather data with progress updates and caching"""
     try:
         if "date_range" not in st.session_state:
             date_range = get_date_range()
@@ -151,48 +132,37 @@ def load_data():
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        # Get total count for progress tracking
-        client = init_connection()
-        db = client["weather_dashboard"]
-        collection = db["weather_data"]
-
-        total_count = collection.count_documents(
-            {
-                "tNow": {
-                    "$gte": st.session_state.date_range["min_date"],
-                    "$lte": st.session_state.date_range["max_date"],
-                }
-            }
-        )
-
-        if total_count == 0:
-            st.error("No data found for the specified date range")
-            return pd.DataFrame()
-
-        # Show initial progress
-        status_text.text("Loading data...")
-        progress_bar.progress(0)
-
-        def update_progress(current_count):
-            progress = min(current_count / total_count, 1.0)
-            progress_bar.progress(progress)
-            status_text.text(
-                f"Loading data... {current_count:,} of {total_count:,} records"
-            )
-
-        # Load data with progress updates
-        df, loaded_count = load_data_cached(
+        # Get cached documents
+        documents = fetch_data_cached(
             st.session_state.date_range["min_date"],
             st.session_state.date_range["max_date"],
-            _progress_callback=update_progress,
         )
 
-        # Update progress to show completion
-        progress_bar.progress(1.0)
-        status_text.text(f"Loaded {loaded_count:,} of {total_count:,} records")
+        # Process documents with progress updates
+        total_count = len(documents)
+        df_list = []
+
+        for i, doc in enumerate(documents):
+            df_list.append(doc)
+            if i % 1000 == 0:  # Update progress every 1000 records
+                progress = min(i / total_count, 1.0)
+                progress_bar.progress(progress)
+                status_text.text(f"Processing data... {i:,} of {total_count:,} records")
+
+        # Convert to DataFrame
+        df = pd.DataFrame(df_list)
+
+        if len(df) > 0:
+            # Convert and sort by timestamp
+            df["tNow"] = pd.to_datetime(df["tNow"], utc=True)
+            df.sort_values("tNow", inplace=True)
+
+            # Add derived columns
+            df["hour"] = df["tNow"].dt.hour
+            df["day"] = df["tNow"].dt.day
 
         # Clear progress indicators after a short delay
-        time.sleep(0.5)  # Optional: gives users time to see completion
+        time.sleep(0.5)
         progress_bar.empty()
         status_text.empty()
 
