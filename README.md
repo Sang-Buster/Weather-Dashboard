@@ -239,7 +239,38 @@ meteorix tail 2024_03_20
 
 ### Setup Instructions
 
-1. **Add Bot Token to `.streamlit/secrets.toml`:**
+1. **Create a Discord Bot Application:**
+   1. Log into the [Discord Developer Portal](https://discord.com/developers/applications)
+   2. Click "New Application" and give it a name
+   3. Go to the "Bot" tab and click "Add Bot"
+   4. Under the bot's username, click "Copy" to copy your bot's token
+   5. In the Bot tab, enable the following Privileged Gateway Intents:
+      - `Message Content Intent`
+      - `Server Members Intent`
+      - `Presence Intent`
+   6. Make sure that **Public Bot** is enabled if you want others to invite your bot
+   7. Disable **Require OAuth2 Code Grant** unless you specifically need it
+   
+   > **Warning**: Never share your bot token! If exposed, immediately regenerate it in the Developer Portal.
+
+2. **Invite the Bot to Your Server:**
+   1. Go to the "OAuth2 > URL Generator" tab
+   2. Under "Scopes", select:
+      - `bot`
+      - `applications.commands`
+      - `messages.read`
+   3. Under "Bot Permissions", select:
+      - `Read Messages/View Channels`
+      - `Send Messages`
+      - `Send Messages in Threads`
+      - `Embed Links`
+      - `Attach Files`
+      - `Read Message History`
+      - `Add Reactions`
+      - `Use Slash Commands`
+   4. Copy the generated URL and open it in a browser to invite the bot
+
+3. **Add Bot Token to `.streamlit/secrets.toml`:**
    ```toml
    [bot_token]
    token = "YOUR_BOT_TOKEN"
@@ -250,14 +281,14 @@ meteorix tail 2024_03_20
    # add more channels as needed
    ```
 
-   You can start the bot immediately using `python src/meteorix.py`. However, to keep it running continuously, it's recommended to set up a systemd service:
+   You can start the bot immediately using `python src/meteorix.py`. However, to keep it running continuously, it's recommended to set up a **systemd service**:
 
-2. **Create Systemd Service File:**
+4. **Create Systemd Service File:**
    ```bash
    sudo nano /etc/systemd/system/meteorix-bot.service
    ```
 
-3. **Add the following configuration** (adjust paths and username):
+5. **Add the following configuration** (adjust paths and username):
    ```ini
    [Unit]
    Description=Meteorix Discord Bot
@@ -276,7 +307,7 @@ meteorix tail 2024_03_20
    WantedBy=multi-user.target
    ```
 
-4. **Enable and Start the Service:**
+6. **Enable and Start the Service:**
    ```bash
    # Enable the service to start on boot
    sudo systemctl enable meteorix-bot
@@ -288,7 +319,7 @@ meteorix tail 2024_03_20
    sudo systemctl status meteorix-bot
    ```
 
-5. **Common Service Commands:**
+7. **Common Service Commands:**
    ```bash
    # Stop the bot
    sudo systemctl stop meteorix-bot
