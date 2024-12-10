@@ -5,11 +5,11 @@ from web_components import (
     time_selection_component,
     # correlation_plot_component,
     scatter_plot_component,
-    pca_explained_variance_component,
-    pca_biplot_components,
-    roc_curve_plot_component,
-    pr_curve_plot_component,
-    predicted_plot_components,
+    # pca_explained_variance_component,
+    # pca_biplot_components,
+    # roc_curve_plot_component,
+    # pr_curve_plot_component,
+    # predicted_plot_components,
     wind_3d_component,
 )
 
@@ -81,30 +81,30 @@ def main():
     with col4:
         scatter_plot_component()
 
-    # Explained Variance Plot + PCA Biplot
-    col5, col6 = st.columns(2)
-    with col5:
-        pca_explained_variance_component()
-    with col6:
-        pca_biplot_components()
+    # # Explained Variance Plot + PCA Biplot
+    # col5, col6 = st.columns(2)
+    # with col5:
+    #     pca_explained_variance_component()
+    # with col6:
+    #     pca_biplot_components()
 
     ####################
     # ML section title #
     ####################
-    st.markdown(
-        "<hr><br><h2 style='text-align: center;'>🤖 Machine Learning Insights 🤖</h2>",
-        unsafe_allow_html=True,
-    )
+    # st.markdown(
+    #     "<hr><br><h2 style='text-align: center;'>🤖 Machine Learning Insights 🤖</h2>",
+    #     unsafe_allow_html=True,
+    # )
 
-    # ROC + PR curves
-    col7, col8 = st.columns(2)
-    with col7:
-        roc_curve_plot_component()
-    with col8:
-        pr_curve_plot_component()
+    # # ROC + PR curves
+    # col7, col8 = st.columns(2)
+    # with col7:
+    #     roc_curve_plot_component()
+    # with col8:
+    #     pr_curve_plot_component()
 
-    # Predictions Plot
-    predicted_plot_components()
+    # # Predictions Plot
+    # predicted_plot_components()
 
 
 if __name__ == "__main__":

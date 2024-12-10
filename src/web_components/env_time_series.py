@@ -35,8 +35,9 @@ def environmental_time_series_component():
     df.loc[:, "SonicTemp_F"] = celsius_to_fahrenheit(df["SonicTemp_C"])
     df.loc[:, "DewPoint_F"] = celsius_to_fahrenheit(df["DewPoint_C"])
 
-    # Create the initial plot
-    fig = create_env_plot(df, ["SonicTemp_F", "Temp_F", "Hum_RH"])
+    # Create the initial plot with the same defaults as the multiselect
+    default_vars = ["SonicTemp_F", "Temp_F", "DewPoint_F"]
+    fig = create_env_plot(df, default_vars)
 
     # Display the plot
     plot_placeholder = st.empty()
@@ -47,16 +48,40 @@ def environmental_time_series_component():
     selected_vars = st.multiselect(
         "Select environmental variables to display:",
         options=env_options,
-        default=["SonicTemp_F", "Temp_F", "DewPoint_F"],
+        default=default_vars,
     )
 
     # If selections change, update the plot
-    if selected_vars != ["SonicTemp_F", "Temp_F", "Hum_RH"]:
+    if selected_vars != default_vars:
         updated_fig = create_env_plot(df, selected_vars)
         plot_placeholder.plotly_chart(updated_fig, use_container_width=True)
 
 
 def create_env_plot(df, selected_vars):
+    # Define color scheme for each variable
+    color_scheme = {
+        "SonicTemp_F": dict(
+            fillcolor="rgba(135, 206, 235, 0.3)",  # Light sky blue
+            line_color="rgba(135, 206, 235, 0.8)",
+        ),
+        "Temp_F": dict(
+            fillcolor="rgba(144, 238, 144, 0.3)",  # Light green
+            line_color="rgba(144, 238, 144, 0.8)",
+        ),
+        "DewPoint_F": dict(
+            fillcolor="rgba(221, 160, 221, 0.3)",  # Light purple/plum
+            line_color="rgba(221, 160, 221, 0.8)",
+        ),
+        "Hum_RH": dict(
+            fillcolor="rgba(255, 255, 180, 0.3)",  # Light yellow
+            line_color="rgba(255, 255, 180, 0.8)",
+        ),
+        "Press_Pa": dict(
+            fillcolor="rgba(205, 133, 63, 0.3)",  # Light brown
+            line_color="rgba(205, 133, 63, 0.8)",
+        ),
+    }
+
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
@@ -64,13 +89,27 @@ def create_env_plot(df, selected_vars):
         if var == "Hum_RH":
             # Plot humidity on secondary y-axis
             fig.add_trace(
-                go.Scatter(x=df["tNow"], y=df[var], name=var, fill="tozeroy"),
+                go.Scatter(
+                    x=df["tNow"],
+                    y=df[var],
+                    name=var,
+                    fill="tozeroy",
+                    fillcolor=color_scheme[var]["fillcolor"],
+                    line=dict(color=color_scheme[var]["line_color"]),
+                ),
                 secondary_y=True,
             )
         else:
             # Plot temperature variables on primary y-axis
             fig.add_trace(
-                go.Scatter(x=df["tNow"], y=df[var], name=var, fill="tozeroy"),
+                go.Scatter(
+                    x=df["tNow"],
+                    y=df[var],
+                    name=var,
+                    fill="tozeroy",
+                    fillcolor=color_scheme[var]["fillcolor"],
+                    line=dict(color=color_scheme[var]["line_color"]),
+                ),
                 secondary_y=False,
             )
 
