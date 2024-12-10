@@ -70,9 +70,24 @@ def main():
             ],
         },
         "delete": {
-            "help": "Delete all weather data from MongoDB",
-            "description": "Remove all weather data records from the MongoDB collection.",
-            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
+            "help": "Delete weather data from MongoDB",
+            "description": "Remove weather data records from MongoDB. Without dates: deletes all data. With start_date: deletes that day. With both dates: deletes date range.",
+            "args": [
+                (
+                    "start_date",
+                    {
+                        "nargs": "?",
+                        "help": "Start date (YYYY_MM_DD, optional). If only start_date provided, deletes just that single day",
+                    },
+                ),
+                (
+                    "end_date",
+                    {
+                        "nargs": "?",
+                        "help": "End date (YYYY_MM_DD, optional). Required only if deleting a date range",
+                    },
+                ),
+            ],
         },
         "check": {
             "help": "Check database collections",
@@ -182,9 +197,11 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
     handlers = {
         "who": lambda: show_who_info(),
         "check": lambda: check_analysis_results(db),
-        "delete": lambda: rprint("[green]Collection deleted successfully.[/green]")
-        if delete_mongodb_collection(db)
-        else rprint("[red]Failed to delete collection.[/red]"),
+        "delete": lambda: delete_mongodb_collection(
+            db,
+            args.start_date if hasattr(args, "start_date") else None,
+            args.end_date if hasattr(args, "end_date") else None,
+        ),
         "eda": lambda: run_eda_analysis(db),
         "ml": lambda: run_ml_analysis(db),
         "info": lambda: get_available_date_range(

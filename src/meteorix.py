@@ -119,7 +119,7 @@ async def help_command(ctx, command_name=None):
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
 • `insert <start_date> [end_date]` - Insert weather data into database
-• `delete` - Delete all weather data from database
+• `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -154,7 +154,7 @@ async def help_command(ctx, command_name=None):
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
 • `insert <start_date> [end_date]` - Insert weather data into database
-• `delete` - Delete all weather data from database
+• `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -193,7 +193,7 @@ Try `@meteorix help` for more information."""
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
 • `insert <start_date> [end_date]` - Insert weather data into database
-• `delete` - Delete all weather data from database
+• `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -244,8 +244,13 @@ async def insert(ctx, start_date, end_date=None):
 
 @bot.command(name="delete")
 @check_channel()
-async def delete(ctx):
-    await run_cli_command(ctx, ["delete"])
+async def delete(ctx, start_date=None, end_date=None):
+    if end_date:
+        await run_cli_command(ctx, ["delete", start_date, end_date])
+    elif start_date:
+        await run_cli_command(ctx, ["delete", start_date])
+    else:
+        await run_cli_command(ctx, ["delete"])
 
 
 @bot.command(name="check")
@@ -401,10 +406,23 @@ async def insert_slash(
         await run_cli_command_slash(interaction, ["insert", start_date])
 
 
-@bot.tree.command(name="delete", description="Delete all weather data from MongoDB")
+@bot.tree.command(name="delete", description="Delete weather data from MongoDB")
+@app_commands.describe(
+    start_date="Start date in YYYY_MM_DD format (optional). If only start_date provided, deletes just that single day",
+    end_date="End date in YYYY_MM_DD format (optional). Required only if deleting a date range",
+)
 @app_commands.check(check_channel_slash)
-async def delete_slash(interaction: discord.Interaction):
-    await run_cli_command_slash(interaction, ["delete"])
+async def delete_slash(
+    interaction: discord.Interaction,
+    start_date: str = None,
+    end_date: str = None,
+):
+    if end_date:
+        await run_cli_command_slash(interaction, ["delete", start_date, end_date])
+    elif start_date:
+        await run_cli_command_slash(interaction, ["delete", start_date])
+    else:
+        await run_cli_command_slash(interaction, ["delete"])
 
 
 @bot.tree.command(name="eda", description="Run exploratory data analysis")
@@ -562,7 +580,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
 • `insert <start_date> [end_date]` - Insert weather data into database
-• `delete` - Delete all weather data from database
+• `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -590,7 +608,7 @@ Try `/help` for more information."""
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
 • `insert <start_date> [end_date]` - Insert weather data into database
-• `delete` - Delete all weather data from database
+• `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -639,7 +657,7 @@ Try `/help` for more information."""
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
 • `insert <start_date> [end_date]` - Insert weather data into database
-• `delete` - Delete all weather data from database
+• `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
@@ -828,7 +846,7 @@ async def on_command_error(ctx, error):
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
 • `insert <start_date> [end_date]` - Insert weather data into database
-• `delete` - Delete all weather data from database
+• `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
 • `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
