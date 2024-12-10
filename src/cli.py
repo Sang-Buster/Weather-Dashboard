@@ -61,6 +61,14 @@ def main():
                 ),
             ],
         },
+        "append": {
+            "help": "Append weather data to MongoDB",
+            "description": "Append weather station data from CSV files to MongoDB, overwriting existing data for specified dates only.",
+            "args": [
+                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
+                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
+            ],
+        },
         "delete": {
             "help": "Delete all weather data from MongoDB",
             "description": "Remove all weather data records from the MongoDB collection.",
@@ -156,14 +164,6 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             "help": "Show information about the bot",
             "description": "Display detailed information about the Meteorix bot and its creators.",
             "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
-        },
-        "append": {
-            "help": "Append weather data to MongoDB",
-            "description": "Append weather station data from CSV files to MongoDB, overwriting existing data for specified dates only.",
-            "args": [
-                ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
-                ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
-            ],
         },
     }
 
