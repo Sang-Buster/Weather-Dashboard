@@ -26,14 +26,10 @@ from src import SRC_DIR
 sys.path.insert(0, str(SRC_DIR))
 
 
-def main():
-    # Only print banner if not using spit or plot command
-    if len(sys.argv) > 1 and sys.argv[1] not in ["spit"]:
-        print_banner()
-
+def get_parser():
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload,delete,check,head,tail,info,spit,eda,ml,who,plot,help} ...",
+        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, eda, ml, who} ...",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -135,11 +131,6 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
                 ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
             ],
         },
-        "eda": {
-            "help": "Run exploratory data analysis",
-            "description": "Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
-            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
-        },
         "plot": {
             "help": "Create weather data plots",
             "description": "Generate plots of weather data for a specific date or date range.",
@@ -161,6 +152,11 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
                 ),
             ],
         },
+        "eda": {
+            "help": "Run exploratory data analysis",
+            "description": "Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
+            "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
+        },
         "ml": {
             "help": "Run machine learning analysis",
             "description": "Execute machine learning models for weather prediction and upload results to MongoDB.",
@@ -181,6 +177,15 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
         for arg_name, arg_config in config["args"]:
             parser_obj.add_argument(arg_name, **arg_config)
 
+    return parser
+
+
+def main():
+    # Only print banner if not using spit or plot command
+    if len(sys.argv) > 1 and sys.argv[1] not in ["spit"]:
+        print_banner()
+
+    parser = get_parser()
     args = parser.parse_args()
     db = connect_to_mongodb()
 

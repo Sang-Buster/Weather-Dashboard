@@ -98,6 +98,7 @@ This project is a comprehensive weather data analysis system that combines a [St
    [mongo]
    uri = "mongodb+srv://<usr>:<pwd>@<xxxxxx.mongodb.net>/?retryWrites=true&w=majority&appName=Cluster0"
    ```
+   The MongoDB collections should mirror the structure of the CSV files in `src/data/YYYY_MM_DD_weather_station_data.csv` folder, with each document containing timestamp and sensor readings.
 
 <div align="center">
   <h2>Web App Operations</h2>
@@ -145,10 +146,61 @@ For convenience, you can set up an alias named `meteorix`:
 3. **Make Changes Permanent:**
    Add these lines to your shell configuration file (`~/.bashrc` or `~/.zshrc`):
    ```bash
-   REPO_DIR="/var/tmp/weather-dashboard"
+   REPO_DIR="/path/to/weather-dashboard"
    PYTHON_PATH="$REPO_DIR/.venv/bin/python"
    CLI_PATH="$REPO_DIR/src/cli.py"
    alias meteorix="$PYTHON_PATH $CLI_PATH"
+   ```
+
+   To get autocomplete working, you need to add the following to your shell configuration file (`~/.bashrc` or `~/.zshrc`), this is the fastest way to manually adding cli commands vs using `register-python-argcomplete`:
+   ```bash
+   # Add these lines to your `~/.bashrc`:
+   # Meteorix CLI configuration
+   export REPO_DIR="/path/to/weather-dashboard"
+   export PYTHON_PATH="$REPO_DIR/.venv/bin/python"
+   export CLI_PATH="$REPO_DIR/src/cli.py"
+
+   # Create function wrapper for the CLI
+   function meteorix {
+      $PYTHON_PATH $CLI_PATH "$@"
+   }
+
+   # Pure bash completion - no Python involved
+   function _meteorix_complete {
+      local cur=${COMP_WORDS[COMP_CWORD]}
+      local commands="upload delete check head tail info spit plot monitor eda ml who -h --help"
+      
+      if [ $COMP_CWORD -eq 1 ]; then
+         COMPREPLY=($(compgen -W "$commands" -- "$cur"))
+      fi
+   }
+
+   # Register completion
+   complete -F _meteorix_complete meteorix
+   ```
+
+   or
+
+   ```zsh
+   # Add these lines to your `~/.zshrc`:
+   # Meteorix CLI configuration
+   export REPO_DIR="/path/to/weather-dashboard"
+   export PYTHON_PATH="$REPO_DIR/.venv/bin/python"
+   export CLI_PATH="$REPO_DIR/src/cli.py"
+
+   # Create function wrapper for the CLI
+   function meteorix {
+      $PYTHON_PATH $CLI_PATH "$@"
+   }
+
+   # Zsh completion
+   function _meteorix {
+      local commands="upload delete check head tail info spit plot monitor eda ml who -h --help"
+      _arguments "1: :($commands)"
+   }
+
+   # Register completion
+   compdef _meteorix meteorix
    ```
 
 4. **Apply Changes:**
