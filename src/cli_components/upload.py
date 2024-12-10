@@ -56,7 +56,13 @@ def process_chunk(args):
 def upload_csv_to_mongodb(
     start_date: str = None, end_date: str = None, db: Any = None
 ) -> bool:
-    """Upload multiple dates using multiprocessing and chunking."""
+    """Upload weather data to MongoDB.
+
+    Args:
+        start_date (str, optional): Start date in YYYY_MM_DD format. If not provided, defaults to last 3 days
+        end_date (str, optional): End date in YYYY_MM_DD format
+        db: MongoDB database connection
+    """
     try:
         if db is None:
             rprint("[red]Error: Database connection not provided[/red]")
@@ -65,7 +71,7 @@ def upload_csv_to_mongodb(
         uri = st.secrets["mongo"]["uri"]
         collection = db["weather_data"]
 
-        # Calculate dates first
+        # Calculate dates
         end = datetime.now()
         if not start_date:
             # No start date provided, default to 3 days ago
@@ -84,12 +90,6 @@ def upload_csv_to_mongodb(
         # Convert back to string format for consistency
         start_date = start.strftime("%Y_%m_%d")
         end_date = end.strftime("%Y_%m_%d")
-
-        # First, delete ALL existing data from the collection
-        result = collection.delete_many({})
-        rprint(
-            f"[yellow]Cleared database. Deleted {result.deleted_count:,} existing records[/yellow]"
-        )
 
         dates = []
         current = start
@@ -115,6 +115,17 @@ def upload_csv_to_mongodb(
                     rprint(f"[red]File {filename} not found.[/red]")
                     continue
 
+                # Delete existing data for this date
+                date_start = datetime.strptime(date, "%Y_%m_%d")
+                date_end = date_start + timedelta(days=1)
+                deleted = collection.delete_many(
+                    {"tNow": {"$gte": date_start, "$lt": date_end}}
+                )
+                if deleted.deleted_count > 0:
+                    rprint(
+                        f"[yellow]Deleted {deleted.deleted_count:,} existing records for {date}[/yellow]"
+                    )
+
                 df = pd.read_csv(filename)
                 total_rows = len(df)
 
@@ -139,6 +150,19 @@ def upload_csv_to_mongodb(
                 rprint(f"[green]Processed {date}: {total_rows:,} records[/green]")
         else:
             # Original progress bar output for CLI
+            # First, handle deletions for all dates
+            for date in dates:
+                date_start = datetime.strptime(date, "%Y_%m_%d")
+                date_end = date_start + timedelta(days=1)
+                deleted = collection.delete_many(
+                    {"tNow": {"$gte": date_start, "$lt": date_end}}
+                )
+                if deleted.deleted_count > 0:
+                    rprint(
+                        f"[yellow]Deleted {deleted.deleted_count:,} existing records for {date}[/yellow]"
+                    )
+
+            # Then proceed with the progress bar and uploads
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
@@ -157,41 +181,31 @@ def upload_csv_to_mongodb(
                         rprint(f"[red]File {filename} not found.[/red]")
                         continue
 
-                    # Read the CSV file
+                    # Create index if it doesn't exist
+                    collection.create_index("tNow", background=True)
+
                     df = pd.read_csv(filename)
                     total_rows = len(df)
 
-                    # Calculate optimal chunk size and number of processes
-                    num_processes = min(cpu_count(), 8)  # Limit to 8 processes max
-                    chunk_size = ceil(
-                        total_rows / num_processes
-                    )  # Larger chunks, one per process
+                    task_id = progress.add_task(f"Date {date}", total=total_rows)
 
-                    # Create index if it doesn't exist (do this once before bulk inserts)
-                    collection.create_index("tNow", background=True)
-
-                    # Create chunks
+                    num_processes = min(cpu_count(), 8)
+                    chunk_size = ceil(total_rows / num_processes)
                     chunks = [
                         df[i : i + chunk_size] for i in range(0, len(df), chunk_size)
                     ]
-
-                    # Create progress task for this date
-                    task_id = progress.add_task(f"Date {date}", total=total_rows)
-
-                    # Prepare arguments for multiprocessing
                     chunk_args = [
                         (chunk, uri, date, i) for i, chunk in enumerate(chunks)
                     ]
 
-                    # Process chunks in parallel
                     with Pool(processes=num_processes) as pool:
                         for success, result in pool.imap_unordered(
                             process_chunk, chunk_args
                         ):
                             if success:
                                 records_processed = result
-                                total_records += records_processed
                                 progress.update(task_id, advance=records_processed)
+                                total_records += records_processed
                                 total_success += 1
                             else:
                                 rprint(f"[red]Error in chunk: {result}[/red]")
@@ -204,8 +218,8 @@ def upload_csv_to_mongodb(
         rprint(f"- [blue]Total chunks processed: {total_success}[/blue]")
         rprint(f"[bold blue]{'='*50}[/bold blue]\n")
 
-        # After successful upload, show collection stats
-        print_collection_stats(db["weather_data"], "Weather Data")
+        # Show collection stats
+        print_collection_stats(collection, "Weather Data")
 
         return total_success > 0
 

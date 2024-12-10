@@ -118,7 +118,6 @@ async def help_command(ctx, command_name=None):
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-• `insert <start_date> [end_date]` - Insert weather data into database
 • `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -138,6 +137,9 @@ async def help_command(ctx, command_name=None):
 `@meteorix upload` - Upload last 3 days
 `@meteorix upload 2024_03_20` - Upload single date
 `@meteorix upload 2024_03_20 2024_03_25` - Upload date range
+`@meteorix delete` - Delete all data
+`@meteorix delete 2024_03_20` - Delete single date
+`@meteorix delete 2024_03_20 2024_03_25` - Delete date range
 `@meteorix head` - Show earliest logged timestamp
 `@meteorix head 2024_03_20` - Show first 5 rows of specific date
 `@meteorix plot 2024_03_20` - Generate plot for single date
@@ -153,7 +155,6 @@ async def help_command(ctx, command_name=None):
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-• `insert <start_date> [end_date]` - Insert weather data into database
 • `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -192,7 +193,6 @@ Try `@meteorix help` for more information."""
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-• `insert <start_date> [end_date]` - Insert weather data into database
 • `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -212,6 +212,9 @@ Try `@meteorix help` for more information."""
 `@meteorix upload` - Upload last 3 days
 `@meteorix upload 2024_03_20` - Upload single date
 `@meteorix upload 2024_03_20 2024_03_25` - Upload date range
+`@meteorix delete` - Delete all data
+`@meteorix delete 2024_03_20` - Delete single date
+`@meteorix delete 2024_03_20 2024_03_25` - Delete date range
 `@meteorix head` - Show earliest logged timestamp
 `@meteorix head 2024_03_20` - Show first 5 rows of specific date
 `@meteorix plot 2024_03_20` - Generate plot for single date
@@ -231,15 +234,6 @@ async def upload(ctx, start_date=None, end_date=None):
         await run_cli_command(ctx, ["upload", start_date])
     else:
         await run_cli_command(ctx, ["upload"])
-
-
-@bot.command(name="insert")
-@check_channel()
-async def insert(ctx, start_date, end_date=None):
-    if end_date:
-        await run_cli_command(ctx, ["insert", start_date, end_date])
-    else:
-        await run_cli_command(ctx, ["insert", start_date])
 
 
 @bot.command(name="delete")
@@ -389,23 +383,6 @@ async def upload_slash(
         await run_cli_command_slash(interaction, ["upload"])  # No dates = last 3 days
 
 
-@bot.tree.command(name="insert", description="Insert weather data into MongoDB")
-@app_commands.describe(
-    start_date="Start date in YYYY_MM_DD format (required)",
-    end_date="End date in YYYY_MM_DD format (optional)",
-)
-@app_commands.check(check_channel_slash)
-async def insert_slash(
-    interaction: discord.Interaction,
-    start_date: str,
-    end_date: str = None,
-):
-    if end_date:
-        await run_cli_command_slash(interaction, ["insert", start_date, end_date])
-    else:
-        await run_cli_command_slash(interaction, ["insert", start_date])
-
-
 @bot.tree.command(name="delete", description="Delete weather data from MongoDB")
 @app_commands.describe(
     start_date="Start date in YYYY_MM_DD format (optional). If only start_date provided, deletes just that single day",
@@ -526,7 +503,6 @@ async def monitor_slash(interaction: discord.Interaction, action: str):
 VALID_COMMANDS = [
     "info",
     "upload",
-    "insert",
     "delete",
     "eda",
     "ml",
@@ -545,7 +521,6 @@ def get_command_description(cmd):
     descriptions = {
         "info": "Show available date range and file statistics",
         "upload": "Upload weather data to MongoDB",
-        "insert": "Insert weather data into MongoDB",
         "delete": "Delete all weather data from MongoDB",
         "eda": "Run exploratory data analysis",
         "ml": "Run machine learning analysis",
@@ -579,7 +554,6 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-• `insert <start_date> [end_date]` - Insert weather data into database
 • `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -607,7 +581,6 @@ Try `/help` for more information."""
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-• `insert <start_date> [end_date]` - Insert weather data into database
 • `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -656,7 +629,6 @@ Try `/help` for more information."""
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-• `insert <start_date> [end_date]` - Insert weather data into database
 • `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
@@ -845,7 +817,6 @@ async def on_command_error(ctx, error):
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
-• `insert <start_date> [end_date]` - Insert weather data into database
 • `delete [start_date] [end_date]` - Delete weather data from database
 • `check` - Check database collections
 • `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
