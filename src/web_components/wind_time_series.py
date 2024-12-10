@@ -118,18 +118,30 @@ def wind_time_series_component():
 
 
 def create_wind_plot(df, selected_speeds, arrow_interval, interval_map, gust_interval):
+    # Downsample data more efficiently - using iloc
+    df_plot = df.iloc[::5]  # Much faster than .copy()
+
     # Create the plot
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     # Add traces for selected wind speed components
     for speed in selected_speeds:
         fig.add_trace(
-            go.Scatter(x=df.index, y=df[speed], name=speed),
+            go.Scatter(
+                x=df_plot.index,
+                y=df_plot[speed],
+                name=speed,
+                mode="lines",  # Remove markers for better performance
+                line=dict(
+                    width=1,  # Thinner lines for better performance
+                    shape="linear",  # Use linear interpolation
+                ),
+            ),
             secondary_y=False,
         )
 
     # Calculate the y-position for direction markers
-    y_pos = df[selected_speeds].max().max() * 1.1
+    y_pos = df_plot[selected_speeds].max().max() * 1.1
 
     # Resample data based on the selected arrow_interval
     interval = interval_map[arrow_interval]
@@ -148,7 +160,7 @@ def create_wind_plot(df, selected_speeds, arrow_interval, interval_map, gust_int
     # Resample the data and calculate the average direction
     df_resampled = df_direction.resample(interval).agg({"Azimuth_deg": circular_mean})
 
-    # Add direction arrows
+    # Add direction arrows with optimized settings
     fig.add_trace(
         go.Scatter(
             x=df_resampled.index,
@@ -156,7 +168,7 @@ def create_wind_plot(df, selected_speeds, arrow_interval, interval_map, gust_int
             mode="markers",
             marker=dict(
                 symbol="arrow",
-                size=15,
+                size=12,  # Slightly smaller markers
                 angle=(df_resampled["Azimuth_deg"] + 180) % 360,
                 line=dict(width=1, color="white"),
                 color="rgba(255, 255, 255, 0.8)",
@@ -168,7 +180,7 @@ def create_wind_plot(df, selected_speeds, arrow_interval, interval_map, gust_int
         secondary_y=False,
     )
 
-    # Update layout
+    # Update layout with optimized settings
     fig.update_layout(
         title={
             "text": "Wind Speed and Direction",
@@ -183,6 +195,15 @@ def create_wind_plot(df, selected_speeds, arrow_interval, interval_map, gust_int
         ),
         legend=dict(orientation="h", yanchor="bottom", y=-0.4, xanchor="center", x=0.5),
         hovermode="x unified",
+        # Performance optimizations
+        uirevision=True,  # Preserve UI state on updates
+        showlegend=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
+
+    # Additional performance optimizations
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.2)")
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.2)")
 
     return fig

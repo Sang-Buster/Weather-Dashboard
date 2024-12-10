@@ -35,8 +35,8 @@ def environmental_time_series_component():
     df.loc[:, "SonicTemp_F"] = celsius_to_fahrenheit(df["SonicTemp_C"])
     df.loc[:, "DewPoint_F"] = celsius_to_fahrenheit(df["DewPoint_C"])
 
-    # Create the initial plot with the same defaults as the multiselect
-    default_vars = ["SonicTemp_F", "Temp_F", "DewPoint_F"]
+    # Updated default variables to include humidity
+    default_vars = ["SonicTemp_F", "Temp_F", "DewPoint_F", "Hum_RH"]
     fig = create_env_plot(df, default_vars)
 
     # Display the plot
@@ -58,6 +58,9 @@ def environmental_time_series_component():
 
 
 def create_env_plot(df, selected_vars):
+    # Downsample data more efficiently - using iloc
+    df_plot = df.iloc[::5]  # Much faster than .copy()
+
     # Define color scheme for each variable
     color_scheme = {
         "SonicTemp_F": dict(
@@ -82,38 +85,30 @@ def create_env_plot(df, selected_vars):
         ),
     }
 
-    # Create the plot
+    # Create the plot with optimized settings
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     for var in selected_vars:
-        if var == "Hum_RH":
-            # Plot humidity on secondary y-axis
-            fig.add_trace(
-                go.Scatter(
-                    x=df["tNow"],
-                    y=df[var],
-                    name=var,
-                    fill="tozeroy",
-                    fillcolor=color_scheme[var]["fillcolor"],
-                    line=dict(color=color_scheme[var]["line_color"]),
-                ),
-                secondary_y=True,
-            )
-        else:
-            # Plot temperature variables on primary y-axis
-            fig.add_trace(
-                go.Scatter(
-                    x=df["tNow"],
-                    y=df[var],
-                    name=var,
-                    fill="tozeroy",
-                    fillcolor=color_scheme[var]["fillcolor"],
-                    line=dict(color=color_scheme[var]["line_color"]),
-                ),
-                secondary_y=False,
-            )
+        trace_data = {
+            "x": df_plot["tNow"],
+            "y": df_plot[var],
+            "name": var,
+            "mode": "lines",  # Remove markers for better performance
+            "line": dict(
+                color=color_scheme[var]["line_color"],
+                shape="linear",  # Use linear interpolation
+                width=1,  # Thinner lines for better performance
+            ),
+        }
 
-    # Update layout
+        # Only add fill if specifically needed
+        if var in ["SonicTemp_F", "Temp_F", "DewPoint_F", "Hum_RH", "Press_Pa"]:
+            trace_data["fill"] = "tozeroy"
+            trace_data["fillcolor"] = color_scheme[var]["fillcolor"]
+
+        fig.add_trace(go.Scatter(**trace_data), secondary_y=(var == "Hum_RH"))
+
+    # Optimize layout
     fig.update_layout(
         title={
             "text": "Environmental Conditions",
@@ -133,6 +128,15 @@ def create_env_plot(df, selected_vars):
         height=520,
         legend=dict(orientation="h", yanchor="bottom", y=-0.4, xanchor="center", x=0.5),
         hovermode="x unified",
+        # Performance optimizations
+        uirevision=True,  # Preserve UI state on updates
+        showlegend=True,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
+
+    # Additional performance optimizations
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.2)")
+    fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor="rgba(128,128,128,0.2)")
 
     return fig

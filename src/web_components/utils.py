@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from pymongo import MongoClient
+import time
 
 
 @st.cache_resource
@@ -78,47 +79,20 @@ def get_date_range():
         return None
 
 
-def load_data():
-    """Load weather data using chunked queries for large datasets"""
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_data_cached(min_date, max_date):
+    """Cached version of data loading from MongoDB"""
     try:
-        if "date_range" not in st.session_state:
-            date_range = get_date_range()
-            if date_range is None:
-                return pd.DataFrame()
-
         client = init_connection()
         db = client["weather_dashboard"]
         collection = db["weather_data"]
 
-        # Create progress indicators
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-
-        # Get total count
-        total_count = collection.count_documents(
-            {
-                "tNow": {
-                    "$gte": st.session_state.date_range["min_date"],
-                    "$lte": st.session_state.date_range["max_date"],
-                }
-            }
-        )
-
-        if total_count == 0:
-            st.error("No data found for the specified date range")
-            return pd.DataFrame()
-
-        # Initialize empty list for chunks
-        chunks = []
-        chunk_size = 10000
-        processed = 0
-
-        # Simple find operation with projection
+        # Query documents
         cursor = collection.find(
             {
                 "tNow": {
-                    "$gte": st.session_state.date_range["min_date"],
-                    "$lte": st.session_state.date_range["max_date"],
+                    "$gte": min_date,
+                    "$lte": max_date,
                 }
             },
             {
@@ -136,31 +110,13 @@ def load_data():
                 "Elev_deg": 1,
                 "SonicTemp_C": 1,
             },
-        ).batch_size(chunk_size)
+        )
 
-        # Process in chunks
-        current_chunk = []
-        for doc in cursor:
-            current_chunk.append(doc)
-            processed += 1
+        # Convert to DataFrame
+        documents = list(cursor)
+        df = pd.DataFrame(documents)
 
-            if len(current_chunk) >= chunk_size:
-                chunks.append(pd.DataFrame(current_chunk))
-                current_chunk = []
-
-                # Update progress
-                progress = min(processed / total_count, 1.0)
-                progress_bar.progress(progress)
-                status_text.text(f"Loaded {processed:,} of {total_count:,} records...")
-
-        # Add remaining documents
-        if current_chunk:
-            chunks.append(pd.DataFrame(current_chunk))
-
-        # Combine all chunks
-        if chunks:
-            df = pd.concat(chunks, ignore_index=True)
-
+        if len(df) > 0:
             # Convert and sort by timestamp
             df["tNow"] = pd.to_datetime(df["tNow"], utc=True)
             df.sort_values("tNow", inplace=True)
@@ -169,16 +125,67 @@ def load_data():
             df["hour"] = df["tNow"].dt.hour
             df["day"] = df["tNow"].dt.day
 
-            # Final progress update
-            progress_bar.progress(1.0)
-            status_text.text(f"Loaded {len(df):,} records successfully")
-        else:
-            df = pd.DataFrame()
-            st.error("No data found in the database")
+        return df, len(documents)
 
-        # Clear progress indicators
+    except Exception as e:
+        st.error(f"Error loading data: {str(e)}")
+        return pd.DataFrame(), 0
+
+
+def load_data():
+    """Load weather data using cached function"""
+    try:
+        if "date_range" not in st.session_state:
+            date_range = get_date_range()
+            if date_range is None:
+                return pd.DataFrame()
+            st.session_state["date_range"] = date_range
+
+        # Create progress indicators
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+
+        # Get total count for progress tracking
+        client = init_connection()
+        db = client["weather_dashboard"]
+        collection = db["weather_data"]
+
+        total_count = collection.count_documents(
+            {
+                "tNow": {
+                    "$gte": st.session_state.date_range["min_date"],
+                    "$lte": st.session_state.date_range["max_date"],
+                }
+            }
+        )
+
+        if total_count == 0:
+            st.error("No data found for the specified date range")
+            return pd.DataFrame()
+
+        # Show initial progress
+        status_text.text("Loading data...")
+        progress_bar.progress(0)
+
+        # Load data with caching
+        df, loaded_count = load_data_cached(
+            st.session_state.date_range["min_date"],
+            st.session_state.date_range["max_date"],
+        )
+
+        # Update progress to show completion
+        progress_bar.progress(1.0)
+        status_text.text(f"Loaded {loaded_count:,} of {total_count:,} records")
+
+        # Clear progress indicators after a short delay
+        time.sleep(0.5)  # Optional: gives users time to see completion
         progress_bar.empty()
         status_text.empty()
+
+        if len(df) == 0:
+            st.toast("No data found in the database", icon="❌")
+        else:
+            st.toast(f"Loaded {len(df):,} records successfully", icon="✅")
 
         # Store in session state
         st.session_state.full_df = df
