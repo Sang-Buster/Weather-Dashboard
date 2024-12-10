@@ -13,7 +13,7 @@ from cli_components import (
     spit_csv_data,
     create_weather_plot,
     toggle_monitor,
-    append_csv_to_mongodb,
+    insert_csv_to_mongodb,
 )
 
 import sys
@@ -61,9 +61,9 @@ def main():
                 ),
             ],
         },
-        "append": {
-            "help": "Append weather data to MongoDB",
-            "description": "Append weather station data from CSV files to MongoDB, overwriting existing data for specified dates only.",
+        "insert": {
+            "help": "Insert weather data into MongoDB",
+            "description": "Insert weather station data into MongoDB, overwriting existing data for specified dates only.",
             "args": [
                 ("start_date", {"help": "Start date (YYYY_MM_DD)"}),
                 ("end_date", {"nargs": "?", "help": "End date (YYYY_MM_DD, optional)"}),
@@ -198,7 +198,7 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
     # Date-based command handlers
     date_handlers = {
         "upload": lambda start, end: upload_csv_to_mongodb(start, end, db),
-        "append": lambda start, end: append_csv_to_mongodb(start, end, db),
+        "insert": lambda start, end: insert_csv_to_mongodb(start, end, db),
         "spit": lambda start, end: sys.stdout.write(
             spit_csv_data(start, end)[1].getvalue()
         ),

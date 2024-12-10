@@ -53,10 +53,10 @@ def process_chunk(args):
         return False, str(e)
 
 
-def append_csv_to_mongodb(
+def insert_csv_to_mongodb(
     start_date: str = None, end_date: str = None, db: Any = None
 ) -> bool:
-    """Append data for specific dates, overwriting existing data for those dates only."""
+    """Insert data for specific dates, overwriting existing data for those dates only."""
     try:
         if db is None:
             rprint("[red]Error: Database connection not provided[/red]")
@@ -83,7 +83,7 @@ def append_csv_to_mongodb(
             current += timedelta(days=1)
 
         rprint(f"\n[bold blue]{'='*50}[/bold blue]")
-        rprint(f"[bold green]Starting append of {len(dates)} dates[/bold green]")
+        rprint(f"[bold green]Starting insertion of {len(dates)} dates[/bold green]")
         rprint(f"[bold blue]{'='*50}[/bold blue]\n")
 
         total_success = 0
