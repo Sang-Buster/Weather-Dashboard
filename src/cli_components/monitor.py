@@ -27,8 +27,9 @@ def get_monitor_config() -> dict:
         try:
             with open(MONITOR_CONFIG_FILE, "r") as f:
                 current_config = json.load(f)
-            # Update with new defaults and save
-            updated_config = {**current_config, **default_config}
+            # Update with new defaults while preserving current enabled state
+            updated_config = default_config.copy()
+            updated_config["enabled"] = current_config.get("enabled", True)
             save_monitor_config(updated_config)
             return updated_config
         except Exception:

@@ -931,7 +931,7 @@ async def check_data_collection():
     await bot.wait_until_ready()
 
     last_alert_time = {}  # Store last alert time per channel
-    alert_cooldown = 600  # Send alert every 10 minutes
+    alert_cooldown = 900  # Send alert every 15 minutes
 
     while not bot.is_closed():
         try:
