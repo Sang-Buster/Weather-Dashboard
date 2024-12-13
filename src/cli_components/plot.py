@@ -360,9 +360,43 @@ def create_weather_plot(
             if not filename.exists():
                 rprint(f"[red]Warning: File not found for {date_str}[/red]")
             else:
-                df = pd.read_csv(filename)
-                df["tNow"] = pd.to_datetime(df["tNow"])
-                dfs.append(df)
+                try:
+                    # Read CSV with explicit dtypes for each column
+                    df = pd.read_csv(
+                        filename,
+                        parse_dates=["tNow"],  # Parse tNow as datetime
+                        dtype={
+                            "u_m_s": float,
+                            "v_m_s": float,
+                            "w_m_s": float,
+                            "2dSpeed_m_s": float,
+                            "3DSpeed_m_s": float,
+                            "Azimuth_deg": float,
+                            "Elev_deg": float,
+                            "Press_Pa": float,
+                            "Temp_C": float,
+                            "Hum_RH": float,
+                            "SonicTemp_C": float,
+                            "Error": float,
+                        },
+                        on_bad_lines="skip",
+                    )
+
+                    # Verify we have data
+                    if len(df) == 0:
+                        rprint(
+                            f"[yellow]Warning: No valid data in file {date_str}[/yellow]"
+                        )
+                        continue
+
+                    dfs.append(df)
+                    rprint(
+                        f"[green]Successfully read {len(df)} rows from {date_str}[/green]"
+                    )
+
+                except Exception as e:
+                    rprint(f"[red]Error reading file {date_str}: {str(e)}[/red]")
+                    continue
 
             current += pd.Timedelta(days=1)
 
