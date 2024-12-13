@@ -61,18 +61,32 @@ def get_latest_data_time() -> Optional[datetime]:
             return None
 
         latest_file = max(csv_files, key=os.path.getmtime)
-        df = pd.read_csv(latest_file)
 
-        if df.empty:
-            return None
+        # Count total rows first
+        total_rows = sum(1 for _ in open(latest_file)) - 1  # -1 for header
 
-        # Get the last timestamp from the 'tNow' column
-        # Read only the last row for efficiency
-        last_row = pd.read_csv(
-            latest_file, nrows=1, skiprows=lambda x: x > 0 and x < len(df)
-        )
-        last_timestamp = pd.to_datetime(last_row["tNow"].iloc[0])
-        return last_timestamp.to_pydatetime()
+        # Define column names
+        columns = [
+            "tNow",
+            "u_m_s",
+            "v_m_s",
+            "w_m_s",
+            "2dSpeed_m_s",
+            "3DSpeed_m_s",
+            "Azimuth_deg",
+            "Elev_deg",
+            "Press_Pa",
+            "Temp_C",
+            "Hum_RH",
+            "SonicTemp_C",
+            "Error",
+        ]
+
+        # Read only the last row
+        df = pd.read_csv(latest_file, skiprows=max(0, total_rows - 1), names=columns)
+        last_row = df.iloc[-1]
+
+        return pd.to_datetime(last_row["tNow"]).to_pydatetime()
 
     except Exception as e:
         rprint(f"[red]Error checking latest data: {str(e)}[/red]")
