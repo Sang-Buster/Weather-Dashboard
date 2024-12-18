@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from rich import print as rprint
@@ -60,12 +59,12 @@ def get_latest_data_time() -> Optional[datetime]:
         if not csv_files:
             return None
 
-        latest_file = max(csv_files, key=os.path.getmtime)
+        latest_file = max(csv_files)
 
-        # Count total rows first
+        # Get total number of rows
         total_rows = sum(1 for _ in open(latest_file)) - 1  # -1 for header
 
-        # Define column names
+        # Define column names (matching tail.py)
         columns = [
             "tNow",
             "u_m_s",
@@ -82,11 +81,12 @@ def get_latest_data_time() -> Optional[datetime]:
             "Error",
         ]
 
-        # Read only the last row
+        # Read only the last row (matching tail.py approach)
         df = pd.read_csv(latest_file, skiprows=max(0, total_rows - 1), names=columns)
-        last_row = df.iloc[-1]
+        timestamp_str = df.iloc[-1]["tNow"]
 
-        return pd.to_datetime(last_row["tNow"]).to_pydatetime()
+        # Parse the timestamp string directly using datetime
+        return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
 
     except Exception as e:
         rprint(f"[red]Error checking latest data: {str(e)}[/red]")
