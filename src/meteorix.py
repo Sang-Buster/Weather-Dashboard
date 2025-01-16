@@ -353,6 +353,12 @@ async def monitor_command(ctx, action=None):
         await ctx.send(f"```\n{output}\n```")
 
 
+@bot.command(name="ifconfig")
+@check_channel()
+async def ifconfig(ctx):
+    await run_cli_command(ctx, ["ifconfig"])
+
+
 # Slash commands
 @bot.tree.command(name="info", description="Show available date range")
 @app_commands.describe(month="Optional: Month to show statistics for (YYYY_MM)")
@@ -500,6 +506,12 @@ async def monitor_slash(interaction: discord.Interaction, action: str):
     await interaction.response.send_message(f"```\n{output}\n```")
 
 
+@bot.tree.command(name="ifconfig", description="Show Raspberry Pi IP addresses")
+@app_commands.check(check_channel_slash)
+async def ifconfig_slash(interaction: discord.Interaction):
+    await run_cli_command_slash(interaction, ["ifconfig"])
+
+
 VALID_COMMANDS = [
     "info",
     "upload",
@@ -514,6 +526,7 @@ VALID_COMMANDS = [
     "spit",
     "plot",
     "monitor",
+    "ifconfig",
 ]
 
 
@@ -532,6 +545,7 @@ def get_command_description(cmd):
         "spit": "Get raw CSV data for specified dates",
         "plot": "Create weather data plots",
         "monitor": "Monitor data collection status",
+        "ifconfig": "Show Raspberry Pi IP addresses",
     }
     return descriptions.get(cmd, "")
 

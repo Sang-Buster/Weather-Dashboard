@@ -168,7 +168,7 @@ For convenience, you can set up an alias named `meteorix`:
    # Pure bash completion - no Python involved
    function _meteorix_complete {
       local cur=${COMP_WORDS[COMP_CWORD]}
-      local commands="upload delete check head tail info spit plot monitor eda ml who -h --help"
+      local commands="upload delete check head tail info spit plot freq ifconfig monitor eda ml who -h --help"
       
       if [ $COMP_CWORD -eq 1 ]; then
          COMPREPLY=($(compgen -W "$commands" -- "$cur"))
@@ -195,7 +195,7 @@ For convenience, you can set up an alias named `meteorix`:
 
    # Zsh completion
    function _meteorix {
-      local commands="upload delete check head tail info spit plot monitor eda ml who -h --help"
+      local commands="upload delete check head tail info spit plot freq ifconfig monitor eda ml who -h --help"
       _arguments "1: :($commands)"
    }
 

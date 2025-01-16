@@ -13,6 +13,7 @@ from cli_components import (
     spit_csv_data,
     create_weather_plot,
     toggle_monitor,
+    get_pi_ip,
 )
 
 import sys
@@ -29,7 +30,7 @@ sys.path.insert(0, str(SRC_DIR))
 def get_parser():
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, eda, ml, who} ...",
+        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, eda, ml, who, ifconfig} ...",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -167,6 +168,11 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             "description": "Display detailed information about the Meteorix bot and its creators.",
             "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
         },
+        "ifconfig": {
+            "help": "Show Raspberry Pi IP addresses",
+            "description": "Display network interface information from the weather station Raspberry Pi.",
+            "args": [],
+        },
     }
 
     # Create subparsers from command configurations
@@ -206,6 +212,7 @@ def main():
         "head": lambda: show_head(args.date if hasattr(args, "date") else None),
         "tail": lambda: show_tail(args.date if hasattr(args, "date") else None),
         "monitor": lambda: toggle_monitor(args.action),
+        "ifconfig": lambda: get_pi_ip(),
     }
 
     # Date-based command handlers
