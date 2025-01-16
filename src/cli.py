@@ -14,6 +14,7 @@ from cli_components import (
     create_weather_plot,
     toggle_monitor,
     get_pi_ip,
+    get_system_stats,
 )
 
 import sys
@@ -30,7 +31,7 @@ sys.path.insert(0, str(SRC_DIR))
 def get_parser():
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, eda, ml, who, ifconfig} ...",
+        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, ifconfig, top, eda, ml, who}",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -153,6 +154,16 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
                 ),
             ],
         },
+        "ifconfig": {
+            "help": "Show Raspberry Pi network information",
+            "description": "Display network interface information from the weather station Raspberry Pi.",
+            "args": [],
+        },
+        "top": {
+            "help": "Show Raspberry Pi system status",
+            "description": "Display system metrics including CPU, memory, disk usage and temperature.",
+            "args": [],
+        },
         "eda": {
             "help": "Run exploratory data analysis",
             "description": "Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
@@ -167,11 +178,6 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             "help": "Show information about the bot",
             "description": "Display detailed information about the Meteorix bot and its creators.",
             "args": [("--force", {"action": "store_true", "help": argparse.SUPPRESS})],
-        },
-        "ifconfig": {
-            "help": "Show Raspberry Pi IP addresses",
-            "description": "Display network interface information from the weather station Raspberry Pi.",
-            "args": [],
         },
     }
 
@@ -213,6 +219,7 @@ def main():
         "tail": lambda: show_tail(args.date if hasattr(args, "date") else None),
         "monitor": lambda: toggle_monitor(args.action),
         "ifconfig": lambda: get_pi_ip(),
+        "top": lambda: get_system_stats(),
     }
 
     # Date-based command handlers

@@ -12,6 +12,7 @@ from .spit import spit_csv_data
 from .plot import create_weather_plot
 from .monitor import toggle_monitor
 from .ifconfig import get_pi_ip
+from .top import get_system_stats
 
 __all__ = [
     "check_analysis_results",
@@ -30,4 +31,5 @@ __all__ = [
     "create_weather_plot",
     "toggle_monitor",
     "get_pi_ip",
+    "get_system_stats",
 ]

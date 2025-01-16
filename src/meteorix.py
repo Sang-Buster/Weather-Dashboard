@@ -128,6 +128,8 @@ async def help_command(ctx, command_name=None):
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `ifconfig` - Show Raspberry Pi network information
+• `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -146,7 +148,9 @@ async def help_command(ctx, command_name=None):
 `@meteorix who` - Show bot information
 `@meteorix monitor enable` - Enable data collection monitoring
 `@meteorix monitor disable` - Disable data collection monitoring
-`@meteorix monitor status` - Check current monitoring status"""
+`@meteorix monitor status` - Check current monitoring status
+`@meteorix ifconfig` - Show Pi network status
+`@meteorix top` - Show Pi system status"""
             await ctx.send(help_text)
             return
 
@@ -165,6 +169,8 @@ async def help_command(ctx, command_name=None):
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `ifconfig` - Show Raspberry Pi network information
+• `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -203,6 +209,8 @@ Try `@meteorix help` for more information."""
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `ifconfig` - Show Raspberry Pi network information
+• `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -221,7 +229,9 @@ Try `@meteorix help` for more information."""
 `@meteorix who` - Show bot information
 `@meteorix monitor enable` - Enable data collection monitoring
 `@meteorix monitor disable` - Disable data collection monitoring
-`@meteorix monitor status` - Check current monitoring status"""
+`@meteorix monitor status` - Check current monitoring status
+`@meteorix ifconfig` - Show Pi network status
+`@meteorix top` - Show Pi system status"""
         await ctx.send(help_text)
 
 
@@ -357,6 +367,12 @@ async def monitor_command(ctx, action=None):
 @check_channel()
 async def ifconfig(ctx):
     await run_cli_command(ctx, ["ifconfig"])
+
+
+@bot.command(name="top")
+@check_channel()
+async def top(ctx):
+    await run_cli_command(ctx, ["top"])
 
 
 # Slash commands
@@ -506,10 +522,16 @@ async def monitor_slash(interaction: discord.Interaction, action: str):
     await interaction.response.send_message(f"```\n{output}\n```")
 
 
-@bot.tree.command(name="ifconfig", description="Show Raspberry Pi IP addresses")
+@bot.tree.command(name="ifconfig", description="Show Raspberry Pi network information")
 @app_commands.check(check_channel_slash)
 async def ifconfig_slash(interaction: discord.Interaction):
     await run_cli_command_slash(interaction, ["ifconfig"])
+
+
+@bot.tree.command(name="top", description="Show Raspberry Pi system status")
+@app_commands.check(check_channel_slash)
+async def top_slash(interaction: discord.Interaction):
+    await run_cli_command_slash(interaction, ["top"])
 
 
 VALID_COMMANDS = [
@@ -527,6 +549,7 @@ VALID_COMMANDS = [
     "plot",
     "monitor",
     "ifconfig",
+    "top",
 ]
 
 
@@ -545,7 +568,8 @@ def get_command_description(cmd):
         "spit": "Get raw CSV data for specified dates",
         "plot": "Create weather data plots",
         "monitor": "Monitor data collection status",
-        "ifconfig": "Show Raspberry Pi IP addresses",
+        "ifconfig": "Show Raspberry Pi network information",
+        "top": "Show Raspberry Pi system status",
     }
     return descriptions.get(cmd, "")
 
@@ -578,6 +602,8 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `ifconfig` - Show Raspberry Pi network information
+• `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -605,6 +631,8 @@ Try `/help` for more information."""
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `ifconfig` - Show Raspberry Pi network information
+• `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -620,7 +648,9 @@ Try `/help` for more information."""
 `/who` - Show bot information
 `/monitor enable` - Enable data collection monitoring
 `/monitor disable` - Disable data collection monitoring
-`/monitor status` - Check current monitoring status"""
+`/monitor status` - Check current monitoring status
+`/ifconfig` - Show Pi network status
+`/top` - Show Pi system status"""
             await interaction.followup.send(help_text)
             return
 
@@ -653,6 +683,8 @@ Try `/help` for more information."""
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `ifconfig` - Show Raspberry Pi network information
+• `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
@@ -669,7 +701,8 @@ Try `/help` for more information."""
 `/monitor enable` - Enable data collection monitoring
 `/monitor disable` - Disable data collection monitoring
 `/monitor status` - Check current monitoring status
-"""
+`/ifconfig` - Show Pi network status
+`/top` - Show Pi system status"""
         await interaction.followup.send(help_text)
 
 
@@ -841,6 +874,8 @@ async def on_command_error(ctx, error):
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `ifconfig` - Show Raspberry Pi network information
+• `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command
