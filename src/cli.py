@@ -157,15 +157,13 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
         },
         "freq": {
             "help": "Control data logging frequency",
-            "description": "Set or check the data logging frequency on the Raspberry Pi. Use '0' for high frequency (32Hz) or '1' for low frequency (1Hz).",
+            "description": "Set or check the data logging frequency on the Raspberry Pi. Use '0' for low frequency (1Hz), '1' for high frequency (32Hz), or 'status' to check current mode.",
             "args": [
-                ("action", {"choices": ["set", "status"], "help": "Action to perform"}),
                 (
-                    "value",
+                    "action",
                     {
-                        "nargs": "?",
-                        "choices": ["0", "1"],
-                        "help": "Frequency value: 0 (32Hz) or 1 (1Hz). Only used with 'set' action",
+                        "choices": ["0", "1", "status"],
+                        "help": "0 (1Hz), 1 (32Hz), or status",
                     },
                 ),
             ],
@@ -303,11 +301,7 @@ def handle_plot_command(start_date, end_date, save_locally=True):
 
 def handle_freq_command(args):
     """Handle frequency control command."""
-    if args.action == "set" and args.value is None:
-        rprint("[red]Error: Frequency value (0 or 1) required for 'set' action[/red]")
-        return
-
-    set_frequency(args.value if args.action == "set" else None)
+    set_frequency(None if args.action == "status" else args.action)
 
 
 if __name__ == "__main__":
