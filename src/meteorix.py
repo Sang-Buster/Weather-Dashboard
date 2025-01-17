@@ -639,8 +639,12 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
     await interaction.response.defer()
 
     if command_name:
-        if command_name not in VALID_COMMANDS:
-            error_message = f"""❌ Command `{command_name}` not found.
+        # Special case for "help" command
+        if command_name == "help":
+            help_text_1 = """
+---------------------------------------------------------------
+      °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
+---------------------------------------------------------------
 
 **Available Commands:**
 • `upload [start_date] [end_date]` - Upload weather data to database
@@ -659,14 +663,49 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
-• `help <command>` - Show detailed help for a specific command
+• `help <command>` - Show detailed help for a specific command"""
 
-Try `/help` for more information."""
-            await interaction.followup.send(error_message)
+            help_text_2 = """
+**Examples:**
+`@meteorix help upload` - Show upload command help
+`@meteorix upload` - Upload last 3 days
+`@meteorix upload 2024_03_20` - Upload single date
+`@meteorix upload 2024_03_20 2024_03_25` - Upload date range
+`@meteorix delete` - Delete all data
+`@meteorix delete 2024_03_20` - Delete single date
+`@meteorix delete 2024_03_20 2024_03_25` - Delete date range
+`@meteorix head` - Show earliest logged timestamp
+`@meteorix head 2024_03_20` - Show first 5 rows of specific date
+`@meteorix plot 2024_03_20` - Generate plot for single date
+`@meteorix who` - Show bot information
+`@meteorix monitor enable` - Enable data collection monitoring
+`@meteorix monitor disable` - Disable data collection monitoring
+`@meteorix monitor status` - Check current monitoring status
+`@meteorix freq 0` - Set to low frequency mode (1Hz)
+`@meteorix freq 1` - Set to high frequency mode (32Hz)
+`@meteorix freq status` - Check current frequency mode
+`@meteorix ifconfig` - Show Pi network status
+`@meteorix top` - Show Pi system status"""
+
+            # Send both parts
+            await interaction.followup.send(help_text_1)
+            await interaction.followup.send(help_text_2)
             return
 
-        # Split the help message into multiple parts
-        help_text_1 = """
+        # Command-specific help for other commands
+        f = io.StringIO()
+        with redirect_stdout(f):
+            sys.argv = ["meteorix", command_name, "--help"]
+            try:
+                cli_main()
+            except SystemExit:
+                pass
+        help_text = f.getvalue()
+        await interaction.followup.send(f"```\n{help_text}\n```")
+        return
+
+    # If no specific command requested, show the general help menu
+    help_text_1 = """
 ---------------------------------------------------------------
       °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
 ---------------------------------------------------------------
@@ -690,82 +729,31 @@ Try `/help` for more information."""
 • `help` - Show this help message
 • `help <command>` - Show detailed help for a specific command"""
 
-        help_text_2 = """
+    help_text_2 = """
 **Examples:**
-`/help upload` - Show upload command help
-`/upload` - Upload last 3 days
-`/upload 2024_03_20` - Upload single date
-`/upload 2024_03_20 2024_03_25` - Upload date range
-`/delete` - Delete all data
-`/delete 2024_03_20` - Delete single date
-`/delete 2024_03_20 2024_03_25` - Delete date range
-`/head` - Show earliest logged timestamp
-`/head 2024_03_20` - Show first 5 rows of specific date
-`/plot 2024_03_20` - Generate plot for single date
-`/who` - Show bot information
-`/monitor enable` - Enable data collection monitoring
-`/monitor disable` - Disable data collection monitoring
-`/monitor status` - Check current monitoring status
-`/freq 0` - Set to low frequency mode (1Hz)
-`/freq 1` - Set to high frequency mode (32Hz)
-`/freq status` - Check current frequency mode
-`/ifconfig` - Show Pi network status
-`/top` - Show Pi system status"""
+`@meteorix help upload` - Show upload command help
+`@meteorix upload` - Upload last 3 days
+`@meteorix upload 2024_03_20` - Upload single date
+`@meteorix upload 2024_03_20 2024_03_25` - Upload date range
+`@meteorix delete` - Delete all data
+`@meteorix delete 2024_03_20` - Delete single date
+`@meteorix delete 2024_03_20 2024_03_25` - Delete date range
+`@meteorix head` - Show earliest logged timestamp
+`@meteorix head 2024_03_20` - Show first 5 rows of specific date
+`@meteorix plot 2024_03_20` - Generate plot for single date
+`@meteorix who` - Show bot information
+`@meteorix monitor enable` - Enable data collection monitoring
+`@meteorix monitor disable` - Disable data collection monitoring
+`@meteorix monitor status` - Check current monitoring status
+`@meteorix freq 0` - Set to low frequency mode (1Hz)
+`@meteorix freq 1` - Set to high frequency mode (32Hz)
+`@meteorix freq status` - Check current frequency mode
+`@meteorix ifconfig` - Show Pi network status
+`@meteorix top` - Show Pi system status"""
 
-        # Send both parts
-        await interaction.followup.send(help_text_1)
-        await interaction.followup.send(help_text_2)
-    else:
-        # Split the help message into multiple parts
-        help_text_1 = """
----------------------------------------------------------------
-      °•☁︎ Meteorix: A Weather Station Management CLI °•☁︎
----------------------------------------------------------------
-
-**Available Commands:**
-• `upload [start_date] [end_date]` - Upload weather data to database
-• `delete [start_date] [end_date]` - Delete weather data from database
-• `check` - Check database collections
-• `head [date]` - Show earliest logged timestamp or first 5 rows if date specified
-• `tail [date]` - Show latest logged timestamp or last 5 rows if date specified
-• `info [month]` - Show available date range and file statistics for a specific month (format: YYYY_MM)
-• `spit <start_date> [end_date]` - Get raw CSV data for specified dates
-• `eda` - Run exploratory data analysis
-• `ml` - Run machine learning analysis
-• `plot <start_date> [end_date]` - Generate weather plots for specified dates
-• `monitor <action>` - Monitor data collection status (action: enable, disable, status)
-• `freq <action>` - Control data logging frequency (action: 0=1Hz, 1=32Hz, status)
-• `ifconfig` - Show Raspberry Pi network information
-• `top` - Show Raspberry Pi system status
-• `who` - Show information about the bot
-• `help` - Show this help message
-• `help <command>` - Show detailed help for a specific command"""
-
-        help_text_2 = """
-**Examples:**
-`/help upload` - Show upload command help
-`/upload` - Upload last 3 days
-`/upload 2024_03_20` - Upload single date
-`/upload 2024_03_20 2024_03_25` - Upload date range
-`/delete` - Delete all data
-`/delete 2024_03_20` - Delete single date
-`/delete 2024_03_20 2024_03_25` - Delete date range
-`/head` - Show earliest logged timestamp
-`/head 2024_03_20` - Show first 5 rows of specific date
-`/plot 2024_03_20` - Generate plot for single date
-`/who` - Show bot information
-`/monitor enable` - Enable data collection monitoring
-`/monitor disable` - Disable data collection monitoring
-`/monitor status` - Check current monitoring status
-`/freq 0` - Set to low frequency mode (1Hz)
-`/freq 1` - Set to high frequency mode (32Hz)
-`/freq status` - Check current frequency mode
-`/ifconfig` - Show Pi network status
-`/top` - Show Pi system status"""
-
-        # Send both parts
-        await interaction.followup.send(help_text_1)
-        await interaction.followup.send(help_text_2)
+    # Send both parts
+    await interaction.followup.send(help_text_1)
+    await interaction.followup.send(help_text_2)
 
 
 # Helper functions
