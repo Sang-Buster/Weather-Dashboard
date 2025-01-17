@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 from rich import print as rprint
-import pandas as pd
 import glob
 from typing import Optional
 import json
+import os
 
 from src import CSV_DIR
 
@@ -61,32 +61,41 @@ def get_latest_data_time() -> Optional[datetime]:
 
         latest_file = max(csv_files)
 
-        # Get total number of rows
-        total_rows = sum(1 for _ in open(latest_file)) - 1  # -1 for header
+        # Use tail command to get last line reliably
+        with open(latest_file, "rb") as f:
+            try:
+                f.seek(-2, os.SEEK_END)
+                while f.read(1) != b"\n":
+                    f.seek(-2, os.SEEK_CUR)
+            except OSError:
+                f.seek(0)
+            last_line = f.readline().decode().strip()
 
-        # Define column names (matching tail.py)
-        columns = [
-            "tNow",
-            "u_m_s",
-            "v_m_s",
-            "w_m_s",
-            "2dSpeed_m_s",
-            "3DSpeed_m_s",
-            "Azimuth_deg",
-            "Elev_deg",
-            "Press_Pa",
-            "Temp_C",
-            "Hum_RH",
-            "SonicTemp_C",
-            "Error",
-        ]
+        if not last_line:
+            return None
 
-        # Read only the last row (matching tail.py approach)
-        df = pd.read_csv(latest_file, skiprows=max(0, total_rows - 1), names=columns)
-        timestamp_str = df.iloc[-1]["tNow"]
+        # Get timestamp from first column
+        timestamp_str = last_line.split(",")[0]
+        if timestamp_str == "tNow":  # Skip header row
+            return None
 
-        # Parse the timestamp string directly using datetime
-        return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+        # Try parsing with different formats
+        try:
+            # Try with microseconds first
+            return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            try:
+                # Try without microseconds
+                return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                # Handle decimal seconds
+                base_str = timestamp_str.split(".")[0]
+                decimal_str = (
+                    timestamp_str.split(".")[1] if "." in timestamp_str else "0"
+                )
+                base_time = datetime.strptime(base_str, "%Y-%m-%d %H:%M:%S")
+                microseconds = int(float("0." + decimal_str) * 1000000)
+                return base_time.replace(microsecond=microseconds)
 
     except Exception as e:
         rprint(f"[red]Error checking latest data: {str(e)}[/red]")
@@ -122,8 +131,10 @@ def show_monitor_status() -> None:
         "[green]enabled[/green]" if config["enabled"] else "[yellow]disabled[/yellow]"
     )
     time_str = latest_time.strftime("%Y-%m-%d %H:%M:%S") if latest_time else "N/A"
+    data_state = "[green]fresh[/green]" if fresh else "[red]stale[/red]"
 
     rprint(f"Monitor state: {status}")
+    rprint(f"Data state: {data_state}")
     rprint(f"Alert threshold: {config['alert_threshold_minutes']} minutes")
     rprint(f"Check interval: {config['check_interval_minutes']} minutes")
     rprint(f"Latest data point: {time_str}")

@@ -128,6 +128,7 @@ async def help_command(ctx, command_name=None):
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `freq` - Control data logging frequency
 • `ifconfig` - Show Raspberry Pi network information
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
@@ -149,6 +150,9 @@ async def help_command(ctx, command_name=None):
 `@meteorix monitor enable` - Enable data collection monitoring
 `@meteorix monitor disable` - Disable data collection monitoring
 `@meteorix monitor status` - Check current monitoring status
+`@meteorix freq set 0` - Set to high frequency mode (32Hz)
+`@meteorix freq set 1` - Set to low frequency mode (1Hz)
+`@meteorix freq status` - Check current frequency mode
 `@meteorix ifconfig` - Show Pi network status
 `@meteorix top` - Show Pi system status"""
             await ctx.send(help_text)
@@ -169,6 +173,7 @@ async def help_command(ctx, command_name=None):
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `freq` - Control data logging frequency
 • `ifconfig` - Show Raspberry Pi network information
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
@@ -209,6 +214,7 @@ Try `@meteorix help` for more information."""
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `freq` - Control data logging frequency
 • `ifconfig` - Show Raspberry Pi network information
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
@@ -230,6 +236,9 @@ Try `@meteorix help` for more information."""
 `@meteorix monitor enable` - Enable data collection monitoring
 `@meteorix monitor disable` - Disable data collection monitoring
 `@meteorix monitor status` - Check current monitoring status
+`@meteorix freq set 0` - Set to high frequency mode (32Hz)
+`@meteorix freq set 1` - Set to low frequency mode (1Hz)
+`@meteorix freq status` - Check current frequency mode
 `@meteorix ifconfig` - Show Pi network status
 `@meteorix top` - Show Pi system status"""
         await ctx.send(help_text)
@@ -361,6 +370,23 @@ async def monitor_command(ctx, action=None):
     output = f.getvalue()
     if output:
         await ctx.send(f"```\n{output}\n```")
+
+
+@bot.command(name="freq")
+@check_channel()
+async def freq_command(ctx, action=None, value=None):
+    """Control data logging frequency"""
+    if not action or action.lower() not in ["set", "status"]:
+        await ctx.send("❌ Please specify an action: `set` or `status`")
+        return
+
+    if action.lower() == "set" and (not value or value not in ["0", "1"]):
+        await ctx.send(
+            "❌ For 'set' action, please specify frequency value: '0' (1Hz) or '1' (32Hz)"
+        )
+        return
+
+    await run_cli_command(ctx, ["freq", action.lower()] + ([value] if value else []))
 
 
 @bot.command(name="ifconfig")
@@ -522,6 +548,40 @@ async def monitor_slash(interaction: discord.Interaction, action: str):
     await interaction.response.send_message(f"```\n{output}\n```")
 
 
+@bot.tree.command(name="freq", description="Control data logging frequency")
+@app_commands.describe(
+    action="Action to perform (set or status)",
+    value="Frequency value: 0 (1Hz) or 1 (32Hz). Only used with 'set' action",
+)
+@app_commands.choices(
+    action=[
+        app_commands.Choice(name="set", value="set"),
+        app_commands.Choice(name="status", value="status"),
+    ],
+    value=[
+        app_commands.Choice(name="1Hz (Low Frequency)", value="0"),
+        app_commands.Choice(name="32Hz (High Frequency)", value="1"),
+    ],
+)
+@app_commands.check(check_channel_slash)
+async def freq_slash(interaction: discord.Interaction, action: str, value: str = None):
+    # For status action, ignore any value and just run the status check
+    if action == "status":
+        await run_cli_command_slash(interaction, ["freq", "status"])
+        return
+
+    # For set action, require the value parameter
+    if action == "set" and value is None:
+        await interaction.response.send_message(
+            "❌ For 'set' action, please specify frequency value: '0' (1Hz) or '1' (32Hz)"
+        )
+        return
+
+    await run_cli_command_slash(
+        interaction, ["freq", action] + ([value] if value else [])
+    )
+
+
 @bot.tree.command(name="ifconfig", description="Show Raspberry Pi network information")
 @app_commands.check(check_channel_slash)
 async def ifconfig_slash(interaction: discord.Interaction):
@@ -602,6 +662,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `freq` - Control data logging frequency
 • `ifconfig` - Show Raspberry Pi network information
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
@@ -631,6 +692,7 @@ Try `/help` for more information."""
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `freq` - Control data logging frequency
 • `ifconfig` - Show Raspberry Pi network information
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
@@ -649,6 +711,9 @@ Try `/help` for more information."""
 `/monitor enable` - Enable data collection monitoring
 `/monitor disable` - Disable data collection monitoring
 `/monitor status` - Check current monitoring status
+`/freq set 0` - Set to high frequency mode (32Hz)
+`/freq set 1` - Set to low frequency mode (1Hz)
+`/freq status` - Check current frequency mode
 `/ifconfig` - Show Pi network status
 `/top` - Show Pi system status"""
             await interaction.followup.send(help_text)
@@ -683,6 +748,7 @@ Try `/help` for more information."""
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `freq` - Control data logging frequency
 • `ifconfig` - Show Raspberry Pi network information
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
@@ -701,6 +767,9 @@ Try `/help` for more information."""
 `/monitor enable` - Enable data collection monitoring
 `/monitor disable` - Disable data collection monitoring
 `/monitor status` - Check current monitoring status
+`/freq set 0` - Set to high frequency mode (32Hz)
+`/freq set 1` - Set to low frequency mode (1Hz)
+`/freq status` - Check current frequency mode
 `/ifconfig` - Show Pi network status
 `/top` - Show Pi system status"""
         await interaction.followup.send(help_text)
@@ -874,6 +943,7 @@ async def on_command_error(ctx, error):
 • `ml` - Run machine learning analysis
 • `plot <start_date> [end_date]` - Generate weather plots for specified dates
 • `monitor` - Monitor data collection status
+• `freq` - Control data logging frequency
 • `ifconfig` - Show Raspberry Pi network information
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot

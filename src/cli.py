@@ -15,6 +15,7 @@ from cli_components import (
     toggle_monitor,
     get_pi_ip,
     get_system_stats,
+    set_frequency,
 )
 
 import sys
@@ -31,7 +32,7 @@ sys.path.insert(0, str(SRC_DIR))
 def get_parser():
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, ifconfig, top, eda, ml, who}",
+        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, freq, ifconfig, top, eda, ml, who}",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -154,6 +155,21 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
                 ),
             ],
         },
+        "freq": {
+            "help": "Control data logging frequency",
+            "description": "Set or check the data logging frequency on the Raspberry Pi. Use '0' for high frequency (32Hz) or '1' for low frequency (1Hz).",
+            "args": [
+                ("action", {"choices": ["set", "status"], "help": "Action to perform"}),
+                (
+                    "value",
+                    {
+                        "nargs": "?",
+                        "choices": ["0", "1"],
+                        "help": "Frequency value: 0 (32Hz) or 1 (1Hz). Only used with 'set' action",
+                    },
+                ),
+            ],
+        },
         "ifconfig": {
             "help": "Show Raspberry Pi network information",
             "description": "Display network interface information from the weather station Raspberry Pi.",
@@ -220,6 +236,7 @@ def main():
         "monitor": lambda: toggle_monitor(args.action),
         "ifconfig": lambda: get_pi_ip(),
         "top": lambda: get_system_stats(),
+        "freq": lambda: handle_freq_command(args),
     }
 
     # Date-based command handlers
@@ -282,6 +299,15 @@ def handle_plot_command(start_date, end_date, save_locally=True):
                 rprint(f"[green]Plot saved as: {filepath}[/green]")
     except Exception as e:
         rprint(f"[red]Error creating plot: {str(e)}[/red]")
+
+
+def handle_freq_command(args):
+    """Handle frequency control command."""
+    if args.action == "set" and args.value is None:
+        rprint("[red]Error: Frequency value (0 or 1) required for 'set' action[/red]")
+        return
+
+    set_frequency(args.value if args.action == "set" else None)
 
 
 if __name__ == "__main__":

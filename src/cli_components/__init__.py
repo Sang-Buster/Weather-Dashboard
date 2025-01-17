@@ -13,6 +13,7 @@ from .plot import create_weather_plot
 from .monitor import toggle_monitor
 from .ifconfig import get_pi_ip
 from .top import get_system_stats
+from .freq import set_frequency
 
 __all__ = [
     "check_analysis_results",
@@ -32,4 +33,5 @@ __all__ = [
     "toggle_monitor",
     "get_pi_ip",
     "get_system_stats",
+    "set_frequency",
 ]
