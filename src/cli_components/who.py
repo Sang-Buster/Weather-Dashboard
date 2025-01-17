@@ -4,7 +4,7 @@ from rich import print as rprint
 def show_who_info():
     """Show information about the bot and its creators"""
     info = {
-        "Version": "0.0.1",
+        "Version": "1.0",
         "Created By": ["Sang Xing"],
         "Basic Usage": "Type `@meteorix help`",
         "Repository": "https://github.com/Sang-Buster/weather-dashboard",
