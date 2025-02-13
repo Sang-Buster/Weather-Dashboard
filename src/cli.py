@@ -1,28 +1,30 @@
-from cli_components import (
-    check_analysis_results,
-    delete_mongodb_collection,
-    run_eda_analysis,
-    run_ml_analysis,
-    get_available_date_range,
-    show_who_info,
-    show_head,
-    show_tail,
-    upload_csv_to_mongodb,
-    print_banner,
-    connect_to_mongodb,
-    spit_csv_data,
-    create_weather_plot,
-    toggle_monitor,
-    get_pi_ip,
-    get_system_stats,
-    set_frequency,
-)
-
-import sys
 import argparse
+import sys
 from datetime import datetime
+
+import streamlit as st
 from rich import print as rprint
 
+from cli_components import (
+    check_analysis_results,
+    connect_to_mongodb,
+    create_weather_plot,
+    delete_mongodb_collection,
+    get_available_date_range,
+    get_pi_ip,
+    get_system_stats,
+    handle_chat_command,
+    print_banner,
+    run_eda_analysis,
+    run_ml_analysis,
+    set_frequency,
+    show_head,
+    show_tail,
+    show_who_info,
+    spit_csv_data,
+    toggle_monitor,
+    upload_csv_to_mongodb,
+)
 from src import SRC_DIR
 
 # Add project root to Python path
@@ -32,7 +34,7 @@ sys.path.insert(0, str(SRC_DIR))
 def get_parser():
     parser = argparse.ArgumentParser(
         description="Weather data management CLI",
-        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, freq, ifconfig, top, eda, ml, who}",
+        usage="meteorix [-h] {upload, delete, check, head, tail, info, spit, plot, monitor, freq, ifconfig, top, chat, eda, ml, who}",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -178,6 +180,49 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
             "description": "Display system metrics including CPU, memory, disk usage and temperature.",
             "args": [],
         },
+        "chat": {
+            "help": "Chat with an LLM about weather data",
+            "description": """
+Chat with an AI assistant about weather data and analysis.
+
+Examples:
+  meteorix chat models                    List available AI models
+  meteorix chat "What's the temperature?"  Chat using default model
+  meteorix chat --model llama3.3:70b-instruct-q4_K_M "Analyze wind patterns"
+
+The assistant has access to recent weather data and can:
+• Analyze weather patterns and trends
+• Answer questions about current conditions
+• Provide insights about the data
+• Compare data across different time periods
+""",
+            "args": [
+                (
+                    "--model",
+                    {
+                        "default": st.secrets["ollama"]["model"],
+                        "metavar": "MODEL_NAME",
+                        "help": f"AI model to use (default: {st.secrets['ollama']['model']})",
+                    },
+                ),
+                (
+                    "action_or_prompt",
+                    {
+                        "nargs": "?",
+                        "metavar": "PROMPT|'models'",
+                        "help": "Your question/prompt, or 'models' to list available AI models",
+                    },
+                ),
+                (
+                    "remaining_prompt",
+                    {
+                        "nargs": "*",
+                        "help": argparse.SUPPRESS,  # Hide from help message
+                    },
+                ),
+            ],
+            "epilog": "Use 'meteorix chat models' to see available AI models",
+        },
         "eda": {
             "help": "Run exploratory data analysis",
             "description": "Perform exploratory data analysis including correlation analysis and PCA, then upload results to MongoDB.",
@@ -198,7 +243,11 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
     # Create subparsers from command configurations
     for cmd, config in commands.items():
         parser_obj = subparsers.add_parser(
-            cmd, help=config["help"], description=config["description"]
+            cmd,
+            help=config["help"],
+            description=config.get("description"),
+            epilog=config.get("epilog"),
+            formatter_class=argparse.RawDescriptionHelpFormatter,  # Preserve formatting
         )
         for arg_name, arg_config in config["args"]:
             parser_obj.add_argument(arg_name, **arg_config)
@@ -235,6 +284,7 @@ def main():
         "ifconfig": lambda: get_pi_ip(),
         "top": lambda: get_system_stats(),
         "freq": lambda: handle_freq_command(args),
+        "chat": lambda: handle_chat_command(args),
     }
 
     # Date-based command handlers

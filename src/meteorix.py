@@ -20,6 +20,10 @@ from cli_components.monitor import (  # noqa: E402
     check_data_freshness,
     get_monitor_config,
 )
+from cli_components import (  # noqa: E402
+    get_available_models,
+    handle_chat_command,
+)
 
 # Set up the bot with required intents
 intents = discord.Intents.default()
@@ -409,6 +413,56 @@ async def top(ctx):
     await run_cli_command(ctx, ["top"])
 
 
+@bot.command(name="chat")
+@check_channel()
+async def chat_command(ctx, *, prompt=None):
+    """Chat with the weather station AI assistant."""
+    if not prompt:
+        help_msg = (
+            "Please provide a question or prompt. Examples:\n"
+            '`meteorix chat "What\'s the temperature right now?"`\n'
+            '`meteorix chat "How was the weather last week?"`\n'
+            '`meteorix chat "Analyze weather from 2024_10_08 to 2024_10_10"`'
+        )
+        await ctx.send(help_msg)
+        return
+
+    try:
+        # Create args object similar to CLI args
+        class Args:
+            def __init__(self, prompt, model=None):
+                self.action_or_prompt = prompt
+                self.model = model
+                self.remaining_prompt = None
+
+        args = Args(prompt)
+
+        # Get the coroutine from handle_chat_command
+        coroutine = handle_chat_command(args)
+
+        # Send typing indicator while processing
+        async with ctx.typing():
+            # Await the coroutine
+            response = await coroutine
+
+            if response:
+                # Split long messages if needed
+                MAX_LENGTH = 2000
+                messages = [
+                    response[i : i + MAX_LENGTH]
+                    for i in range(0, len(response), MAX_LENGTH)
+                ]
+                for message in messages:
+                    await ctx.send(message)
+            else:
+                await ctx.send(
+                    "Sorry, I couldn't process your request. Please try again."
+                )
+
+    except Exception as e:
+        await ctx.send(f"Error: {str(e)}")
+
+
 # Slash commands
 @bot.tree.command(name="info", description="Show available date range")
 @app_commands.describe(month="Optional: Month to show statistics for (YYYY_MM)")
@@ -584,6 +638,67 @@ async def top_slash(interaction: discord.Interaction):
     await run_cli_command_slash(interaction, ["top"])
 
 
+@bot.tree.command(
+    name="chat", description="Chat with an AI about weather data analysis"
+)
+@app_commands.describe(
+    prompt="Your question about the weather data",
+    model=f"AI model to use (default: {st.secrets['ollama']['model']})",
+    date_range="Optional date range (e.g., from 2024_02_01 to 2024_02_14)",
+)
+@app_commands.choices(
+    model=[
+        app_commands.Choice(name=model_name, value=model_name)
+        for model_name in get_available_models()
+    ]
+)
+@app_commands.check(check_channel_slash)
+async def chat_slash(
+    interaction: discord.Interaction,
+    prompt: str,
+    model: str = None,
+    date_range: str = None,
+):
+    # Defer the response since it might take a while
+    await interaction.response.defer()
+
+    try:
+        # Create args object
+        class Args:
+            def __init__(self, prompt, model=None):
+                self.action_or_prompt = prompt
+                self.model = model
+                self.remaining_prompt = None
+
+        args = Args(prompt, model)
+
+        # Get and await the coroutine
+        coroutine = handle_chat_command(args)
+        response = await coroutine
+
+        if response:
+            # Split long messages if needed
+            MAX_LENGTH = 2000
+            messages = [
+                response[i : i + MAX_LENGTH]
+                for i in range(0, len(response), MAX_LENGTH)
+            ]
+
+            # Send first message as followup
+            await interaction.followup.send(messages[0])
+
+            # Send remaining messages if any
+            for message in messages[1:]:
+                await interaction.channel.send(message)
+        else:
+            await interaction.followup.send(
+                "Sorry, I couldn't process your request. Please try again."
+            )
+
+    except Exception as e:
+        await interaction.followup.send(f"Error: {str(e)}")
+
+
 VALID_COMMANDS = [
     "info",
     "upload",
@@ -601,10 +716,12 @@ VALID_COMMANDS = [
     "freq",
     "ifconfig",
     "top",
+    "chat",  # Add chat command
 ]
 
 
 def get_command_description(cmd):
+    """Get the description for a command."""
     descriptions = {
         "info": "Show available date range and file statistics",
         "upload": "Upload weather data to MongoDB",
@@ -622,6 +739,7 @@ def get_command_description(cmd):
         "freq": "Control data logging frequency (0=1Hz, 1=32Hz)",
         "ifconfig": "Show Raspberry Pi network information",
         "top": "Show Raspberry Pi system status",
+        "chat": "Chat with an AI about weather data analysis",  # Add chat description
     }
     return descriptions.get(cmd, "")
 

@@ -14,6 +14,7 @@ from .monitor import toggle_monitor
 from .ifconfig import get_pi_ip
 from .top import get_system_stats
 from .freq import set_frequency
+from .chat import handle_chat_command, get_available_models
 
 __all__ = [
     "check_analysis_results",
@@ -34,4 +35,6 @@ __all__ = [
     "get_pi_ip",
     "get_system_stats",
     "set_frequency",
+    "handle_chat_command",
+    "get_available_models",
 ]
