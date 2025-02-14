@@ -183,13 +183,13 @@ With a date (YYYY_MM_DD format): Shows the last 5 rows of that specific date."""
         },
         "chat": {
             "help": "Chat with an LLM about weather data",
-            "description": """
+            "description": f"""
 Chat with an AI assistant about weather data and analysis.
 
 Examples:
   meteorix chat models                    List available AI models
   meteorix chat "What's the temperature?"  Chat using default model
-  meteorix chat --model llama3.3:70b-instruct-q4_K_M "Analyze wind patterns"
+  meteorix chat --model {st.secrets["ollama"]["model"]} "Analyze wind patterns"
 
 The assistant has access to recent weather data and can:
 • Analyze weather patterns and trends

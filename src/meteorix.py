@@ -134,6 +134,7 @@ async def help_command(ctx, command_name=None):
 • `monitor <action>` - Monitor data collection status (action: enable, disable, status)
 • `freq <action>` - Control data logging frequency (action: 0=1Hz, 1=32Hz, status)
 • `ifconfig` - Show Raspberry Pi network information
+• `chat` - Chat with the weather station AI assistant
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
@@ -183,6 +184,7 @@ async def help_command(ctx, command_name=None):
 • `monitor <action>` - Monitor data collection status (action: enable, disable, status)
 • `freq <action>` - Control data logging frequency (action: 0=1Hz, 1=32Hz, status)
 • `ifconfig` - Show Raspberry Pi network information
+• `chat` - Chat with the weather station AI assistant
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
@@ -224,6 +226,7 @@ Try `@meteorix help` for more information."""
 • `monitor <action>` - Monitor data collection status (action: enable, disable, status)
 • `freq <action>` - Control data logging frequency (action: 0=1Hz, 1=32Hz, status)
 • `ifconfig` - Show Raspberry Pi network information
+• `chat` - Chat with the weather station AI assistant
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
@@ -654,25 +657,18 @@ async def top_slash(interaction: discord.Interaction):
 
 
 @bot.tree.command(
-    name="chat", description="Chat with an AI about weather data analysis"
+    name="chat",
+    description=f"Chat with an AI assistant about weather data analysis. Use /chat models to list available models. Default model: {st.secrets['ollama']['model']}",
 )
 @app_commands.describe(
-    prompt="Your question about the weather data",
+    prompt="Your question about weather data (or 'models' to list available models)",
     model=f"AI model to use (default: {st.secrets['ollama']['model']})",
-    date_range="Optional date range (e.g., from 2024_02_01 to 2024_02_14)",
-)
-@app_commands.choices(
-    model=[
-        app_commands.Choice(name=model_name, value=model_name)
-        for model_name in get_available_models()
-    ]
 )
 @app_commands.check(check_channel_slash)
 async def chat_slash(
     interaction: discord.Interaction,
     prompt: str,
     model: str = None,
-    date_range: str = None,
 ):
     # Defer the response since it might take a while
     await interaction.response.defer()
@@ -814,6 +810,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `monitor <action>` - Monitor data collection status (action: enable, disable, status)
 • `freq <action>` - Control data logging frequency (action: 0=1Hz, 1=32Hz, status)
 • `ifconfig` - Show Raspberry Pi network information
+• `chat` - Chat with the weather station AI assistant
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
@@ -878,6 +875,7 @@ async def help_slash(interaction: discord.Interaction, command_name: str = None)
 • `monitor <action>` - Monitor data collection status (action: enable, disable, status)
 • `freq <action>` - Control data logging frequency (action: 0=1Hz, 1=32Hz, status)
 • `ifconfig` - Show Raspberry Pi network information
+• `chat` - Chat with the weather station AI assistant
 • `top` - Show Raspberry Pi system status
 • `who` - Show information about the bot
 • `help` - Show this help message
