@@ -3,8 +3,11 @@ import select
 import socket
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Optional, List, Dict, Any
+import json
+import re
 
 import pandas as pd
 import paramiko
@@ -90,21 +93,10 @@ class SSHPortForward:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # Set a short timeout
                 s.settimeout(1)
-                result = s.connect_ex(("127.0.0.1", OLLAMA_PORT))
+                result = s.connect_ex((st.secrets["ollama"]["host"], OLLAMA_PORT))
                 return result == 0
         except socket.error:
             return False
-
-    def is_connection_active(self):
-        """Check if the SSH connection is still active"""
-        if self.transport and self.transport.is_active():
-            try:
-                # Try to use the connection
-                self.transport.send_ignore()
-                return True
-            except Exception:
-                return False
-        return False
 
     def start(self):
         """Start SSH port forwarding with jump host"""
@@ -170,7 +162,7 @@ class SSHPortForward:
             # Create local forwarding socket
             self.forward_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.forward_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            self.forward_socket.bind(("127.0.0.1", OLLAMA_PORT))
+            self.forward_socket.bind((st.secrets["ollama"]["host"], OLLAMA_PORT))
             self.forward_socket.listen(1)
 
             # Start forwarding in a separate thread
@@ -180,7 +172,9 @@ class SSHPortForward:
                         try:
                             client, addr = self.forward_socket.accept()
                             channel = self.transport.open_channel(
-                                "direct-tcpip", ("127.0.0.1", OLLAMA_PORT), addr
+                                "direct-tcpip",
+                                (st.secrets["ollama"]["host"], OLLAMA_PORT),
+                                addr,
                             )
                             if channel is None:
                                 client.close()
@@ -214,7 +208,7 @@ class SSHPortForward:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.settimeout(5)
-                    result = s.connect_ex(("127.0.0.1", OLLAMA_PORT))
+                    result = s.connect_ex((st.secrets["ollama"]["host"], OLLAMA_PORT))
                     if result == 0:
                         rprint("[green]Port forwarding verified and working[/green]")
                     else:
@@ -353,166 +347,6 @@ def get_latest_reading(csv_path):
     return None
 
 
-def get_recent_weather_data(days=7, start_date=None, end_date=None):
-    """Get weather data for analysis."""
-    try:
-        data_dir = Path(WEATHER_DATA_PATH)
-
-        # Get latest reading first
-        current_date = datetime.now()
-        today_str = current_date.strftime("%Y_%m_%d")
-        today_file = data_dir / f"{today_str}_weather_station_data.csv"
-        latest_reading = get_latest_reading(today_file) if today_file.exists() else None
-
-        # If specific dates are provided, use those
-        if start_date and end_date:
-            try:
-                start = datetime.strptime(start_date, "%Y_%m_%d")
-                end = datetime.strptime(end_date, "%Y_%m_%d")
-            except ValueError:
-                return "Error: Dates must be in YYYY_MM_DD format"
-        else:
-            # Otherwise use last N days
-            end = current_date
-            start = end - timedelta(days=days)
-
-        # Get list of CSV files
-        all_data = []
-        current = start
-        while current <= end:
-            date_str = current.strftime("%Y_%m_%d")
-            csv_path = data_dir / f"{date_str}_weather_station_data.csv"
-
-            if csv_path.exists():
-                try:
-                    df = pd.read_csv(csv_path)
-
-                    # Parse timestamps with microseconds
-                    df["datetime"] = pd.to_datetime(df["tNow"], format="mixed")
-                    df["hour"] = df["datetime"].dt.hour
-                    df["minute"] = df["datetime"].dt.minute
-                    df["interval"] = df["hour"] * 2 + (df["minute"] // 30)
-
-                    # Get stats for each 30-minute interval
-                    interval_stats = []
-                    for interval in range(48):  # 48 30-minute intervals in a day
-                        interval_data = df[df["interval"] == interval]
-                        if not interval_data.empty:
-                            hour = interval // 2
-                            minute = (interval % 2) * 30
-                            stats = {
-                                "time": f"{hour:02d}:{minute:02d}",
-                                "avg_temp_c": interval_data["Temp_C"].mean(),
-                                "min_temp_c": interval_data["Temp_C"].min(),
-                                "max_temp_c": interval_data["Temp_C"].max(),
-                                "avg_humidity": interval_data["Hum_RH"].mean(),
-                                "avg_pressure": interval_data["Press_Pa"].mean(),
-                                "avg_wind_speed": interval_data["3DSpeed_m_s"].mean()
-                                if "3DSpeed_m_s" in df.columns
-                                else 0,
-                                "records": len(interval_data),
-                            }
-                            interval_stats.append(stats)
-
-                    # Calculate wind directions if column exists
-                    dominant_direction = "N/A"
-                    if "Azimuth_deg" in df.columns:
-                        wind_directions = [
-                            categorize_wind_direction(deg) for deg in df["Azimuth_deg"]
-                        ]
-                        dominant_direction = get_dominant_wind_direction(
-                            wind_directions
-                        )
-
-                    # Daily statistics
-                    stats = {
-                        "date": date_str,
-                        "intervals": interval_stats,
-                        "avg_temp_c": df["Temp_C"].mean(),
-                        "max_temp_c": df["Temp_C"].max(),
-                        "min_temp_c": df["Temp_C"].min(),
-                        "avg_pressure": df["Press_Pa"].mean(),
-                        "avg_humidity": df["Hum_RH"].mean(),
-                        "avg_wind_speed": df["3DSpeed_m_s"].mean()
-                        if "3DSpeed_m_s" in df.columns
-                        else 0,
-                        "max_wind_speed": df["3DSpeed_m_s"].max()
-                        if "3DSpeed_m_s" in df.columns
-                        else 0,
-                        "dominant_wind_dir": dominant_direction,
-                        "records": len(df),
-                        "latest_reading": df.iloc[-1] if not df.empty else None,
-                    }
-                    all_data.append(stats)
-
-                except Exception as e:
-                    rprint(
-                        f"[yellow]Warning: Error reading {csv_path}: {str(e)}[/yellow]"
-                    )
-            else:
-                rprint(f"[yellow]Warning: No data file found for {date_str}[/yellow]")
-
-            current += timedelta(days=1)
-
-        if not all_data and not latest_reading:
-            return "No weather data available for the specified date range."
-
-        # Format the data summary
-        summary = ""
-
-        # Add latest reading if available
-        if latest_reading:
-            temp_f = celsius_to_fahrenheit(latest_reading["temp_c"])
-            wind_mph = mps_to_mph(latest_reading["wind_speed"])
-            summary += f"Latest Reading ({latest_reading['timestamp']}):\n"
-            summary += (
-                f"• Temperature: {temp_f:.1f}°F ({latest_reading['temp_c']:.1f}°C)\n"
-            )
-            summary += f"• Humidity: {latest_reading['humidity']:.1f}%\n"
-            summary += f"• Pressure: {latest_reading['pressure']:.1f} Pa\n"
-            if latest_reading["wind_speed"] > 0:
-                summary += f"• Wind: {wind_mph:.1f} mph ({latest_reading['wind_speed']:.1f} m/s) from {latest_reading['wind_dir']}\n"
-            summary += "\n"
-
-        # Add historical data
-        if all_data:
-            date_range = f"{start.strftime('%Y-%m-%d')} to {end.strftime('%Y-%m-%d')}"
-            summary += f"Historical Data ({date_range}):\n\n"
-
-            for day in all_data:
-                summary += f"Date: {day['date']} ({day['records']} measurements)\n"
-
-                # Add daily summary
-                avg_f = celsius_to_fahrenheit(day["avg_temp_c"])
-                min_f = celsius_to_fahrenheit(day["min_temp_c"])
-                max_f = celsius_to_fahrenheit(day["max_temp_c"])
-
-                summary += "Daily Summary:\n"
-                summary += f"• Temperature: {avg_f:.1f}°F ({day['avg_temp_c']:.1f}°C)\n"
-                summary += f"  - High: {max_f:.1f}°F ({day['max_temp_c']:.1f}°C)\n"
-                summary += f"  - Low: {min_f:.1f}°F ({day['min_temp_c']:.1f}°C)\n"
-                summary += f"• Pressure: {day['avg_pressure']:.1f} Pa\n"
-                summary += f"• Humidity: {day['avg_humidity']:.1f}%\n"
-
-                # Add 30-minute interval data (limited to prevent token overflow)
-                if day["intervals"]:
-                    summary += "\n30-Minute Intervals:\n"
-                    for interval in day["intervals"][:12]:  # Show first 6 hours
-                        temp_f = celsius_to_fahrenheit(interval["avg_temp_c"])
-                        summary += f"• {interval['time']}: {temp_f:.1f}°F ({interval['avg_temp_c']:.1f}°C), "
-                        summary += f"Humidity: {interval['avg_humidity']:.1f}%, "
-                        summary += f"Pressure: {interval['avg_pressure']:.1f} Pa\n"
-                    if len(day["intervals"]) > 12:
-                        summary += "  ... (remaining intervals omitted)\n"
-
-                summary += "\n"
-
-        return summary
-
-    except Exception as e:
-        return f"Error reading weather data: {str(e)}"
-
-
 def check_ollama_connection(retries=3, delay=1):
     """Check if we can connect to Ollama"""
     for i in range(retries):
@@ -574,151 +408,497 @@ def get_available_models() -> list[str]:
         ssh_forwarder.release()
 
 
-async def chat_with_llm(prompt: str, model: str = None) -> str:
-    """Chat with Ollama LLM model."""
+def get_available_dates() -> List[str]:
+    """Get list of available dates with weather data."""
     try:
-        # Acquire connection
-        ssh_forwarder.acquire()
+        data_dir = Path(WEATHER_DATA_PATH)
+        csv_files = list(data_dir.glob("*_weather_station_data.csv"))
+        dates = [f.stem.split("_")[0:3] for f in csv_files]
+        return ["_".join(date) for date in dates]
+    except Exception as e:
+        rprint(f"[red]Error getting available dates: {str(e)}[/red]")
+        return []
 
-        # Reduced wait time since connection should be ready
-        time.sleep(0.5)  # Reduced from 2 seconds
 
-        # Get weather data context
-        weather_context = get_recent_weather_data()
+def read_weather_data(date: str) -> Optional[Dict[str, Any]]:
+    """Read weather data for a specific date and return statistics."""
 
-        enhanced_prompt = f"""You are a professional meteorologist analyzing weather station data. Here is the weather data:
+    DEBUG = True
 
-{weather_context}
+    def debug_print(message: str, color: str = "blue"):
+        """Helper function for debug printing"""
+        if DEBUG:
+            rprint(f"[{color}]{message}[/{color}]")
 
-Please provide a comprehensive meteorological analysis, paying special attention to unusual patterns and weather events:
+    try:
+        file_path = Path(WEATHER_DATA_PATH) / f"{date}_weather_station_data.csv"
+        if not file_path.exists():
+            if DEBUG:
+                debug_print(f"File not found: {file_path}", "yellow")
+            return None
 
-1. Detailed Temperature Analysis:
-   • Hour-by-hour temperature progression
-   • Unusual temperature changes or anomalies
-   • Rapid temperature shifts and their implications
-   • Temperature inversions or unusual patterns
-   • Comparison with expected patterns
+        # Read CSV file
+        df = pd.read_csv(file_path)
+        df["tNow"] = pd.to_datetime(df["tNow"])
 
-2. Advanced Humidity & Pressure Analysis:
-   • Significant pressure changes indicating weather systems
-   • Unusual humidity patterns or sudden changes
-   • Combinations indicating:
-     - Storm development (rapid pressure drops + wind shifts)
-     - Frontal passages (temperature + pressure changes)
-     - Precipitation events (humidity + pressure patterns)
-     - Severe weather potential (unstable conditions)
+        if DEBUG:
+            debug_print(f"Read {len(df)} records from {file_path}", "blue")
 
-3. Wind Pattern Analysis:
-   • Sudden wind direction shifts
-   • Unusual gusting patterns
-   • Wind speed variations indicating:
-     - Storm approach
-     - Front passage
-     - Local weather effects
-   • Correlation with pressure/temperature changes
+        # Ensure data is sorted by time
+        df = df.sort_values("tNow")
 
-4. Weather Event Identification:
-   • Look for signatures of:
-     - Thunderstorms (rapid pressure drops, wind shifts, temperature drops)
-     - Cold/warm fronts (gradual pressure/temperature changes)
-     - Microbursts (sudden wind direction changes, temperature drops)
-     - Sea breezes (diurnal wind shifts)
-     - Local terrain effects
+        # Set the time index to start at midnight and end at 23:59:59
+        start_time = df["tNow"].dt.normalize().iloc[0]  # Get start of day
+        end_time = start_time + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
 
-5. Stability Analysis:
-   • Indicators of atmospheric instability
-   • Potential for severe weather development
-   • Air mass characteristics and changes
-   • Vertical temperature structure implications
+        # Resample to hourly intervals (24 hours)
+        df = df.set_index("tNow")
+        df = df.loc[start_time:end_time]  # Trim to exact day
 
-6. Unusual Pattern Detection:
-   • Identify any abnormal combinations of:
-     - Temperature + humidity + pressure
-     - Wind speed + direction + pressure
-     - Rapid changes in multiple parameters
-   • Compare with typical weather patterns
-   • Explain potential causes and implications
+        agg_dict = {
+            "Temp_C": ["mean", "min", "max"],
+            "SonicTemp_C": ["mean", "min", "max"],
+            "2dSpeed_m_s": ["mean", "min", "max"],
+            "3DSpeed_m_s": ["mean", "min", "max"],
+            "u_m_s": ["mean", "min", "max"],
+            "v_m_s": ["mean", "min", "max"],
+            "w_m_s": ["mean", "min", "max"],
+            "Azimuth_deg": "mean",
+            "Elev_deg": ["mean", "min", "max"],
+            "Press_Pa": ["mean", "min", "max"],
+            "Hum_RH": ["mean", "min", "max"],
+        }
 
-7. Impact Assessment:
-   • Practical implications of unusual patterns
-   • Potential hazards or concerns
-   • Expected duration of unusual conditions
-   • Recommendations based on conditions
+        # Resample with fixed 24-hour periods
+        df_hourly = df.resample(rule="h", closed="left", label="left").agg(agg_dict)
 
-Please analyze with:
-- Clear identification of unusual patterns
-- Explanation of why patterns are significant
-- Potential causes of unusual conditions
-- Implications for local weather
-- Safety considerations if applicable
-- Both metric and imperial measurements
-- Specific timestamps for significant changes
+        if DEBUG:
+            debug_print(f"Original records: {len(df)}", "blue")
+            debug_print(f"Resampled to {len(df_hourly)} hourly intervals", "blue")
+            debug_print(f"Time range: {df.index.min()} to {df.index.max()}", "blue")
 
-Based on this framework, please analyze:
+        # Helper function to safely convert to float
+        def safe_float(value):
+            try:
+                if pd.isna(value):
+                    return 0.0
+                if hasattr(value, "iloc"):
+                    return float(value.iloc[0])
+                return float(value)
+            except (TypeError, ValueError):
+                return 0.0
 
-{prompt}"""
-
-        messages = [
-            {
-                "role": "system",
-                "content": """You are MeteorologistGPT, a professional meteorologist created by Sang-Buster. You are:
-- A weather expert who identifies and explains unusual patterns
-- Trained in meteorological principles and data interpretation
-- Skilled at recognizing weather event signatures
-- Clear in explaining pattern significance and implications
-- Precise in describing cause-and-effect relationships
-- Proactive in highlighting potential weather hazards
-- Fluent in meteorological terminology
-- Practical in explaining weather implications
-- Exact with timestamps and measurements
-- Comfortable using both metric and imperial units
-
-Always sign your analysis with:
-"~ MeteorologistGPT, created by Sang-Buster"
-
-Remember to maintain a professional yet approachable tone while providing comprehensive weather analysis.""",
+        # Calculate statistics with safer float conversion
+        stats = {
+            "date": date,
+            "records": len(df),
+            "intervals": len(df_hourly),
+            "temperature": {
+                "mean": safe_float(df_hourly["Temp_C"]["mean"].mean()),
+                "min": safe_float(df_hourly["Temp_C"]["min"].min()),
+                "max": safe_float(df_hourly["Temp_C"]["max"].max()),
             },
-            {"role": "user", "content": enhanced_prompt},
-        ]
+            "sonic_temperature": {
+                "mean": safe_float(df_hourly["SonicTemp_C"]["mean"].mean()),
+                "min": safe_float(df_hourly["SonicTemp_C"]["min"].min()),
+                "max": safe_float(df_hourly["SonicTemp_C"]["max"].max()),
+            },
+            "wind": {
+                "speed_2d": {
+                    "mean": safe_float(df_hourly["2dSpeed_m_s"]["mean"].mean()),
+                    "min": safe_float(df_hourly["2dSpeed_m_s"]["min"].min()),
+                    "max": safe_float(df_hourly["2dSpeed_m_s"]["max"].max()),
+                },
+                "speed_3d": {
+                    "mean": safe_float(df_hourly["3DSpeed_m_s"]["mean"].mean()),
+                    "min": safe_float(df_hourly["3DSpeed_m_s"]["min"].min()),
+                    "max": safe_float(df_hourly["3DSpeed_m_s"]["max"].max()),
+                },
+                "components": {
+                    "u": {"mean": safe_float(df_hourly["u_m_s"]["mean"].mean())},
+                    "v": {"mean": safe_float(df_hourly["v_m_s"]["mean"].mean())},
+                    "w": {"mean": safe_float(df_hourly["w_m_s"]["mean"].mean())},
+                },
+                "direction": {
+                    "azimuth": {"mean": safe_float(df_hourly["Azimuth_deg"].mean())},
+                    "elevation": {
+                        "mean": safe_float(df_hourly["Elev_deg"]["mean"].mean()),
+                        "min": safe_float(df_hourly["Elev_deg"]["min"].min()),
+                        "max": safe_float(df_hourly["Elev_deg"]["max"].max()),
+                    },
+                },
+            },
+            "humidity": {
+                "mean": safe_float(df_hourly["Hum_RH"]["mean"].mean()),
+                "min": safe_float(df_hourly["Hum_RH"]["min"].min()),
+                "max": safe_float(df_hourly["Hum_RH"]["max"].max()),
+            },
+            "pressure": {
+                "mean": safe_float(df_hourly["Press_Pa"]["mean"].mean()),
+                "min": safe_float(df_hourly["Press_Pa"]["min"].min()),
+                "max": safe_float(df_hourly["Press_Pa"]["max"].max()),
+            },
+        }
 
-        # Initialize Ollama client
-        client = AsyncClient(host=f"http://{OLLAMA_HOST}:{OLLAMA_PORT}")
+        if DEBUG:
+            debug_print("Successfully processed weather data", "green")
 
-        # Use model from secrets if none provided
-        model = model or DEFAULT_MODEL
-
-        # Generate response with streaming
-        response_text = ""
-        async for part in await client.chat(
-            model=model, messages=messages, stream=True
-        ):
-            chunk = part["message"]["content"]
-            print(chunk, end="", flush=True)
-            response_text += chunk
-
-        print()  # New line after response
-        return response_text
+        return stats
 
     except Exception as e:
-        rprint(f"[red]Error connecting to Ollama: {str(e)}[/red]")
-        rprint(
-            "[yellow]Make sure Ollama is running and the model is installed.[/yellow]"
-        )
-        rprint(
-            f"[yellow]You can install the model with: 'ollama pull {model}'[/yellow]"
-        )
+        debug_print(f"Error reading weather data for {date}: {str(e)}", "red")
+        return None
+
+
+def get_mapped_dates(text: str) -> List[str]:
+    """Map date references to actual available dates."""
+    available_dates = get_available_dates()
+    if not available_dates:
+        return []
+
+    # Convert available dates to datetime objects for comparison
+    available_dates_dt = {
+        datetime.strptime(date, "%Y_%m_%d").replace(tzinfo=timezone.utc): date
+        for date in available_dates
+    }
+
+    # Get latest and earliest dates
+    latest_date = max(available_dates_dt.keys())
+
+    text_lower = text.lower()
+
+    # Month mappings (e.g., "october", "oct")
+    month_patterns = {
+        r"(?:january|jan)\s*(?:20)?\d{2}": 1,
+        r"(?:february|feb)\s*(?:20)?\d{2}": 2,
+        r"(?:march|mar)\s*(?:20)?\d{2}": 3,
+        r"(?:april|apr)\s*(?:20)?\d{2}": 4,
+        r"(?:may)\s*(?:20)?\d{2}": 5,
+        r"(?:june|jun)\s*(?:20)?\d{2}": 6,
+        r"(?:july|jul)\s*(?:20)?\d{2}": 7,
+        r"(?:august|aug)\s*(?:20)?\d{2}": 8,
+        r"(?:september|sep)\s*(?:20)?\d{2}": 9,
+        r"(?:october|oct)\s*(?:20)?\d{2}": 10,
+        r"(?:november|nov)\s*(?:20)?\d{2}": 11,
+        r"(?:december|dec)\s*(?:20)?\d{2}": 12,
+    }
+
+    # Time period mappings
+    time_mappings = {
+        "today": lambda: [latest_date],
+        "yesterday": lambda: [latest_date - timedelta(days=1)],
+        "this week": lambda: [
+            latest_date - timedelta(days=i)
+            for i in range(7)
+            if (latest_date - timedelta(days=i)) in available_dates_dt
+        ],
+        "last week": lambda: [
+            latest_date - timedelta(days=i)
+            for i in range(7, 14)
+            if (latest_date - timedelta(days=i)) in available_dates_dt
+        ],
+        "this month": lambda: [
+            d
+            for d in available_dates_dt.keys()
+            if d.year == latest_date.year and d.month == latest_date.month
+        ],
+        "last month": lambda: [
+            d
+            for d in available_dates_dt.keys()
+            if (d.year == latest_date.year and d.month == latest_date.month - 1)
+            or (
+                latest_date.month == 1
+                and d.year == latest_date.year - 1
+                and d.month == 12
+            )
+        ],
+    }
+
+    # Check for month references
+    for pattern, month in month_patterns.items():
+        if re.search(pattern, text_lower):
+            year_match = re.search(r"(?:20)?(\d{2})", text_lower)
+            if year_match:
+                year = 2000 + int(year_match.group(1))
+                return [
+                    available_dates_dt[d]
+                    for d in available_dates_dt.keys()
+                    if d.year == year and d.month == month
+                ]
+
+    # Check for time period mappings
+    for period, date_func in time_mappings.items():
+        if period in text_lower:
+            dates = date_func()
+            return [available_dates_dt[d] for d in dates]
+
+    # Check for YYYY_MM_DD format
+    date_matches = re.findall(r"\d{4}[-_]\d{2}[-_]\d{2}", text)
+    if date_matches:
+        normalized_dates = [d.replace("-", "_") for d in date_matches]
+        valid_dates = [d for d in normalized_dates if d in available_dates]
+        if valid_dates:
+            if len(valid_dates) >= 2:
+                start = datetime.strptime(valid_dates[0], "%Y_%m_%d")
+                end = datetime.strptime(valid_dates[-1], "%Y_%m_%d")
+                return [
+                    available_dates_dt[d]
+                    for d in available_dates_dt.keys()
+                    if start <= d <= end
+                ]
+            return valid_dates
+
+    return []
+
+
+def parse_date_reference(text: str) -> List[str]:
+    """Parse date references from text and return YYYY_MM_DD formatted dates."""
+    mapped_dates = get_mapped_dates(text)
+    if mapped_dates:
+        return sorted(mapped_dates)
+    return []
+
+
+async def chat_with_llm(prompt: str, model: str = None) -> str:
+    """Chat with Ollama LLM model with structured function calling."""
+    # Debug flag - set to False to disable debug messages
+    DEBUG = True
+
+    def debug_print(message: str, color: str = "blue"):
+        """Helper function for debug printing"""
+        if DEBUG:
+            rprint(f"[{color}]{message}[/{color}]")
+
+    try:
+        ssh_forwarder.acquire()
+        time.sleep(0.5)
+
+        system_prompt = """You are Meteorix, a professional meteorologist bot created by Sang-Buster. 
+You have access to weather station data through functions.
+
+IMPORTANT: All dates must be in YYYY_MM_DD format with underscores (not hyphens).
+For example: 2024_10_08 (correct) vs 2024-10-08 (incorrect)
+
+Available weather metrics:
+- Temperature (Temp_C, SonicTemp_C)
+- Wind (2dSpeed_m_s, 3DSpeed_m_s, u_m_s, v_m_s, w_m_s)
+- Wind Direction (Azimuth_deg: 0-360°, Elev_deg: -60° to +60°)
+- Humidity (Hum_RH)
+- Pressure (Press_Pa)
+
+When analyzing weather data, follow these steps:
+1. First output a JSON object with your data requirements:
+   For all requests, use this exact format:
+   {{"function": "get_weather_data", "parameters": {{
+       "date_type": "specific"|"range"|"relative",
+       "dates": ["YYYY_MM_DD"] or ["YYYY_MM_DD", "YYYY_MM_DD", ...],
+       "date_description": "user's request",
+       "metrics": [
+           "temperature",
+           "sonic_temperature",
+           "wind_speed_2d",
+           "wind_speed_3d",
+           "wind_components",
+           "wind_direction",
+           "humidity",
+           "pressure"
+           ]
+   }}}}
+
+2. After receiving the data, provide a detailed analysis including:
+   - Temperature analysis (both regular and sonic, in °C and °F)
+   - Wind analysis:
+     * 2D and 3D wind speeds (in m/s and mph)
+     * Wind components (u, v, w)
+     * Wind direction (azimuth and elevation angles)
+   - Humidity levels and their implications
+   - Pressure readings and their meaning
+   - Notable patterns or extreme values
+   - General weather conditions summary
+
+Remember to:
+- Always use YYYY_MM_DD format with underscores
+- Convert units appropriately (°C to °F, m/s to mph, Pa to hPa)
+- Explain what the values mean for everyday activities
+- Provide context about the weather conditions
+- Always sign your analysis with "~ Meteorix | Created by Sang-Buster"
+"""
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ]
+
+        client = AsyncClient(host=f"http://{OLLAMA_HOST}:{OLLAMA_PORT}")
+        model = model or DEFAULT_MODEL
+
+        response_text = ""
+        data_context = ""
+
+        try:
+            # Step 1: Get the function call
+            debug_print("Getting function call...", "yellow")
+            response = await client.chat(model=model, messages=messages)
+
+            if not response or not hasattr(response, "message"):
+                debug_print("Error: Invalid response from Ollama", "red")
+                return None
+
+            initial_response = response.message.content
+            if DEBUG:
+                debug_print("Raw response:", "blue")
+                debug_print(initial_response, "blue")
+
+            try:
+                # Extract JSON from response (it might contain extra text)
+                json_match = re.search(r"\{.*\}", initial_response, re.DOTALL)
+                if not json_match:
+                    debug_print("No JSON found in response", "red")
+                    return "I apologize, but I couldn't parse the weather request."
+
+                json_str = json_match.group(0)
+                func_call = json.loads(json_str)
+
+                if DEBUG:
+                    debug_print("Parsed JSON:", "blue")
+                    debug_print(json.dumps(func_call, indent=2), "blue")
+
+                # Step 2: Process function call and get weather data
+                if isinstance(func_call, dict) and "function" in func_call:
+                    debug_print("Processing function call...", "yellow")
+                    params = func_call["parameters"]
+
+                    # Parse dates based on date_type
+                    if params["date_type"] == "range":
+                        # For range, get all dates between start and end
+                        dates = []
+                        if (
+                            isinstance(params["dates"], list)
+                            and len(params["dates"]) >= 2
+                        ):
+                            start_date = params["dates"][0].replace("-", "_")
+                            end_date = params["dates"][-1].replace("-", "_")
+                            debug_print(
+                                f"Date range: {start_date} to {end_date}", "yellow"
+                            )
+
+                            # Convert to datetime for comparison
+                            start_dt = datetime.strptime(start_date, "%Y_%m_%d")
+                            end_dt = datetime.strptime(end_date, "%Y_%m_%d")
+
+                            # Generate all dates in range
+                            current_dt = start_dt
+                            while current_dt <= end_dt:
+                                dates.append(current_dt.strftime("%Y_%m_%d"))
+                                current_dt += timedelta(days=1)
+                    elif params["date_type"] == "relative":
+                        # For relative dates, use parse_date_reference
+                        dates = parse_date_reference(params["date_description"])
+                    else:
+                        # For specific dates, normalize format
+                        dates = [d.replace("-", "_") for d in params["dates"]]
+
+                    debug_print(f"Parsed dates: {dates}")
+
+                    # Get data for the dates
+                    available_dates = get_available_dates()
+                    for date in dates:
+                        if date in available_dates:
+                            data = read_weather_data(date)
+                            if data:
+                                data_context += f"\nData for {date}:\n"
+                                if DEBUG:
+                                    debug_print(
+                                        f"\nProcessed weather data for {date}:", "blue"
+                                    )
+                                    debug_print(json.dumps(data, indent=2), "blue")
+                                data_context += json.dumps(data, indent=2)
+                                data_context += "\n"
+                                debug_print(f"Got data for date {date}")
+
+                    # Step 3: Get weather analysis
+                    if data_context:
+                        debug_print(
+                            "Got weather data, requesting analysis...", "yellow"
+                        )
+
+                        # Create analysis messages
+                        analysis_messages = [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": prompt},
+                            {"role": "assistant", "content": json.dumps(func_call)},
+                            {
+                                "role": "user",
+                                "content": f"""Here is the requested weather data:
+{data_context}
+
+Please provide a detailed analysis of this weather data including:
+1. Temperature analysis (both °C and °F)
+2. Humidity levels and their implications
+3. Wind conditions (speed and direction)
+4. Pressure readings and their meaning
+5. Overall weather summary
+
+Remember to explain what these conditions mean for daily activities and sign with "~ Meteorix | Created by Sang-Buster".""",
+                            },
+                        ]
+
+                        # Get the analysis
+                        debug_print("Getting analysis...", "yellow")
+                        try:
+                            analysis_response = await client.chat(
+                                model=model, messages=analysis_messages
+                            )
+
+                            if analysis_response and hasattr(
+                                analysis_response, "message"
+                            ):
+                                response_text = analysis_response.message.content
+                                if response_text and response_text.strip():
+                                    debug_print("Analysis complete", "green")
+                                    print("\n" + response_text + "\n")
+                                else:
+                                    debug_print(
+                                        "Error: Empty response from analysis", "red"
+                                    )
+                                    return (
+                                        "I apologize, but the analysis returned empty."
+                                    )
+                            else:
+                                debug_print("Error: Invalid analysis response", "red")
+                                return "I apologize, but I couldn't analyze the weather data."
+                        except Exception as e:
+                            debug_print(f"Error during analysis: {str(e)}", "red")
+                            return f"An error occurred during analysis: {str(e)}"
+
+                    else:
+                        debug_print(
+                            "No weather data found for the requested dates", "red"
+                        )
+                        return "I apologize, but I couldn't find any weather data for the requested dates."
+
+            except json.JSONDecodeError:
+                debug_print("Not a function call, returning direct response", "yellow")
+                response_text = initial_response
+                print(response_text)
+
+            return response_text or "I apologize, but I couldn't generate a response."
+
+        except Exception as e:
+            debug_print(f"Error during chat: {str(e)}", "red")
+            return f"An error occurred: {str(e)}"
+
+    except Exception as e:
+        debug_print(f"Error connecting to Ollama: {str(e)}", "red")
         return None
     finally:
-        # Release connection
         ssh_forwarder.release()
 
 
 def handle_chat_command(args):
     """Handle the chat command with arguments."""
-
     # Handle 'chat models' subcommand
     if args.action_or_prompt == "models":
-        # Get and display available models
         available_models = get_available_models()
         rprint("\n[bold]Available Models:[/bold]")
         for model in available_models:
@@ -726,12 +906,8 @@ def handle_chat_command(args):
         rprint('\nUse with: meteorix chat --model <model_name> "your prompt"\n')
         return
 
-    # Parse date range if provided
-    start_date = None
-    end_date = None
-    prompt = ""
-
     # Combine all prompt parts
+    prompt = ""
     if isinstance(args.action_or_prompt, list):
         prompt = " ".join(args.action_or_prompt)
     elif args.action_or_prompt:
@@ -739,56 +915,18 @@ def handle_chat_command(args):
     if hasattr(args, "remaining_prompt") and args.remaining_prompt:
         prompt += " " + " ".join(args.remaining_prompt)
 
-    # Look for date range in prompt
-    if prompt:
-        import re
-
-        # Support multiple date range formats
-        date_patterns = [
-            r"from (\d{4}_\d{2}_\d{2}) to (\d{4}_\d{2}_\d{2})",  # from YYYY_MM_DD to YYYY_MM_DD
-            r"between (\d{4}_\d{2}_\d{2}) and (\d{4}_\d{2}_\d{2})",  # between YYYY_MM_DD and YYYY_MM_DD
-            r"(\d{4}_\d{2}_\d{2}) to (\d{4}_\d{2}_\d{2})",  # YYYY_MM_DD to YYYY_MM_DD
-        ]
-
-        for pattern in date_patterns:
-            match = re.search(pattern, prompt)
-            if match:
-                start_date = match.group(1)
-                end_date = match.group(2)
-                # Remove the date range from the prompt
-                prompt = re.sub(pattern, "", prompt).strip()
-                break
-
     # Regular chat command handling
     if not prompt:
         rprint("[red]Error: Please provide a prompt for the chat.[/red]")
         rprint("[yellow]Usage examples:[/yellow]")
         rprint('  meteorix chat "How\'s the weather today?"')
-        rprint('  meteorix chat "Analyze weather from 2024_10_08 to 2024_10_10"')
-        rprint('  meteorix chat "Show data between 2024_10_08 and 2024_10_10"')
+        rprint('  meteorix chat "What was the weather like yesterday?"')
+        rprint('  meteorix chat "Show me the weather for last week"')
         rprint("[yellow]To see available models: `meteorix chat models`[/yellow]")
         return
 
-    # Get weather data with optional date range
-    weather_context = get_recent_weather_data(
-        days=7,  # Default to last 7 days if no date range specified
-        start_date=start_date,
-        end_date=end_date,
-    )
-
-    # Create enhanced prompt with clearer instructions
-    enhanced_prompt = f"""You are a weather station assistant. Here is the weather data:
-
-{weather_context}
-
-Note: This data represents all available measurements for the requested period. If data is missing or from a different time period, please inform the user.
-
-Based on this data, please answer the following question:
-
-{prompt}"""
-
-    # Instead of asyncio.run(), return the coroutine
-    return chat_with_llm(enhanced_prompt, args.model)
+    # Return the chat coroutine
+    return chat_with_llm(prompt, args.model)
 
 
 async def run_cli_command(ctx, args):

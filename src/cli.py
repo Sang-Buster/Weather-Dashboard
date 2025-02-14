@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import sys
 from datetime import datetime
 
@@ -255,7 +256,8 @@ The assistant has access to recent weather data and can:
     return parser
 
 
-def main():
+async def async_main():
+    """Async main function for commands that need async support."""
     # Only print banner if not using spit or plot command
     if len(sys.argv) > 1 and sys.argv[1] not in ["spit"]:
         print_banner()
@@ -264,8 +266,13 @@ def main():
     args = parser.parse_args()
     db = connect_to_mongodb()
 
-    # Command handlers
-    handlers = {
+    # Separate async and non-async command handlers
+    async_handlers = {
+        "chat": lambda: handle_chat_command(args),
+        # Add other async commands here if needed
+    }
+
+    regular_handlers = {
         "who": lambda: show_who_info(),
         "check": lambda: check_analysis_results(db),
         "delete": lambda: delete_mongodb_collection(
@@ -284,7 +291,6 @@ def main():
         "ifconfig": lambda: get_pi_ip(),
         "top": lambda: get_system_stats(),
         "freq": lambda: handle_freq_command(args),
-        "chat": lambda: handle_chat_command(args),
     }
 
     # Date-based command handlers
@@ -297,9 +303,16 @@ def main():
     }
 
     try:
-        if args.command in handlers:
-            handlers[args.command]()
+        if args.command in async_handlers:
+            # Handle async commands
+            result = async_handlers[args.command]()
+            if result is not None:  # Only await if we got a coroutine
+                await result
+        elif args.command in regular_handlers:
+            # Handle regular synchronous commands
+            regular_handlers[args.command]()
         elif args.command in date_handlers:
+            # Handle date-based commands
             handle_date_command(args, date_handlers[args.command])
     except KeyboardInterrupt:
         rprint("\n[yellow]Operation cancelled by user.[/yellow]")
@@ -352,6 +365,67 @@ def handle_plot_command(start_date, end_date, save_locally=True):
 def handle_freq_command(args):
     """Handle frequency control command."""
     set_frequency(None if args.action == "status" else args.action)
+
+
+def main():
+    """Main entry point that handles both async and sync commands."""
+    if len(sys.argv) > 1 and sys.argv[1] == "chat":
+        # Run async main for chat command
+        asyncio.run(async_main())
+    else:
+        # Run sync main for other commands
+        if len(sys.argv) > 1 and sys.argv[1] not in ["spit"]:
+            print_banner()
+
+        parser = get_parser()
+        args = parser.parse_args()
+        db = connect_to_mongodb()
+
+        try:
+            # Handle regular commands
+            if args.command == "chat":
+                rprint("[red]Error: Chat command must be run with async support[/red]")
+                return
+
+            handlers = {
+                "who": lambda: show_who_info(),
+                "check": lambda: check_analysis_results(db),
+                "delete": lambda: delete_mongodb_collection(
+                    db,
+                    args.start_date if hasattr(args, "start_date") else None,
+                    args.end_date if hasattr(args, "end_date") else None,
+                ),
+                "eda": lambda: run_eda_analysis(db),
+                "ml": lambda: run_ml_analysis(db),
+                "info": lambda: get_available_date_range(
+                    args.month if hasattr(args, "month") else None
+                ),
+                "head": lambda: show_head(args.date if hasattr(args, "date") else None),
+                "tail": lambda: show_tail(args.date if hasattr(args, "date") else None),
+                "monitor": lambda: toggle_monitor(args.action),
+                "ifconfig": lambda: get_pi_ip(),
+                "top": lambda: get_system_stats(),
+                "freq": lambda: handle_freq_command(args),
+            }
+
+            date_handlers = {
+                "upload": lambda start, end: upload_csv_to_mongodb(start, end, db),
+                "spit": lambda start, end: sys.stdout.write(
+                    spit_csv_data(start, end)[1].getvalue()
+                ),
+                "plot": lambda start, end: handle_plot_command(
+                    start, end, save_locally=True
+                ),
+            }
+
+            if args.command in handlers:
+                handlers[args.command]()
+            elif args.command in date_handlers:
+                handle_date_command(args, date_handlers[args.command])
+        except KeyboardInterrupt:
+            rprint("\n[yellow]Operation cancelled by user.[/yellow]")
+        except Exception as e:
+            rprint(f"[red]Error: {str(e)}[/red]")
 
 
 if __name__ == "__main__":

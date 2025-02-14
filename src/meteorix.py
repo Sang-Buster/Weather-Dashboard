@@ -437,27 +437,42 @@ async def chat_command(ctx, *, prompt=None):
 
         args = Args(prompt)
 
+        # Special handling for 'models' subcommand
+        if prompt.strip().lower() == "models":
+            # Get available models
+            available_models = get_available_models()
+
+            # Format the response
+            response = "**Available Models:**\n"
+            for model in available_models:
+                response += f"• {model}\n"
+            response += '\nUse with: `meteorix chat --model <model_name> "your prompt"`'
+
+            await ctx.send(response)
+            return
+
         # Get the coroutine from handle_chat_command
         coroutine = handle_chat_command(args)
 
         # Send typing indicator while processing
         async with ctx.typing():
-            # Await the coroutine
-            response = await coroutine
+            # Only await if it's a coroutine
+            if coroutine is not None:
+                response = await coroutine
 
-            if response:
-                # Split long messages if needed
-                MAX_LENGTH = 2000
-                messages = [
-                    response[i : i + MAX_LENGTH]
-                    for i in range(0, len(response), MAX_LENGTH)
-                ]
-                for message in messages:
-                    await ctx.send(message)
-            else:
-                await ctx.send(
-                    "Sorry, I couldn't process your request. Please try again."
-                )
+                if response:
+                    # Split long messages if needed
+                    MAX_LENGTH = 2000
+                    messages = [
+                        response[i : i + MAX_LENGTH]
+                        for i in range(0, len(response), MAX_LENGTH)
+                    ]
+                    for message in messages:
+                        await ctx.send(message)
+                else:
+                    await ctx.send(
+                        "Sorry, I couldn't process your request. Please try again."
+                    )
 
     except Exception as e:
         await ctx.send(f"Error: {str(e)}")
@@ -663,6 +678,20 @@ async def chat_slash(
     await interaction.response.defer()
 
     try:
+        # Special handling for 'models' subcommand
+        if prompt.strip().lower() == "models":
+            # Get available models
+            available_models = get_available_models()
+
+            # Format the response
+            response = "**Available Models:**\n"
+            for model in available_models:
+                response += f"• {model}\n"
+            response += '\nUse with: `meteorix chat --model <model_name> "your prompt"`'
+
+            await interaction.followup.send(response)
+            return
+
         # Create args object
         class Args:
             def __init__(self, prompt, model=None):
@@ -674,22 +703,29 @@ async def chat_slash(
 
         # Get and await the coroutine
         coroutine = handle_chat_command(args)
-        response = await coroutine
 
-        if response:
-            # Split long messages if needed
-            MAX_LENGTH = 2000
-            messages = [
-                response[i : i + MAX_LENGTH]
-                for i in range(0, len(response), MAX_LENGTH)
-            ]
+        # Only await if it's a coroutine
+        if coroutine is not None:
+            response = await coroutine
 
-            # Send first message as followup
-            await interaction.followup.send(messages[0])
+            if response:
+                # Split long messages if needed
+                MAX_LENGTH = 2000
+                messages = [
+                    response[i : i + MAX_LENGTH]
+                    for i in range(0, len(response), MAX_LENGTH)
+                ]
 
-            # Send remaining messages if any
-            for message in messages[1:]:
-                await interaction.channel.send(message)
+                # Send first message as followup
+                await interaction.followup.send(messages[0])
+
+                # Send remaining messages if any
+                for message in messages[1:]:
+                    await interaction.channel.send(message)
+            else:
+                await interaction.followup.send(
+                    "Sorry, I couldn't process your request. Please try again."
+                )
         else:
             await interaction.followup.send(
                 "Sorry, I couldn't process your request. Please try again."
