@@ -59,43 +59,55 @@ def get_latest_data_time() -> Optional[datetime]:
         if not csv_files:
             return None
 
-        latest_file = max(csv_files)
+        # Sort files by name in descending order to check newest first
+        sorted_files = sorted(csv_files, reverse=True)
 
-        # Use tail command to get last line reliably
-        with open(latest_file, "rb") as f:
+        # Try each file until we find valid data
+        for latest_file in sorted_files:
             try:
-                f.seek(-2, os.SEEK_END)
-                while f.read(1) != b"\n":
-                    f.seek(-2, os.SEEK_CUR)
-            except OSError:
-                f.seek(0)
-            last_line = f.readline().decode().strip()
+                with open(latest_file, "rb") as f:
+                    # Check if file has content beyond header
+                    first_line = f.readline().decode().strip()
+                    if first_line == "tNow":  # Header only
+                        if len(f.readline().strip()) == 0:  # Empty after header
+                            continue  # Try next file
 
-        if not last_line:
-            return None
+                    # Seek to end to get last line
+                    f.seek(-2, os.SEEK_END)
+                    while f.read(1) != b"\n":
+                        f.seek(-2, os.SEEK_CUR)
+                    last_line = f.readline().decode().strip()
 
-        # Get timestamp from first column
-        timestamp_str = last_line.split(",")[0]
-        if timestamp_str == "tNow":  # Skip header row
-            return None
+                if (
+                    not last_line or last_line == "tNow"
+                ):  # Skip empty files or header-only files
+                    continue
 
-        # Try parsing with different formats
-        try:
-            # Try with microseconds first
-            return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f")
-        except ValueError:
-            try:
-                # Try without microseconds
-                return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
-            except ValueError:
-                # Handle decimal seconds
-                base_str = timestamp_str.split(".")[0]
-                decimal_str = (
-                    timestamp_str.split(".")[1] if "." in timestamp_str else "0"
-                )
-                base_time = datetime.strptime(base_str, "%Y-%m-%d %H:%M:%S")
-                microseconds = int(float("0." + decimal_str) * 1000000)
-                return base_time.replace(microsecond=microseconds)
+                # Get timestamp from first column
+                timestamp_str = last_line.split(",")[0]
+
+                # Try parsing with different formats
+                try:
+                    # Try with microseconds first
+                    return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f")
+                except ValueError:
+                    try:
+                        # Try without microseconds
+                        return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                    except ValueError:
+                        # Handle decimal seconds
+                        base_str = timestamp_str.split(".")[0]
+                        decimal_str = (
+                            timestamp_str.split(".")[1] if "." in timestamp_str else "0"
+                        )
+                        base_time = datetime.strptime(base_str, "%Y-%m-%d %H:%M:%S")
+                        microseconds = int(float("0." + decimal_str) * 1000000)
+                        return base_time.replace(microsecond=microseconds)
+
+            except (OSError, IndexError):
+                continue  # Try next file if there's an error with current file
+
+        return None  # Return None if no valid data found in any file
 
     except Exception as e:
         rprint(f"[red]Error checking latest data: {str(e)}[/red]")
