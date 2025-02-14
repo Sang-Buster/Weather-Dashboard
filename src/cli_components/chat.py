@@ -685,7 +685,7 @@ Remember to:
 - Convert units appropriately (°C to °F, m/s to mph, Pa to hPa)
 - Explain what the values mean for everyday activities
 - Provide context about the weather conditions
-- Always sign your analysis with "🌦️[Meteorix](https://github.com/Sang-Buster/weather-dashboard)🌦️ | Created by 😎[Sang-Buster](https://github.com/Sang-Buster)😎"
+- Always sign your analysis with "🌦️[Meteorix](https://github.com/Sang-Buster/weather-dashboard)🌦️ | 😎[Sang-Buster](https://github.com/Sang-Buster)😎"
 """
 
         messages = [
@@ -764,7 +764,7 @@ Please provide a concise but insightful analysis of this weather data. Focus on:
 Keep the analysis natural and flowing, avoiding bullet-point lists of raw data. Focus on telling the weather "story" and highlight what's most important for people to know.
 
 Remember to analyze the hourly changes since we have 24 data points per day, but only mention specific hours when they're significant.
-Sign with "🌦️[Meteorix](https://github.com/Sang-Buster/weather-dashboard)🌦️ | Created by 😎[Sang-Buster](https://github.com/Sang-Buster)😎".""",
+Sign with "🌦️[Meteorix](https://github.com/Sang-Buster/weather-dashboard)🌦️ | 😎[Sang-Buster](https://github.com/Sang-Buster)😎".""",
                         },
                     ]
 
