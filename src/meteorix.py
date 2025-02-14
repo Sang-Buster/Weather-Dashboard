@@ -658,7 +658,7 @@ async def top_slash(interaction: discord.Interaction):
 
 @bot.tree.command(
     name="chat",
-    description=f"Chat with an AI assistant about weather data analysis. Use /chat models to list available models. Default model: {st.secrets['ollama']['model']}",
+    description="Chat with the weather station AI assistant. Use /chat models to list available models.",
 )
 @app_commands.describe(
     prompt="Your question about weather data (or 'models' to list available models)",
