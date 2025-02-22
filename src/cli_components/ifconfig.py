@@ -2,7 +2,6 @@ import paramiko
 from rich import print as rprint
 import socket
 import streamlit as st
-from pathlib import Path
 from threading import Lock
 
 
@@ -78,12 +77,8 @@ def find_pi_address():
     """Try use direct IP connection to find the Raspberry Pi's address"""
     try:
         rprint("[yellow]Trying direct IP connection...[/yellow]")
-        # Read IP from file instead of hardcoding
-        ip_file = Path("/var/tmp/wx/last_ip.txt")
-        if ip_file.exists():
-            address = ip_file.read_text().strip()
-        else:
-            return None
+        # Get IP from Streamlit secrets instead of file
+        address = st.secrets["weatherstation"]["ip"]
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(2)
