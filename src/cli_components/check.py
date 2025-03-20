@@ -5,9 +5,9 @@ from datetime import datetime, timedelta
 
 def check_analysis_results(db):
     """Check contents of analysis collections"""
-    rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+    rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
     rprint("[bold green]Analysis Collections Status[/bold green]")
-    rprint(f"[bold blue]{'='*60}[/bold blue]\n")
+    rprint(f"[bold blue]{'=' * 60}[/bold blue]\n")
 
     # First print all collection stats
     for collection_name in ["weather_data", "eda_results", "pca_results", "ml_results"]:

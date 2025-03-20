@@ -1,10 +1,14 @@
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 'v0.8.2'
+  rev: 'v0.11.0'
   hooks:
     - id: ruff
       args: [--fix]
+      name: ruff (check and fix)
+      always_run: true
     - id: ruff-format
+      name: ruff (format)
+      always_run: true
 
 - repo: local
   hooks:
@@ -13,3 +17,4 @@ repos:
       entry: python .pre-commit_msg_template.py
       language: python
       stages: [commit-msg]
+      always_run: true

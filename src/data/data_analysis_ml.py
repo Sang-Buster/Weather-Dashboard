@@ -56,7 +56,7 @@ def evaluate_with_cv(X, y, model_name, model, n_splits=5):
         return {
             "accuracy": 1.0,
             "roc_auc": 0.5,
-            "class_distribution": f"Class 0: {sum(y==0)}, Class 1: {sum(y==1)}",
+            "class_distribution": f"Class 0: {sum(y == 0)}, Class 1: {sum(y == 1)}",
         }
 
     cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
@@ -68,8 +68,10 @@ def evaluate_with_cv(X, y, model_name, model, n_splits=5):
         y_train, y_test = y[train_idx], y[test_idx]
 
         # Print class distribution for each fold
-        train_dist = f"Train - Class 0: {sum(y_train==0)}, Class 1: {sum(y_train==1)}"
-        test_dist = f"Test - Class 0: {sum(y_test==0)}, Class 1: {sum(y_test==1)}"
+        train_dist = (
+            f"Train - Class 0: {sum(y_train == 0)}, Class 1: {sum(y_train == 1)}"
+        )
+        test_dist = f"Test - Class 0: {sum(y_test == 0)}, Class 1: {sum(y_test == 1)}"
         print(f"\nFold {fold}:")
         print(f"Training set distribution: {train_dist}")
         print(f"Test set distribution: {test_dist}")
@@ -221,7 +223,7 @@ def plot_predictions_timeseries(
     ]:
         n_positive = np.sum(preds == 1)
         print(
-            f"{name} positive predictions: {n_positive} ({n_positive/len(preds)*100:.2f}%)"
+            f"{name} positive predictions: {n_positive} ({n_positive / len(preds) * 100:.2f}%)"
         )
 
     ms_to_mph = 2.23694

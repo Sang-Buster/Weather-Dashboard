@@ -123,9 +123,9 @@ def get_pi_ip():
                 rprint(f"[yellow]Warning when running {cmd}: {error}[/yellow]")
 
         # Parse and display results
-        rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+        rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
         rprint("[bold green]Raspberry Pi Network Status[/bold green]")
-        rprint(f"[bold blue]{'='*60}[/bold blue]\n")
+        rprint(f"[bold blue]{'=' * 60}[/bold blue]\n")
 
         # Show hostname resolution method
         rprint(f"[yellow]Current Address:[/yellow] {pi_address}")
@@ -203,7 +203,7 @@ def get_pi_ip():
                     gateway = line.split("via")[1].split()[0]
                     rprint(f"  • Default Gateway: {gateway}")
 
-        rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+        rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
         return True
 
     except Exception as e:

@@ -59,9 +59,9 @@ def connect_to_mongodb() -> Any:
 def print_collection_stats(collection: Any, collection_name: str) -> None:
     """Helper function to print collection statistics and preview."""
     total_docs = collection.count_documents({})
-    rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+    rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
     rprint(f"[bold green]{collection_name} Collection Stats[/bold green]")
-    rprint(f"[bold blue]{'='*60}[/bold blue]")
+    rprint(f"[bold blue]{'=' * 60}[/bold blue]")
     rprint(f"Total Records: {total_docs:,}")
 
     if total_docs > 0:
@@ -83,7 +83,7 @@ def print_collection_stats(collection: Any, collection_name: str) -> None:
 
             structure = get_type_info(first_doc)
             rprint(json.dumps(structure, indent=2))
-    rprint(f"[bold blue]{'='*60}[/bold blue]\n")
+    rprint(f"[bold blue]{'=' * 60}[/bold blue]\n")
 
 
 def print_usage(usage_text):

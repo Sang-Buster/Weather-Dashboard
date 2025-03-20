@@ -19,7 +19,9 @@ def pca_explained_variance_component():
         # Create DataFrame for plotting
         variance_df = pd.DataFrame(
             {
-                "Component": [f"PC{i+1}" for i in range(len(explained_variance_ratio))],
+                "Component": [
+                    f"PC{i + 1}" for i in range(len(explained_variance_ratio))
+                ],
                 "Individual": [x * 100 for x in explained_variance_ratio],
                 "Cumulative": [x * 100 for x in cumulative_variance_ratio],
             }

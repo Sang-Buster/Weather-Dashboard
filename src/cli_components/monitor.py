@@ -135,9 +135,9 @@ def show_monitor_status() -> None:
     config = get_monitor_config()
     fresh, latest_time = check_data_freshness()
 
-    rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+    rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
     rprint("[bold green]Monitor Status[/bold green]")
-    rprint(f"[bold blue]{'='*60}[/bold blue]\n")
+    rprint(f"[bold blue]{'=' * 60}[/bold blue]\n")
 
     status = (
         "[green]enabled[/green]" if config["enabled"] else "[yellow]disabled[/yellow]"

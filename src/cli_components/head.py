@@ -84,7 +84,7 @@ def show_head(date_str=None):
             rprint(f"[green]Earliest data file: {os.path.basename(csv_path)}[/green]")
             rprint(f"Timestamp: {first_row['tNow']}")
             rprint(f"Pressure: {float(first_row['Press_Pa']):.2f} Pa")
-            rprint(f"Temperature: {(float(first_row['Temp_C']) * 9/5 + 32):.2f}°F")
+            rprint(f"Temperature: {(float(first_row['Temp_C']) * 9 / 5 + 32):.2f}°F")
             rprint(f"Relative Humidity: {float(first_row['Hum_RH']):.2f}%")
             rprint(
                 f"3D Wind Speed: {(float(first_row['3DSpeed_m_s']) * 2.23694):.2f} mph"

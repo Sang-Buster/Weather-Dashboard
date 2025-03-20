@@ -34,9 +34,9 @@ def get_system_stats():
                 rprint(f"[yellow]Warning when running {cmd}: {error}[/yellow]")
 
         # Parse and display results
-        rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+        rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
         rprint("[bold green]Raspberry Pi System Status[/bold green]")
-        rprint(f"[bold blue]{'='*60}[/bold blue]\n")
+        rprint(f"[bold blue]{'=' * 60}[/bold blue]\n")
 
         # System Uptime
         rprint("[yellow]System Uptime:[/yellow]")
@@ -99,7 +99,7 @@ def get_system_stats():
                     f"  • {user:<8} PID: {pid:<6} {command[:30]:<30} CPU: {cpu:>5}% MEM: {mem:>5}%"
                 )
 
-        rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+        rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
         return True
 
     except Exception as e:

@@ -62,7 +62,7 @@ def perform_pca_analysis(df: pd.DataFrame, features: list) -> tuple:
     # Get component loadings
     loadings = pd.DataFrame(
         pca.components_.T,
-        columns=[f"PC{i+1}" for i in range(len(features))],
+        columns=[f"PC{i + 1}" for i in range(len(features))],
         index=features,
     )
 
@@ -188,7 +188,7 @@ def main():
     variance_df = pd.DataFrame(
         {
             "Principal Component": [
-                f"PC{i+1}" for i in range(len(explained_variance_ratio))
+                f"PC{i + 1}" for i in range(len(explained_variance_ratio))
             ],
             "Individual Variance Explained": explained_variance_ratio,
             "Cumulative Variance Explained": cumulative_variance_ratio,

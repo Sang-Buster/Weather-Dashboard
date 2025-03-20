@@ -97,9 +97,9 @@ def upload_csv_to_mongodb(
             dates.append(current.strftime("%Y_%m_%d"))
             current += timedelta(days=1)
 
-        rprint(f"\n[bold blue]{'='*50}[/bold blue]")
+        rprint(f"\n[bold blue]{'=' * 50}[/bold blue]")
         rprint(f"[bold green]Starting upload of {len(dates)} dates[/bold green]")
-        rprint(f"[bold blue]{'='*50}[/bold blue]\n")
+        rprint(f"[bold blue]{'=' * 50}[/bold blue]\n")
 
         total_success = 0
         total_records = 0
@@ -211,12 +211,12 @@ def upload_csv_to_mongodb(
                                 rprint(f"[red]Error in chunk: {result}[/red]")
 
         # Summary
-        rprint(f"\n[bold blue]{'='*50}[/bold blue]")
+        rprint(f"\n[bold blue]{'=' * 50}[/bold blue]")
         rprint("[bold]Upload Summary:[/bold]")
         rprint(f"- Total dates processed: {len(dates)}")
         rprint(f"- [green]Total records uploaded: {total_records:,}[/green]")
         rprint(f"- [blue]Total chunks processed: {total_success}[/blue]")
-        rprint(f"[bold blue]{'='*50}[/bold blue]\n")
+        rprint(f"[bold blue]{'=' * 50}[/bold blue]\n")
 
         # Show collection stats
         print_collection_stats(collection, "Weather Data")

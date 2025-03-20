@@ -9,9 +9,9 @@ from .utils import print_collection_stats
 
 def run_eda_analysis(db):
     """Run EDA analysis and upload results"""
-    rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+    rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
     rprint("[bold green]Running EDA Analysis[/bold green]")
-    rprint(f"[bold blue]{'='*60}[/bold blue]\n")
+    rprint(f"[bold blue]{'=' * 60}[/bold blue]\n")
 
     # Run analysis
     run_eda()  # This creates correlation_data.json

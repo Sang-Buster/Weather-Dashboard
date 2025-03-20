@@ -38,7 +38,8 @@ def create_wind_rose(df):
     num_bins = 6  # You can adjust this number
     speed_bins = np.linspace(0, max_speed, num_bins + 1)
     speed_labels = [
-        f"{speed_bins[i]:.1f}-{speed_bins[i+1]:.1f}" for i in range(len(speed_bins) - 1)
+        f"{speed_bins[i]:.1f}-{speed_bins[i + 1]:.1f}"
+        for i in range(len(speed_bins) - 1)
     ]
 
     # Categorize data
@@ -155,7 +156,8 @@ def create_wind_rose_over_time(df):
     num_bins = 6  # You can adjust this number
     speed_bins = np.linspace(0, max_speed, num_bins + 1)
     speed_labels = [
-        f"{speed_bins[i]:.1f}-{speed_bins[i+1]:.1f}" for i in range(len(speed_bins) - 1)
+        f"{speed_bins[i]:.1f}-{speed_bins[i + 1]:.1f}"
+        for i in range(len(speed_bins) - 1)
     ]
 
     # Categorize data

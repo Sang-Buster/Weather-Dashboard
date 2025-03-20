@@ -106,7 +106,7 @@ def show_tail(date_str=None):
                 f"Timestamp: {pd.to_datetime(last_row['tNow']).strftime('%Y-%m-%d %H:%M:%S')}"
             )
             rprint(f"Pressure: {float(last_row['Press_Pa']):.2f} Pa")
-            rprint(f"Temperature: {(float(last_row['Temp_C']) * 9/5 + 32):.2f}°F")
+            rprint(f"Temperature: {(float(last_row['Temp_C']) * 9 / 5 + 32):.2f}°F")
             rprint(f"Relative Humidity: {float(last_row['Hum_RH']):.2f}%")
             rprint(
                 f"3D Wind Speed: {(float(last_row['3DSpeed_m_s']) * 2.23694):.2f} mph"

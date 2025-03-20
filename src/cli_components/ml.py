@@ -8,9 +8,9 @@ from .utils import print_collection_stats
 
 def run_ml_analysis(db):
     """Run ML analysis and upload results"""
-    rprint(f"\n[bold blue]{'='*60}[/bold blue]")
+    rprint(f"\n[bold blue]{'=' * 60}[/bold blue]")
     rprint("[bold green]Running ML Analysis[/bold green]")
-    rprint(f"[bold blue]{'='*60}[/bold blue]\n")
+    rprint(f"[bold blue]{'=' * 60}[/bold blue]\n")
 
     # Run ML analysis
     run_ml()
