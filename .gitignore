@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .streamlit/secrets.toml
 lib/fig/bot/
+nohup.out

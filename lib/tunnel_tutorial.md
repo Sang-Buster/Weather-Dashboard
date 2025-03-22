@@ -19,57 +19,15 @@ To create a reserved public share with a unique name (`erauweather`) and proxy b
 zrok reserve public --unique-name erauweather --backend-mode proxy 8501
 ```
 
-This will generate a **public endpoint** at https://erauweather.sahre.zrok.io
+This will generate a **public endpoint** at https://erauweather.share.zrok.io/
 
 ## **4. Start the Reserved zrok Share in a Detached Screen Session**
-To ensure the tunnel runs in the background, start the `zrok share` process in a detached `screen` session named `weather_app_cloud`:
+Two shell scripts are provided to manage the Streamlit app and zrok tunnel:
 
-```bash
-screen -dmS weather_app_cloud zrok share reserved erauweather
-```
+- `start_weather_app_local.sh`: Starts the Streamlit app in a screen session
+- `start_weather_app_cloud.sh`: Starts the zrok tunnel in a screen session
 
----
-
-## **Shell Scripts**
-
-### **Script to Run Streamlit App in Screen (`start_weather_app_local.sh`)**
-This script handles killing any existing process on port 8501, activates the virtual environment, and starts the Streamlit app in a screen session:
-
-```bash
-#!/bin/bash
-
-# Kill any process using port 8501
-PID=$(lsof -ti :8501)
-if [ -n "$PID" ]; then
-    echo "Killing process on port 8501 (PID: $PID)"
-    kill -9 $PID
-    sleep 2
-fi
-
-# Change to the weather dashboard directory
-cd /var/tmp/weather-dashboard || exit
-
-# Activate virtual environment
-source .venv/bin/activate
-
-# Start the application inside a screen session
-screen -dmS weather_app_local bash -c "streamlit run src/app.py --server.port 8501 --server.address 0.0.0.0"
-echo "Streamlit app started in screen session: weather_app_local"
-```
-
-### **Script to Start zrok Tunnel in Screen (`start_weather_app_cloud.sh`)**
-This script handles starting the zrok tunnel in a detached screen session:
-
-```bash
-#!/bin/bash
-
-# Kill existing screen session if it exists
-screen -X -S weather_app_cloud quit 2>/dev/null || true
-
-# Start the zrok tunnel in a detached screen session
-screen -dmS weather_app_cloud zrok share reserved erauweather
-echo "zrok tunnel started in screen session: weather_app_cloud"
-```
+Both scripts handle cleaning up existing processes and creating new screen sessions automatically.
 
 ---
 
@@ -104,10 +62,4 @@ screen -X -S weather_app_cloud quit
 
 ---
 
-Now your local Streamlit app is **accessible via**:
-
-```
-https://erauweather.sahre.zrok.io
-```
-
-🚀 Enjoy your **publicly accessible** Streamlit weather dashboard with `zrok`!
+Now your local Streamlit app is **accessible via**: https://erauweather.share.zrok.io/

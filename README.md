@@ -11,6 +11,7 @@ This project is a comprehensive weather data analysis system that combines a [St
 </div>
 
 <ol>
+  <li><a href="#application-demo">Applications</a></li>
   <li><a href="#setup-instructions">Setup Instructions</a></li>
   <li><a href="#development-setup">Development Setup</a></li>
   <li><a href="#web-app-operations">Web App Operations</a></li>
@@ -19,6 +20,35 @@ This project is a comprehensive weather data analysis system that combines a [St
   <li><a href="#project-structure">Project Structure</a></li>
 </ol>
 
+<div align="center">
+  <h2>Applications</h2>
+</div>
+
+The weather dashboard runs 2 applications in 2 screen sessions that are automatically started on boot:
+
+1. `weather_app_local`: Runs the main weather station application
+2. `weather_app_cloud`: Tunnels the weather station application to the cloud
+
+```shell
+# Start the weather app in a screen session
+./start_weather_app_local.sh
+
+# Start the zrok tunnel in a screen session
+./start_weather_app_cloud.sh
+```
+
+For detailed information about, please refer to `lib/tunnel_tutorial.md`.
+
+You can check the status of these screen sessions at any time using:
+```bash
+screen -ls
+```
+
+And attach to any session using:
+```bash
+screen -r weather_app_local  # for the weather logger
+screen -r weather_app_cloud  # for the WiFi reconnect script
+```
 
 <div align="center">
   <h2>Setup Instructions</h2>
