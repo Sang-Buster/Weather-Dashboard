@@ -363,10 +363,8 @@ meteorix tail 2024_03_20
  ┃ ┗ 📄secrets.toml                 // Secrets configuration
  ┣ 📂lib                         // Library and documentation files
  ┃ ┣ 📂fig                          // Plots and images
- ┃ ┣ 📄project_instructions.pdf
- ┃ ┣ 📄project_presentation.pdf
- ┃ ┣ 📄project_proposal.md
- ┃ ┗ 📄project_report.md
+ ┃ ┣ 📄presentation.pdf             // Project presentation
+ ┃ ┗ 📄tunnel_tutorial.md           // Tunnel tutorial
  ┣ 📂src                         // Source code files
  ┃ ┣ 📂cli_components               // CLI components
  ┃ ┣ 📂web_components               // Dashboard components
@@ -379,5 +377,7 @@ meteorix tail 2024_03_20
  ┣ 📄.pre-commit_msg_template.py
  ┣ 📄LICENSE
  ┣ 📄README.md
- ┗ 📄requirements.txt            // Python dependencies
+ ┣ 📄requirements.txt            // Python dependencies
+ ┣ 📄start_weather_app_cloud.sh  // Start the weather app in the cloud
+ ┗ 📄start_weather_app_local.sh  // Start the weather app locally
 ```

@@ -57,7 +57,10 @@ def set_frequency(freq=None):
         # If no frequency specified, check current status
         if freq is None:
             # Check if the Weather Station logger is running
-            stdin, stdout, stderr = ssh.exec_command("sudo screen -ls | grep logger")
+            stdin, stdout, stderr = ssh.exec_command(
+                "screen -ls | grep weather_logger || sudo screen -ls | grep weather_logger"
+            )
+
             screen_output = stdout.read().decode().strip()
 
             if not screen_output:
@@ -128,7 +131,9 @@ def set_frequency(freq=None):
                     rprint("[yellow]Already running in HIGH frequency mode[/yellow]")
                     return True
                 rprint("[yellow]Starting HIGH frequency logging...[/yellow]")
-                ssh.exec_command("sudo python3 /home/pi/SDL_Starter.py")
+                ssh.exec_command(
+                    "sudo python3 /home/pi/Desktop/weather_logger/src/sdl_high.py"
+                )
                 rprint(
                     "[green]Successfully enabled HIGH frequency logging (32 Hz)[/green]"
                 )
@@ -137,7 +142,9 @@ def set_frequency(freq=None):
                     rprint("[yellow]Already running in LOW frequency mode[/yellow]")
                     return True
                 rprint("[yellow]Stopping HIGH frequency logging...[/yellow]")
-                ssh.exec_command("sudo python3 /home/pi/SDL_Stopper.py")
+                ssh.exec_command(
+                    "sudo python3 /home/pi/Desktop/weather_logger/src/sdl_low.py"
+                )
                 rprint(
                     "[green]Successfully disabled HIGH frequency logging (returning to 1 Hz)[/green]"
                 )
