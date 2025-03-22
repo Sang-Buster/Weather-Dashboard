@@ -11,7 +11,7 @@ This project is a comprehensive weather data analysis system that combines a [St
 </div>
 
 <ol>
-  <li><a href="#application-demo">Applications</a></li>
+  <li><a href="#applications">Applications</a></li>
   <li><a href="#setup-instructions">Setup Instructions</a></li>
   <li><a href="#development-setup">Development Setup</a></li>
   <li><a href="#web-app-operations">Web App Operations</a></li>
