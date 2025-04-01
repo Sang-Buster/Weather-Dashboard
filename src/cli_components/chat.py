@@ -577,6 +577,7 @@ def get_mapped_dates(text: str) -> List[str]:
     # Time period mappings
     time_mappings = {
         "today": lambda: [latest_date.strftime("%Y_%m_%d")],
+        "tomorrow": lambda: [(latest_date + timedelta(days=1)).strftime("%Y_%m_%d")],
         "yesterday": lambda: [(latest_date - timedelta(days=1)).strftime("%Y_%m_%d")],
         "this week": lambda: [
             (latest_date - timedelta(days=i)).strftime("%Y_%m_%d")
