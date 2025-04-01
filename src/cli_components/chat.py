@@ -105,12 +105,12 @@ class SSHPortForward:
             self.stop()
 
             # Wait for port to be available
-            retries = 5
+            retries = 10
             while self.is_port_in_use() and retries > 0:
                 rprint(
                     f"[yellow]Waiting for port {OLLAMA_PORT} to be available... ({retries} retries left)[/yellow]"
                 )
-                time.sleep(1)
+                time.sleep(5)
                 retries -= 1
 
             if self.is_port_in_use():
@@ -657,10 +657,9 @@ async def chat_with_llm(prompt: str, model: str = None) -> str:
         time.sleep(0.5)
 
         system_prompt = """You are Meteorix, a professional meteorologist bot created by Sang-Buster. 
-You have access to weather station data through functions.
+You have access to weather station data through functions, and the weather station data is collected at Daytona Beach, Florida, USA.
 
 IMPORTANT: All dates must be in YYYY_MM_DD format with underscores (not hyphens).
-For example: 2024_10_08 (correct) vs 2024-10-08 (incorrect)
 
 Available weather metrics:
 - Temperature (Temp_C, SonicTemp_C)
